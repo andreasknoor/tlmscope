@@ -222,6 +222,8 @@ Every phase ends with passing tests, a short demo, small focused commits and you
   - the file format;
   - the model and the channel catalogue, so new adapters can be written against it.
 
+- Add the five AutoLog samples to the repository (≈ 19 MB) and push to GitHub (`andreasknoor/tlmscope`), so Vercel previews can build from Phase 3 on.
+
 **Done when:** all tests pass on all six files and the CLI prints a complete inventory for each.
 
 ### Phase 2: Analysis library
@@ -260,7 +262,7 @@ Every phase ends with passing tests, a short demo, small focused commits and you
 - Name and logo assets, favicon, app icon.
 - Accessibility pass: keyboard, focus, contrast, screen-reader labels on charts.
 - Performance check with the 9.5 MB file. Target: parse plus first render under 2 s on a recent Mac.
-- README final, production deployment on Vercel, push to GitHub (`andreasknoor/tlmscope`).
+- README final, production deployment on Vercel.
 
 ## 6. Testing strategy
 - Unit tests for every decoder and analysis (Vitest), using real samples and small synthetic fixtures.
