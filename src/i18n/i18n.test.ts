@@ -23,3 +23,11 @@ describe("translations", () => {
     for (const [k, v] of flat(en)) expect(placeholders(deMap.get(k) ?? ""), k).toEqual(placeholders(v));
   });
 });
+
+describe("German sensor texts", () => {
+  it("cover every Spektrum sensor the adapter knows", async () => {
+    const { SENSORS, KNOWN_UNDECODED } = await import("../core/adapters/spektrum-tlm/sensors.ts");
+    const { default: streams } = await import("./streams.de.json");
+    expect(Object.keys(streams).sort()).toEqual([...Object.keys(SENSORS), ...Object.keys(KNOWN_UNDECODED)].sort());
+  });
+});

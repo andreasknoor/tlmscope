@@ -1,0 +1,22 @@
+{
+  "0x20": { "label": "Regler (Smart-Regler, z. B. Avian)", "note": "" },
+  "0x40": { "label": "Vario", "note": "" },
+  "0x7f": { "label": "Flugprotokoll (Verbindungsqualität)", "note": "Die Zähler laufen seit dem Einschalten des Empfängers; die Kanäle zählen ab Sitzungsbeginn." },
+  "0x7e": { "label": "Drehzahl / Signal", "note": "Offset 8 = Signal in dBm, Offset 9 = Signal in % (Bedeutung unbestätigt). Offset 14 zählt etwa einmal pro Sekunde hoch (unbekannt, vielleicht Laufzeit des Empfängers)." },
+  "0x14": { "label": "G-Messer", "note": "" },
+  "0x1a": { "label": "Gyro", "note": "Achsen zugeordnet als x = Rollen, y = Nicken, z = Gieren. Geprüft an den Beispielflügen: y ist in jeder Kurve positiv, z gibt die Richtung an." },
+  "0x05": { "label": "Status Flugsteuerung (AS3X / SAFE)", "note": "Byte 2 sieht nach dem Flugmodus-Index aus (ab 0, unbestätigt). Byte 5 wechselt 0x80–0x82 wie eine Seitennummer; die Bytes 6–9 enthalten dann kleine Werte (Verstärkungen?)." },
+  "0x42/0x00": { "label": "Smart-Akku · Live-Werte", "note": "Little-Endian. Felder kommen oft nur teilweise gefüllt; Strom und verbrauchte mAh sind lückenhaft und werden nicht genutzt." },
+  "0x42/0x10": { "label": "Smart-Akku · Zellen 1–6", "note": "" },
+  "0x42/0x80": { "label": "Smart-Akku · Identität", "note": "" },
+  "0x42/0x90": { "label": "Smart-Akku · Grenzwerte", "note": "" },
+  "0x0c": { "label": "Textgenerator", "note": "Byte 2 = Zeilennummer, 13 ASCII-Zeichen. Hier: der Text des Programmiermenüs des Avian-Reglers." },
+  "0x7c": { "label": "Uhr", "note": "Bytes 8–11: Unix-Zeit (Sekunden, Little-Endian), einmal pro Sitzung. Die übrigen Bytes sind in den Beispielen immer null." },
+  "0x16": { "label": "GPS-Position", "note": "Nach der Spezifikation dekodiert (Little-Endian-BCD). Noch nicht mit einem echten GPS-Log geprüft." },
+  "0x17": { "label": "GPS-Status", "note": "Nach der Spezifikation dekodiert (Little-Endian-BCD). Noch nicht mit einem echten GPS-Log geprüft." },
+  "0x7a/1": { "label": "Knüppelstellungen am Sender", "note": "Nur in AutoLog-Dateien. Vorzeichenbehaftete 12-Bit-Werte (−2047…2047), Little-Endian. Offset 4 ist der Gasknüppel (passt zum Gas am Regler, r = 0,88). Die Offsets 6, 8, 10 liegen um 0 und sind vermutlich Quer-, Höhen- und Seitenruder (unbestätigt). Offset 2 ist unbekannt." },
+  "0x7a/0": { "label": "Statusbits des Senders", "note": "Nur in AutoLog-Dateien, abwechselnd mit den Knüppelstellungen. Die Bytes 2–3 sehen nach einem Bitfeld aus (Schalterstellungen?). Nicht dekodiert." },
+  "0x00": { "label": "Leerer Platz", "note": "Keine Sensor-ID. Meist Nullen; manche Datensätze enthalten Bruchstücke anderer Pakete." },
+  "0x76": { "label": "Unbekannt 0x76", "note": "" },
+  "0x12": { "label": "Höhensensor (angemeldet, keine Daten)", "note": "" }
+}

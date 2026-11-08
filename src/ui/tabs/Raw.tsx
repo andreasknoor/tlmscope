@@ -4,10 +4,18 @@ import { useTranslations } from "next-intl";
 import { Fragment, useState } from "react";
 import { catalogue } from "@/core/model/catalogue";
 import type { RawStream } from "@/core/model/types";
+import streamsDe from "@/i18n/streams.de.json";
 import { num } from "../format";
 import { useStore } from "../store";
 
 const LEVEL_COLOR = { full: "var(--good)", partial: "var(--warn)", none: "var(--crit)" };
+const DE = streamsDe as Record<string, { label: string; note: string }>;
+
+/** Label and note of a stream in the UI language (adapters write English). */
+function streamText(s: RawStream, locale: string): { label: string; note?: string } {
+  const de = locale === "de" ? DE[s.key] : undefined;
+  return de ? { label: de.label, note: de.note || undefined } : { label: s.label, note: s.note };
+}
 
 /** Sensor streams with decoded fields and raw records. Used per session and for whole files. */
 export function StreamTable({ streams, seconds }: { streams: RawStream[]; seconds: Map<string, number> }) {
@@ -24,10 +32,11 @@ export function StreamTable({ streams, seconds }: { streams: RawStream[]; second
         <tbody>
           {streams.map((s) => {
             const secs = seconds.get(s.key) ?? 0;
+            const text = streamText(s, loc);
             return (
               <Fragment key={s.key}>
                 <tr className="clickable" onClick={() => toggle(s.key)} aria-expanded={isOpen(s.key)}>
-                  <td><b>{s.label}</b>{s.note ? <><br /><span className="hint">{s.note}</span></> : null}</td>
+                  <td><b>{text.label}</b>{text.note ? <><br /><span className="hint">{text.note}</span></> : null}</td>
                   <td className="mono">{s.key}</td>
                   <td><span className="pill"><span className="kdot" style={{ background: LEVEL_COLOR[s.understood] }} />{t(`understood.${s.understood}`)}</span></td>
                   <td className="r">{s.count}</td>
