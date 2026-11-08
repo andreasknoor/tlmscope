@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
 <style>
-/* Layout: one column of option cards; each card shows the mark large, on light and dark, as a tab icon and in the app header. */
+/* Layout: single column brand sheet. Hero lockup, then sizes, variants, the one open choice, usage rules and files. */
 :root {
   --bg: #eef2f3;
   --surface: #ffffff;
@@ -12,154 +12,153 @@
   --ink-3: #7b8b94;
   --line: #d8e1e5;
   --accent: #0d6a83;
-  --accent-2: #1baf7a;
-  --dark-bg: #151f25;
-  --dark-ink: #e4ecef;
-  --dark-accent: #52b6d2;
+  --grid: rgba(13, 106, 131, .18);
   --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
   --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --bg: #0e1418; --surface: #151f25; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e; --line: #25333b; --accent: #52b6d2; color-scheme: dark; }
+  :root:not([data-theme="light"]) { --bg: #0e1418; --surface: #151f25; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e; --line: #25333b; --accent: #52b6d2; --grid: rgba(82, 182, 210, .22); color-scheme: dark; }
 }
-:root[data-theme="dark"] { --bg: #0e1418; --surface: #151f25; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e; --line: #25333b; --accent: #52b6d2; color-scheme: dark; }
+:root[data-theme="dark"] { --bg: #0e1418; --surface: #151f25; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e; --line: #25333b; --accent: #52b6d2; --grid: rgba(82, 182, 210, .22); color-scheme: dark; }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body); margin: 0; }
-.wrap { max-width: 1080px; margin: 0 auto; padding-block: 32px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 22px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 32px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 22px; }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; text-wrap: balance; }
-h1 { font-size: 34px; }
-h2 { font-size: 24px; margin-top: 14px; }
+h1 { font-size: 34px; } h2 { font-size: 24px; margin-top: 18px; } h3 { font-size: 17px; }
 p { margin: 0; max-width: 70ch; color: var(--ink-2); }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.card.rec { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
-.pair { display: grid; grid-template-columns: 1fr 1fr; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
-.pair > div { padding: 22px 16px; display: flex; align-items: center; justify-content: center; min-height: 110px; gap: 12px; }
-.light { background: #ffffff; color: #13212a; --mk: #0d6a83; --mk2: #1baf7a; --mkbg: #13212a; --mkfg: #ffffff; }
-.dark { background: var(--dark-bg); color: var(--dark-ink); --mk: #52b6d2; --mk2: #199e70; --mkbg: #e4ecef; --mkfg: #151f25; }
-.uses { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); }
-.tab { display: inline-flex; align-items: center; gap: 6px; background: #e3e8ea; color: #13212a; border-radius: 8px 8px 0 0; padding: 6px 12px; font-size: 12.5px; }
-.tab svg { width: 16px; height: 16px; }
-.appbar { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--surface); font-size: 13px; color: var(--ink-2); flex-wrap: wrap; }
-.appbar .nav { display: flex; gap: 10px; }
-.appbar .nav b { color: var(--accent); }
-.note { font-size: 13.5px; color: var(--ink-2); }
-.pros { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 13.5px; color: var(--ink-2); }
-.pros b { color: var(--ink); font-weight: 600; }
-
-/* wordmarks */
-.wm { font-family: var(--font-display); line-height: 1; white-space: nowrap; }
-.wm-a { font-size: 40px; font-weight: 500; letter-spacing: .01em; }
-.wm-a b { font-weight: 700; color: var(--mk); letter-spacing: .03em; }
-.wm-b { font-size: 40px; font-weight: 600; letter-spacing: .01em; }
-.wm-b span { font-weight: 400; }
-.wm-c { font-size: 40px; font-weight: 500; }
-.wm-c i { font-style: normal; color: var(--mk); margin: 0 1px; }
-.wm-d { font-size: 26px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; }
-.wm-d i { font-style: normal; color: var(--mk); }
-.sm .wm-a, .sm .wm-b, .sm .wm-c { font-size: 20px; } .sm .wm-d { font-size: 14px; }
-.lock { display: inline-flex; align-items: center; gap: 10px; }
-.lock svg { width: 46px; height: 46px; flex: none; }
-.sm .lock svg { width: 24px; height: 24px; }
-.sm .lock { gap: 6px; }
-.big svg { width: 96px; height: 96px; }
-@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } .wm-a, .wm-b, .wm-c { font-size: 30px; } .wm-d { font-size: 18px; } .lock svg { width: 36px; height: 36px; } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.panel { border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 18px; padding: 28px 16px; min-height: 130px; flex-wrap: wrap; }
+.on-light { background: #ffffff; color: #13212a; border: 1px solid #d8e1e5; }
+.on-dark { background: #151f25; color: #e4ecef; }
+.on-photo { background: linear-gradient(160deg, #8fc3dd 0%, #d8ecf3 55%, #a7c08a 56%, #6f8f55 100%); color: #13212a; }
+.lock { display: inline-flex; align-items: center; gap: 14px; }
+.lock svg { flex: none; }
+.wm { font-family: var(--font-display); font-weight: 500; letter-spacing: .01em; line-height: 1; white-space: nowrap; }
+.wm b { font-weight: 700; letter-spacing: .03em; }
+.wm.accent b { color: #0d6a83; }
+.on-dark .wm.accent b { color: #52b6d2; }
+.sizes { display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
+.sizes figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
+.choice { border: 2px solid var(--line); }
+.choice.rec { border-color: var(--accent); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 14px; }
+.kv dt { color: var(--ink-3); } .kv dd { margin: 0; color: var(--ink); }
+code { font-size: 13px; background: var(--bg); padding: 1px 6px; border-radius: 4px; }
+.construct { position: relative; width: 256px; max-width: 100%; aspect-ratio: 1; }
+.construct svg { width: 100%; height: 100%; display: block; }
+@media (max-width: 760px) { .row, .row3 { grid-template-columns: minmax(0, 1fr); } .wm { font-size: 30px !important; } }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <!-- A: climb trace. A vario trace that steps upward, the shape of a motor climb followed by thermalling. -->
-    <symbol id="m-trace" viewBox="0 0 64 64">
-      <rect x="2" y="2" width="60" height="60" rx="14" fill="var(--mk)"/>
-      <path d="M10 47 H19 L25 38 L30 41 L37 28 L42 31 L51 15" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="51" cy="15" r="4.5" fill="#fff"/>
-    </symbol>
-    <!-- B: vario dial. The pilot's instrument, needle in the climb sector. -->
-    <symbol id="m-dial" viewBox="0 0 64 64">
-      <circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" stroke-width="4"/>
-      <path d="M32 11 A21 21 0 0 1 53 32" fill="none" stroke="var(--mk2)" stroke-width="5" stroke-linecap="round"/>
-      <g stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 32 H17"/><path d="M32 51 V47"/><path d="M18.6 45.4 L21.4 42.6"/></g>
-      <path d="M32 32 L47 19" stroke="var(--mk)" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="32" cy="32" r="5" fill="var(--mk)"/>
-    </symbol>
-    <!-- C: level bars. The app's four-step rating meter with a flight trace running across it. -->
-    <symbol id="m-bars" viewBox="0 0 64 64">
-      <rect x="8" y="40" width="9" height="16" rx="2.5" fill="var(--mk)" opacity=".45"/>
-      <rect x="21" y="32" width="9" height="24" rx="2.5" fill="var(--mk)" opacity=".65"/>
-      <rect x="34" y="23" width="9" height="33" rx="2.5" fill="var(--mk)" opacity=".85"/>
-      <rect x="47" y="13" width="9" height="43" rx="2.5" fill="var(--mk)"/>
-      <path d="M5 30 C14 30 16 16 26 16 C35 16 36 8 46 7 L59 6" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
-    </symbol>
-    <!-- D: glider monogram. A glider seen from above, long wing as the bar of the T. -->
-    <symbol id="m-glider" viewBox="0 0 64 64">
-      <rect x="2" y="2" width="60" height="60" rx="14" fill="var(--mkbg)"/>
-      <path d="M7 22.5 Q32 18.5 57 22.5 L57 25.5 Q32 23.5 7 25.5 Z" fill="var(--mkfg)"/>
-      <path d="M30 13 Q32 10 34 13 L33.2 50 L30.8 50 Z" fill="var(--mkfg)"/>
-      <path d="M23 49 Q32 47 41 49 L41 51.5 Q32 50.5 23 51.5 Z" fill="var(--mkfg)"/>
-      <path d="M31 44 L33 44 L33 55 L31 55 Z" fill="var(--mk)"/>
-    </symbol>
+    <symbol id="icon" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0d6a83"/><path d="M12 46H21L27 37L32 40L39 27L44 30L51 17" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="51" cy="17" r="5" fill="#fff"/></symbol>
+    <symbol id="icon-sm" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0d6a83"/><path d="M12 46H23L31 35L37 39L50 18" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="50" cy="18" r="6.5" fill="#fff"/></symbol>
+    <mask id="mono-m"><rect width="64" height="64" fill="#fff"/><path d="M12 46H21L27 37L32 40L39 27L44 30L51 17" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="51" cy="17" r="5" fill="#000"/></mask>
+    <symbol id="icon-mono" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="currentColor" mask="url(#mono-m)"/></symbol>
+    <symbol id="glyph" viewBox="8 12 48 38"><path d="M12 46H21L27 37L32 40L39 27L44 30L51 17" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="51" cy="17" r="5" fill="currentColor"/></symbol>
+    <symbol id="app" viewBox="0 0 64 64"><rect width="64" height="64" fill="#0d6a83"/><g transform="translate(32 31.5) scale(.78) translate(-32 -31.5)"><path d="M12 46H21L27 37L32 40L39 27L44 30L51 17" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="51" cy="17" r="5" fill="#fff"/></g></symbol>
   </defs>
 </svg>
 
 <div class="wrap">
   <header style="display:flex;flex-direction:column;gap:8px">
-    <span class="tag">tlmscope · naming and logo</span>
-    <h1>How the name could look</h1>
-    <p>“tlmscope” in lower case reads like a file name. Below are two routes: a better spelling with no logo, or a small logo next to the name. Every option is shown on light and dark, as a browser-tab icon and in the app's top bar.</p>
+    <span class="tag">TLMscope · logo, final draft</span>
+    <h1>The climb trace, ready to use</h1>
+    <p>The sketch is now a finished logo: built on a grid, with a simpler version for tiny sizes, light, dark and one-colour versions, an app icon and the SVG files the app will use. One choice is left for you, further down.</p>
   </header>
 
-  <h2>Route 1 · Spelling only</h2>
-  <p>Cheapest to maintain: no icon to design or scale. The browser tab then needs a letter icon.</p>
-  <div class="grid">
-    <div class="card rec">
-      <div class="head"><h3>A · TLMscope</h3><span class="tag">Recommended spelling</span></div>
-      <div class="pair"><div class="light"><span class="wm wm-a"><b>TLM</b>scope</span></div><div class="dark"><span class="wm wm-a"><b>TLM</b>scope</span></div></div>
-      <div class="pros"><b>+</b><span>“TLM” reads as the file type, “scope” as looking closely. Clear split without a space.</span><b>−</b><span>Three capitals in a row are a bit loud at small sizes.</span></div>
+  <div class="row">
+    <div class="panel on-light"><span class="lock"><svg width="64" height="64"><use href="#icon"/></svg><span class="wm" style="font-size:46px"><b>TLM</b>scope</span></span></div>
+    <div class="panel on-dark"><span class="lock"><svg width="64" height="64"><use href="#icon"/></svg><span class="wm" style="font-size:46px"><b>TLM</b>scope</span></span></div>
+  </div>
+
+  <h2>How it is built</h2>
+  <div class="row">
+    <div class="card" style="align-items:center">
+      <div class="construct">
+        <svg viewBox="0 0 64 64" aria-label="Construction grid">
+          <use href="#icon"/>
+          <g stroke="#ff4d8d" stroke-width=".25" fill="none" opacity=".9">
+            <path d="M12 0V64M52 0V64M0 16V64M0 46H64"/>
+            <path d="M0 32H64M32 0V64" stroke-dasharray="1 1"/>
+            <circle cx="51" cy="17" r="5"/>
+          </g>
+        </svg>
+      </div>
     </div>
     <div class="card">
-      <div class="head"><h3>B · TLM Scope</h3></div>
-      <div class="pair"><div class="light"><span class="wm wm-b">TLM <span>Scope</span></span></div><div class="dark"><span class="wm wm-b">TLM <span>Scope</span></span></div></div>
-      <div class="pros"><b>+</b><span>Easiest to read and say.</span><b>−</b><span>Two words feel generic and are harder to search for.</span></div>
-    </div>
-    <div class="card">
-      <div class="head"><h3>C · tlm/scope</h3></div>
-      <div class="pair"><div class="light"><span class="wm wm-c">tlm<i>/</i>scope</span></div><div class="dark"><span class="wm wm-c">tlm<i>/</i>scope</span></div></div>
-      <div class="pros"><b>+</b><span>Matches the repository name and looks deliberate.</span><b>−</b><span>Still technical. Pilots may not get the joke.</span></div>
-    </div>
-    <div class="card">
-      <div class="head"><h3>D · TLM·SCOPE</h3></div>
-      <div class="pair"><div class="light"><span class="wm wm-d">TLM<i>·</i>Scope</span></div><div class="dark"><span class="wm wm-d">TLM<i>·</i>Scope</span></div></div>
-      <div class="pros"><b>+</b><span>Looks like an instrument label in a cockpit.</span><b>−</b><span>Wide. Needs space in the top bar and on phones.</span></div>
+      <dl class="kv">
+        <dt>Grid</dt><dd>64 × 64 units, corner radius 14 (22 %).</dd>
+        <dt>Trace</dt><dd>Starts flat on the ground line (y 46), climbs in three steps to the end point (y 17). The steps read as a motor climb followed by lift.</dd>
+        <dt>Margins</dt><dd>12 units left, 13 right, 12 top and bottom. The trace is visually centred, not mathematically.</dd>
+        <dt>Line</dt><dd>5 units, round ends and corners. The end dot is 10 units wide and marks “now”.</dd>
+        <dt>Colour</dt><dd>Teal <code>#0d6a83</code>, the app's accent. White trace. The same icon works on light and dark.</dd>
+      </dl>
     </div>
   </div>
 
-  <h2>Route 2 · Logo plus name</h2>
-  <p>Each logo is paired with spelling A. The icon also works alone as the browser-tab and home-screen icon.</p>
-  <div class="grid" id="logos"></div>
+  <h2>Sizes</h2>
+  <p>At 24 px and below, the three steps blur into noise. The small version has two steps and a thicker line. The app switches automatically: favicons use the small version, everything else the full one.</p>
+  <div class="card">
+    <div class="sizes">
+      <figure><svg width="128" height="128"><use href="#icon"/></svg>128 px</figure>
+      <figure><svg width="64" height="64"><use href="#icon"/></svg>64 px</figure>
+      <figure><svg width="32" height="32"><use href="#icon"/></svg>32 px</figure>
+      <figure><svg width="24" height="24"><use href="#icon-sm"/></svg>24 px · small</figure>
+      <figure><svg width="16" height="16"><use href="#icon-sm"/></svg>16 px · small</figure>
+      <figure style="margin-left:24px"><svg width="16" height="16"><use href="#icon"/></svg>16 px · full, for comparison</figure>
+    </div>
+  </div>
 
-  <h2>My recommendation</h2>
-  <p><b style="color:var(--ink)">Logo A (climb trace) with the spelling TLMscope.</b> It says what the app does: it shows a flight as a curve. It stays readable at 16 px, and its single colour fits the app's existing accent. Logo D is the most “model flying”, but a glider shape is harder to read at small sizes and ties the app to gliders. Powered models and helicopters write the same logs.</p>
-  <p class="note">The logos are first sketches to choose a direction. Once you pick one, I would refine the shapes and spacing and add the icon files the app needs.</p>
+  <h2>Versions</h2>
+  <div class="row3">
+    <div class="card"><h3>Colour</h3><div class="panel on-light"><svg width="72" height="72"><use href="#icon"/></svg></div><p>Default everywhere.</p></div>
+    <div class="card"><h3>One colour</h3><div class="panel on-light" style="gap:24px"><svg width="72" height="72" style="color:#13212a"><use href="#icon-mono"/></svg><svg width="72" height="72" style="color:#ffffff;background:#151f25;border-radius:16px"><use href="#icon-mono"/></svg></div><p>For print, stickers, engraving. Trace is cut out.</p></div>
+    <div class="card"><h3>Trace only</h3><div class="panel on-light" style="gap:24px"><svg width="72" height="58" style="color:#0d6a83"><use href="#glyph"/></svg><svg width="72" height="58" style="color:#13212a"><use href="#glyph"/></svg></div><p>Inside text or small UI spots, e.g. a loading state.</p></div>
+    <div class="card"><h3>App icon</h3><div class="panel on-photo" style="gap:24px"><svg width="72" height="72" style="border-radius:16px"><use href="#app"/></svg><svg width="72" height="72" style="border-radius:50%"><use href="#app"/></svg></div><p>Full-bleed square for phone home screens. Phones cut it to a rounded square or a circle; the trace stays inside the safe zone.</p></div>
+    <div class="card"><h3>Browser tab</h3><div class="panel on-light"><span style="display:inline-flex;align-items:center;gap:8px;background:#e3e8ea;border-radius:8px 8px 0 0;padding:7px 14px;font-size:13px;color:#13212a"><svg width="16" height="16"><use href="#icon-sm"/></svg>TLMscope · Flight 10 Oct</span></div><p>Small version, 16 px.</p></div>
+    <div class="card"><h3>App top bar</h3><div class="panel on-light" style="justify-content:flex-start"><span class="lock" style="gap:8px"><svg width="26" height="26"><use href="#icon"/></svg><span class="wm" style="font-size:22px"><b>TLM</b>scope</span></span><span style="font-size:13px;color:#0d6a83;font-weight:600;margin-left:12px">Sessions</span><span style="font-size:13px;color:#4f606a;font-weight:600">Batteries</span></div><p>Replaces the current plain-text name.</p></div>
+  </div>
+
+  <h2>One choice: colour of “TLM”</h2>
+  <p>With a coloured icon next to it, a coloured “TLM” repeats the accent. An all-dark name is calmer. The icon carries the colour.</p>
+  <div class="row">
+    <div class="card choice rec">
+      <div class="head" style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3>1 · Name in one colour</h3><span class="tag">Recommended</span></div>
+      <div class="panel on-light"><span class="lock"><svg width="52" height="52"><use href="#icon"/></svg><span class="wm" style="font-size:40px"><b>TLM</b>scope</span></span></div>
+      <div class="panel on-dark"><span class="lock"><svg width="52" height="52"><use href="#icon"/></svg><span class="wm" style="font-size:40px"><b>TLM</b>scope</span></span></div>
+      <p>“TLM” is set apart by weight only. Calm, and works in one-colour print without changes.</p>
+    </div>
+    <div class="card choice">
+      <h3>2 · “TLM” in teal</h3>
+      <div class="panel on-light"><span class="lock"><svg width="52" height="52"><use href="#icon"/></svg><span class="wm accent" style="font-size:40px"><b>TLM</b>scope</span></span></div>
+      <div class="panel on-dark"><span class="lock"><svg width="52" height="52"><use href="#icon"/></svg><span class="wm accent" style="font-size:40px"><b>TLM</b>scope</span></span></div>
+      <p>More colour, “TLM” stands out more. Needs a second version for one-colour use.</p>
+    </div>
+  </div>
+
+  <h2>Rules</h2>
+  <div class="card">
+    <dl class="kv">
+      <dt>Clear space</dt><dd>Keep free space around the logo at least as wide as the end dot (⅙ of the icon).</dd>
+      <dt>Minimum size</dt><dd>16 px for the icon (small version), 80 px wide for icon plus name.</dd>
+      <dt>Name</dt><dd>Always “TLMscope”: “TLM” in capitals and bold, “scope” in lower case, no space. Typeface Barlow Semi Condensed.</dd>
+      <dt>Don't</dt><dd>Stretch, rotate, recolour the trace, or put the colour icon on busy photos without its square.</dd>
+    </dl>
+  </div>
+
+  <h2>Files</h2>
+  <div class="card">
+    <dl class="kv">
+      <dt><code>brand/icon.svg</code></dt><dd>Colour icon, 32 px and larger.</dd>
+      <dt><code>brand/icon-small.svg</code></dt><dd>Colour icon for 16–24 px, used as favicon.</dd>
+      <dt><code>brand/icon-mono.svg</code></dt><dd>One-colour icon, takes the surrounding text colour.</dd>
+      <dt><code>brand/glyph.svg</code></dt><dd>Trace only, takes the surrounding text colour.</dd>
+      <dt><code>brand/app-icon-maskable.svg</code></dt><dd>Full-bleed app icon. PNG sizes for phones are generated from it in Phase 6.</dd>
+    </dl>
+    <p>The name is set as live text in the app's own typeface, so no font file needs to be converted.</p>
+  </div>
 </div>
-
-<script>
-const LOGOS = [
-  { id: "trace", name: "A · Climb trace", rec: true, text: "A vario trace that steps upward, like a motor climb followed by thermalling.", pro: "Works at every size. Says “flight data” without words.", con: "Line-chart icons are common in analytics tools." },
-  { id: "dial", name: "B · Vario dial", text: "The pilot's climb instrument, needle in the green climb sector.", pro: "Strongly linked to flying and gliding.", con: "Fine ticks disappear at 16 px." },
-  { id: "bars", name: "C · Level bars", text: "The app's four-step rating meter with a flight trace running across it.", pro: "Ties the logo to the app's own rating scale.", con: "Can be mistaken for a mobile signal icon." },
-  { id: "glider", name: "D · Glider T", text: "A glider seen from above. The long wing forms the bar of a T.", pro: "Most personal and most “model flying”.", con: "Says glider only. Detail gets lost at small sizes." },
-];
-const use = (id) => `<svg viewBox="0 0 64 64" aria-hidden="true"><use href="#m-${id}"/></svg>`;
-document.getElementById("logos").innerHTML = LOGOS.map((l) => `
-  <div class="card ${l.rec ? "rec" : ""}">
-    <div class="head"><h3>${l.name}</h3>${l.rec ? '<span class="tag">Recommended</span>' : ""}</div>
-    <div class="pair"><div class="light big">${use(l.id)}</div><div class="dark big">${use(l.id)}</div></div>
-    <div class="pair"><div class="light"><span class="lock">${use(l.id)}<span class="wm wm-a"><b>TLM</b>scope</span></span></div><div class="dark"><span class="lock">${use(l.id)}<span class="wm wm-a"><b>TLM</b>scope</span></span></div></div>
-    <div class="uses"><span class="tab light">${use(l.id)}TLMscope · Flight 10 Oct</span><span>browser tab, 16 px</span></div>
-    <div class="appbar sm light"><span class="lock">${use(l.id)}<span class="wm wm-a"><b>TLM</b>scope</span></span><span class="nav"><b>Sessions</b><span>Batteries</span><span>Data inventory</span></span></div>
-    <p class="note">${l.text}</p>
-    <div class="pros"><b>+</b><span>${l.pro}</span><b>−</b><span>${l.con}</span></div>
-  </div>`).join("");
-</script>
