@@ -26,7 +26,7 @@ Out of scope (see section 8): the EdgeTX adapter (until a real EdgeTX log is ava
 | D5 | i18n | **Decided:** next-intl with `en` and `de` message files | Standard for the App Router. Plural forms and number/date formats per locale. |
 | D6 | Parsing location | **Decided:** Web Worker | Keeps the UI responsive on the 9.5 MB AutoLog files (≈ 470 000 records). |
 | D7 | Persistence | **Decided:** none in v1. Files are dropped again each visit. | Matches “data stays local” and keeps v1 small. Battery names and history across visits come later (IndexedDB). |
-| D8 | Name and logo | **Decided:** spelling “TLMscope” with logo A (climb trace) | Readable at 16 px, fits gliders and powered models alike. |
+| D8 | Name and logo | **Decided:** spelling “TLMscope” with logo A (climb trace), “TLM” in teal; files in `brand/` | Readable at 16 px, fits gliders and powered models alike. |
 | D9 | Rating thresholds | **Decided:** researched values in section 2.1, all in one config file | No reference data from other pilots yet. Easy to tune. |
 
 ### 2.1 Rating thresholds (D9)
