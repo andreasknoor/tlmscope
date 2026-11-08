@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CATALOGUE, isKnownChannelId } from "./catalogue.ts";
 import { catalogueMarkdown, replaceGenerated } from "./catalogue-doc.ts";
-import { loadSample, sampleNames } from "../test-helpers.ts";
+import { hasSamples, loadSample, sampleNames } from "../test-helpers.ts";
 
 describe("channel catalogue", () => {
   it("has unique ids", () => {
@@ -15,7 +15,7 @@ describe("channel catalogue", () => {
     expect(replaceGenerated(readme, catalogueMarkdown())).toBe(readme);
   });
 
-  it("covers every channel the adapters produce", () => {
+  it.skipIf(!hasSamples)("covers every channel the adapters produce", () => {
     for (const name of sampleNames())
       for (const s of loadSample(name).sessions)
         for (const id of s.channels.keys()) expect(isKnownChannelId(id), id).toBe(true);

@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Flight logs stay local (private data). See samples/README.md.
+/samples/*
+!/samples/README.md
+# Derived from the logs; regenerate with prototype/export_data.py
+/prototype/data.js

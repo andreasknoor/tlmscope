@@ -59,7 +59,7 @@ Requires Node.js 24 or later.
 
 ```sh
 npm install
-npm test                                   # unit tests, including all sample logs
+npm test                                   # unit tests; tests that need the private sample logs are skipped without them
 npm run inspect -- samples/Easy_Glider_4.TLM          # sessions and sensor inventory
 npm run inspect -- samples/*.TLM --fields --samples   # with decoded fields and raw packets
 npm run docs                               # regenerate the channel table below
@@ -73,7 +73,7 @@ src/core/
   adapters/     one folder per input format, plus registry.ts
   analysis/     flight analyses on canonical channels, thresholds.ts holds every rating limit
 cli/            inspect and docs scripts
-samples/        real logs used by the tests
+samples/        real logs used by the tests (private, not in the repository, see samples/README.md)
 prototype/      HTML prototype and brand sheet
 brand/          logo files
 ```

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { Q } from "../../model/types.ts";
-import { channelLast, channelMax, loadSample, MAIN_SAMPLE, sampleNames } from "../../test-helpers.ts";
+import { channelLast, channelMax, hasSamples, loadSample, MAIN_SAMPLE, sampleNames } from "../../test-helpers.ts";
 
 const main = () => loadSample(MAIN_SAMPLE);
 /** Sessions where the vario climbs above 10 m (the definition used in the project brief). */
 const flights = () => main().sessions.filter((s) => (channelMax(s, "altitude") ?? 0) > 10);
 
-describe("Spektrum TLM: reference values from the project brief", () => {
+describe.skipIf(!hasSamples)("Spektrum TLM: reference values from the project brief", () => {
   it("finds 34 header runs: 29 power-ups with data and 5 with only the clock record", () => {
     const sessions = main().sessions;
     expect(sessions).toHaveLength(34);
@@ -78,7 +78,7 @@ describe("Spektrum TLM: reference values from the project brief", () => {
   });
 });
 
-describe("Spektrum TLM: all sample files", () => {
+describe.skipIf(!hasSamples)("Spektrum TLM: all sample files", () => {
   const expectedSessions: Record<string, number> = {
     "002~Easy Glider 4_20260917.TLM": 3,
     "002~Easy Glider 4_20260919.TLM": 1,

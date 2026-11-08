@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Q, type Channel, type Session } from "../model/types.ts";
-import { loadSample, MAIN_SAMPLE } from "../test-helpers.ts";
+import { hasSamples, loadSample, MAIN_SAMPLE } from "../test-helpers.ts";
 import { lipoChargePct } from "./battery.ts";
 import { analyseLogs, analyseSession, overall, rate, THRESHOLDS, type Result, type SessionAnalysis } from "./index.ts";
 
@@ -12,7 +12,7 @@ const logs = () => analyseLogs([loadSample(MAIN_SAMPLE)], { assumedCapacityMah: 
 const flight = (index: number): SessionAnalysis => logs().sessions.find((a) => a.session.index === index)!;
 const FLIGHTS = [3, 15, 29, 31, 32];
 
-describe("session classification", () => {
+describe.skipIf(!hasSamples)("session classification", () => {
   it("finds the five flights, the ground tests and the transmitter-only power-ups", () => {
     const kinds = logs().sessions.map((a) => a.kind);
     expect(logs().sessions.filter((a) => a.kind === "flight").map((a) => a.session.index)).toEqual(FLIGHTS);
@@ -22,7 +22,7 @@ describe("session classification", () => {
   });
 });
 
-describe("flight profile (same results as the prototype)", () => {
+describe.skipIf(!hasSamples)("flight profile (same results as the prototype)", () => {
   it("counts motor climbs and finds no lift in the autumn flights", () => {
     expect(FLIGHTS.map((i) => value(flight(i).profile).climbs.length)).toEqual([11, 15, 3, 7, 4]);
     expect(FLIGHTS.map((i) => value(flight(i).profile).lifts.length)).toEqual([0, 0, 0, 0, 0]);
@@ -50,7 +50,7 @@ describe("flight profile (same results as the prototype)", () => {
   });
 });
 
-describe("radio link and signal (D9 thresholds, 75 % rule)", () => {
+describe.skipIf(!hasSamples)("radio link and signal (D9 thresholds, 75 % rule)", () => {
   it("rates the link from frame losses per minute", () => {
     expect(FLIGHTS.map((i) => value(flight(i).link).overall!.level)).toEqual([4, 3, 4, 3, 4]);
     expect(FLIGHTS.map((i) => value(flight(i).link).holdsAirborne)).toEqual([0, 0, 0, 0, 0]);
@@ -62,7 +62,7 @@ describe("radio link and signal (D9 thresholds, 75 % rule)", () => {
   });
 });
 
-describe("battery", () => {
+describe.skipIf(!hasSamples)("battery", () => {
   it("estimates internal resistance per cell and spots the worn pack of 7 Nov", () => {
     const r = FLIGHTS.map((i) => value(flight(i).batteryCondition));
     expect(r.map((x) => +x.resistancePerCellMilliOhm.toFixed(1))).toEqual([5.0, 6.3, 15.3, 14.6, 16.4]);
@@ -89,7 +89,7 @@ describe("battery", () => {
   });
 });
 
-describe("data check", () => {
+describe.skipIf(!hasSamples)("data check", () => {
   it("reports frozen cells, a silent battery and a battery without cell voltages", () => {
     expect(flight(29).issues.map((i) => i.kind)).toEqual(["frozen"]);
     expect(flight(31).issues.map((i) => i.kind)).toEqual(["battery-not-reporting"]);
@@ -98,7 +98,7 @@ describe("data check", () => {
   });
 });
 
-describe("health", () => {
+describe.skipIf(!hasSamples)("health", () => {
   it("rates temperatures, receiver power and describes the flying style", () => {
     const a = flight(15);
     expect(value(a.temperatures)).toMatchObject({ escMaxC: 35, batteryMaxC: 37, level: 4 });
