@@ -21,13 +21,13 @@ Out of scope (see section 8): the EdgeTX adapter (until a real EdgeTX log is ava
 |---|---|---|---|
 | D1 | Framework | Next.js (App Router) + TypeScript, static export where possible, hosted on Vercel | Your default. No server code is needed, because files are parsed in the browser. |
 | D2 | Charts | uPlot | Fast with tens of thousands of points, small (~50 kB), synced cursors. Proven in the prototype. |
-| D3 | Map and 3D path | MapLibre GL JS for the map, deck.gl for the 3D path layer | Open source, no API key required. Tiles from a free provider first, switchable later. |
+| D3 | Map and 3D path | **Decided:** MapLibre GL JS for the map, deck.gl for the 3D path layer | Open source, no API key required. Tiles from a free provider first, switchable later. |
 | D4 | Tests | Vitest (already installed) | Fast, TypeScript-native, also runs the decoder outside the browser. |
 | D5 | i18n | next-intl with `en` and `de` message files | Standard for the App Router. Plural forms and number/date formats per locale. |
 | D6 | Parsing location | Web Worker | Keeps the UI responsive on the 9.5 MB AutoLog files (≈ 470 000 records). |
-| D7 | Persistence | None in v1. Files are dropped again each visit. | Matches “data stays local” and keeps v1 small. Battery names and history across visits come later (IndexedDB). |
+| D7 | Persistence | **Decided:** none in v1. Files are dropped again each visit. | Matches “data stays local” and keeps v1 small. Battery names and history across visits come later (IndexedDB). |
 | D8 | Name and logo | **Decided:** spelling “TLMscope” with logo A (climb trace) | Readable at 16 px, fits gliders and powered models alike. |
-| D9 | Rating thresholds | Start with the prototype values and keep them in one config file | No reference data from other pilots yet. Easy to tune. |
+| D9 | Rating thresholds | Researched alternatives pending decision; kept in one config file either way | No reference data from other pilots yet. Easy to tune. |
 
 ## 3. Architecture
 
