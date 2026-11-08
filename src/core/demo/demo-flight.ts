@@ -9,7 +9,7 @@ import { encodeTlm, modelHeader, Packet, sensorHeader, type EncodedRecord } from
 
 /** Start: 14 June 2026, 14:05 UTC. Home: an invented field. */
 export const DEMO_START_UNIX = Date.UTC(2026, 5, 14, 14, 5, 0) / 1000;
-export const DEMO_HOME = { lat: 51.1235, lon: 10.4127 };
+export const DEMO_HOME = { lat: 51.1262, lon: 10.4005 };
 
 type Phase = "ground" | "motor" | "glide" | "thermal" | "landing";
 
