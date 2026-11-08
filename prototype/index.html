@@ -1,0 +1,972 @@
+<title>tlmscope</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: app shell. Sticky top bar, session list on the left (horizontal picker on phones), session view on the right. */
+:root {
+  --bg: #eef2f3;
+  --surface: #ffffff;
+  --sunken: #f5f8f9;
+  --ink: #13212a;
+  --ink-2: #4f606a;
+  --ink-3: #7b8b94;
+  --line: #d8e1e5;
+  --grid: #e7edf0;
+  --accent: #0d6a83;
+  --accent-soft: #dcedf2;
+  --good: #0ca30c;
+  --warn: #fab219;
+  --serious: #ec835a;
+  --crit: #d03b3b;
+  --s-alt: #2a78d6;
+  --s-motor: #eb6834;
+  --s-lift: #1baf7a;
+  --s-glide: #a9b6bd;
+  --s-ground: #d6dee2;
+  --s-4: #e87ba4;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1418; --surface: #151f25; --sunken: #111a1f; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e;
+    --line: #25333b; --grid: #1e2a31; --accent: #52b6d2; --accent-soft: #17323b;
+    --s-alt: #3987e5; --s-motor: #d95926; --s-lift: #199e70; --s-glide: #5b6a72; --s-ground: #2b383f; --s-4: #d55181;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1418; --surface: #151f25; --sunken: #111a1f; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e;
+  --line: #25333b; --grid: #1e2a31; --accent: #52b6d2; --accent-soft: #17323b;
+  --s-alt: #3987e5; --s-motor: #d95926; --s-lift: #199e70; --s-glide: #5b6a72; --s-ground: #2b383f; --s-4: #d55181;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--font-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button { font: inherit; color: inherit; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; text-wrap: balance; letter-spacing: .005em; }
+.mono { font-family: var(--font-mono); font-size: 12.5px; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand b { font: 700 22px/1 var(--font-display); letter-spacing: .02em; }
+.brand span { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; }
+.nav { display: flex; gap: 4px; }
+.nav a { text-decoration: none; color: var(--ink-2); padding: 6px 10px; border-radius: 6px; font-weight: 600; }
+.nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+.spacer { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--sunken); }
+.seg button { border: 0; background: none; padding: 5px 12px; cursor: pointer; color: var(--ink-2); font-weight: 600; font-size: 13.5px; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: inset 0 0 0 1px var(--line); }
+.levelctl { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; }
+
+/* shell */
+.app { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: calc(100% - 56px); }
+.side { border-right: 1px solid var(--line); background: var(--surface); padding: 14px 12px 24px max(12px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 14px; }
+.main { padding-block: 18px 40px; padding-left: max(16px, 24px); padding-right: max(16px, env(safe-area-inset-right, 0px), 24px); min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+.drop { border: 1.5px dashed var(--line); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 6px; background: var(--sunken); }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop .file { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; }
+.drop small { color: var(--ink-3); }
+.sidehead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sidehead h2 { font-size: 16px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+.slist { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.sday { font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); padding: 10px 8px 4px; }
+.sitem { display: grid; grid-template-columns: 44px 1fr auto; gap: 2px 10px; align-items: center; text-align: left; border: 0; background: none; padding: 7px 8px; border-radius: 8px; cursor: pointer; }
+.sitem:hover { background: var(--sunken); }
+.sitem[aria-current="true"] { background: var(--accent-soft); }
+.sitem .t { font: 600 16px/1 var(--font-display); }
+.sitem .k { font-size: 13px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; }
+.sitem .m { font-size: 12.5px; color: var(--ink-3); text-align: right; }
+.sitem canvas { grid-column: 2 / 4; width: 100%; height: 16px; }
+.sitem.dim .t, .sitem.dim .k { color: var(--ink-3); }
+.kdot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.keys { font-size: 12px; color: var(--ink-3); }
+kbd { font: 500 11px var(--font-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--sunken); }
+.mpicker { display: none; }
+
+/* session header */
+.shead { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.shead h1 { font-size: 30px; line-height: 1.05; }
+.shead .sub { color: var(--ink-2); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+.navbtns { display: flex; gap: 6px; margin-left: auto; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-weight: 600; color: var(--ink-2); }
+.btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.btn:disabled { opacity: .4; cursor: default; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--sunken); border: 1px solid var(--line); color: var(--ink-2); }
+
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tabs button { border: 0; background: none; padding: 9px 14px; cursor: pointer; font-weight: 600; color: var(--ink-2); border-bottom: 2px solid transparent; white-space: nowrap; }
+.tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+
+.summary { font-size: 18px; line-height: 1.5; max-width: 70ch; color: var(--ink); }
+.summary b { font-weight: 700; }
+
+.grid { display: grid; gap: 12px; }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.card h3 { font-size: 17px; }
+.card .hint { font-size: 13.5px; color: var(--ink-2); }
+.tile .v { font: 600 32px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.tile .v small { font-size: 16px; color: var(--ink-2); margin-left: 3px; font-weight: 500; }
+.tile .l { font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+.sectionhead { display: flex; align-items: baseline; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.sectionhead h2 { font-size: 20px; }
+.sectionhead p { margin: 0; color: var(--ink-2); font-size: 14px; }
+
+/* rating card */
+.rating { gap: 6px; }
+.rating .top3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.rating .name { font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); font-weight: 600; }
+.rating .word { font: 600 22px/1.1 var(--font-display); }
+.meter { display: inline-flex; gap: 3px; align-items: flex-end; height: 18px; flex: none; }
+.meter i { width: 6px; border-radius: 2px; background: var(--grid); }
+.meter i:nth-child(1) { height: 7px; } .meter i:nth-child(2) { height: 10px; } .meter i:nth-child(3) { height: 14px; } .meter i:nth-child(4) { height: 18px; }
+.meter.neutral i.on { background: var(--ink-2); }
+details.more { font-size: 13.5px; color: var(--ink-2); }
+details.more summary { cursor: pointer; color: var(--accent); font-weight: 600; list-style: none; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more summary::before { content: "+ "; }
+details.more[open] summary::before { content: "− "; }
+.kv { display: grid; grid-template-columns: auto auto; gap: 2px 14px; margin-top: 6px; justify-content: start; }
+.kv dt { color: var(--ink-3); } .kv dd { margin: 0; font-variant-numeric: tabular-nums; color: var(--ink); }
+.alert { border-radius: var(--radius); padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); background: var(--surface); }
+.alert .ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff; flex: none; font-size: 13px; }
+.alert b { display: block; }
+
+/* charts */
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 10px 4px; min-width: 0; }
+.chart .ch { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 4px 4px; flex-wrap: wrap; }
+.chart .ch b { font: 600 16px var(--font-display); }
+.chart .ch .ro { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.chart .plot { width: 100%; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); padding: 2px 4px 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.legend i.ln { height: 3px; border-radius: 2px; }
+.striplabel { font-size: 12.5px; color: var(--ink-2); padding: 6px 4px 0; display: flex; justify-content: space-between; }
+
+/* tables */
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th { text-align: left; font-weight: 600; color: var(--ink-3); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tbl td { padding: 7px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; font-variant-numeric: tabular-nums; }
+.tbl tr.clickable { cursor: pointer; } .tbl tr.clickable:hover td { background: var(--sunken); }
+.tbl td.r, .tbl th.r { text-align: right; }
+.scroll { overflow-x: auto; }
+.hex { font: 12px/1.6 var(--font-mono); color: var(--ink-2); white-space: pre; }
+
+.uplot { font-family: var(--font-body); line-height: 1.5; width: min-content; }
+.u-wrap { position: relative; user-select: none; }
+.u-over, .u-under { position: absolute; }
+.u-under { overflow: hidden; }
+.uplot canvas { display: block; position: relative; width: 100%; height: 100%; }
+.u-axis { position: absolute; }
+.u-select { background: rgba(13,106,131,.08); position: absolute; pointer-events: none; }
+.u-cursor-x, .u-cursor-y { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; }
+.u-hz .u-cursor-x { height: 100%; border-right: 1px solid var(--ink-3); }
+.u-hz .u-cursor-y { width: 100%; border-bottom: 0; }
+.u-cursor-pt { position: absolute; top: 0; left: 0; border-radius: 50%; border: 0 solid; pointer-events: none; will-change: transform; background-clip: padding-box !important; }
+.u-axis.u-off, .u-select.u-off, .u-cursor-x.u-off, .u-cursor-y.u-off, .u-cursor-pt.u-off { display: none; }
+
+.note { font-size: 13px; color: var(--ink-3); border-left: 3px solid var(--line); padding-left: 10px; max-width: 75ch; }
+.proto { font-size: 12.5px; background: var(--accent-soft); color: var(--accent); padding: 8px 12px; border-radius: 8px; }
+.empty { padding: 30px; text-align: center; color: var(--ink-2); }
+
+/* detail level */
+body[data-level="simple"] .lv-std, body[data-level="simple"] .lv-exp, body[data-level="standard"] .lv-exp { display: none !important; }
+body:not([data-level="simple"]) .lv-simple { display: none !important; }
+
+@media (max-width: 1100px) { .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { display: none; }
+  .mpicker { display: flex; gap: 6px; align-items: center; }
+  .mpicker select { flex: 1; min-width: 0; font: inherit; padding: 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+  .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .g4, .g3, .g2 { grid-template-columns: minmax(0, 1fr); }
+  .levelctl span { display: none; }
+  .shead h1 { font-size: 24px; }
+  .navbtns { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header class="top">
+  <div class="brand"><b>tlmscope</b><span>Prototype</span></div>
+  <nav class="nav" aria-label="Main">
+    <a href="#sessions" data-nav="sessions">Sessions</a>
+    <a href="#batteries" data-nav="batteries">Batteries</a>
+    <a href="#inventory" data-nav="inventory">Data inventory</a>
+  </nav>
+  <div class="spacer"></div>
+  <div class="levelctl"><span>Detail</span>
+    <div class="seg" role="group" aria-label="Detail level" id="levelSeg">
+      <button id="lv-simple" data-level="simple">Simple</button>
+      <button id="lv-standard" data-level="standard">Standard</button>
+      <button id="lv-expert" data-level="expert">Expert</button>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="side" id="side">
+    <div class="drop" id="drop">
+      <div class="file"><span id="fileName"></span><span class="num" id="fileSize" style="color:var(--ink-3);font-weight:400"></span></div>
+      <small>Drop more .TLM files here. Files are read in your browser and never uploaded.</small>
+    </div>
+    <div class="sidehead">
+      <h2>Sessions</h2>
+      <div class="seg" role="group" aria-label="Session filter" id="filterSeg">
+        <button id="f-flights" data-filter="flights">Flights</button>
+        <button id="f-all" data-filter="all">All</button>
+      </div>
+    </div>
+    <div class="slist" id="slist"></div>
+    <div class="keys"><kbd>←</kbd> <kbd>→</kbd> previous / next session</div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/uplot@1.6.31/dist/uPlot.iife.min.js"></script>
+<script src="data.js"></script>
+<script>
+"use strict";
+const D = window.TLM_DATA;
+
+/* ---------- formatting ---------- */
+const pad = (n) => String(n).padStart(2, "0");
+const clock = (s) => `${Math.floor(s / 60)}:${pad(Math.floor(s % 60))}`;
+const dur = (s) => s >= 60 ? `${Math.floor(s / 60)}:${pad(Math.round(s % 60))} min` : `${s.toFixed(1)} s`;
+const durWords = (s) => s >= 90 ? `${(s / 60).toFixed(1)} minutes` : `${Math.round(s)} seconds`;
+const f = (v, d = 1) => v == null || Number.isNaN(v) ? "–" : v.toFixed(d);
+const timeOf = (iso) => iso ? iso.slice(11, 16) : "–";
+const dayOf = (iso) => new Date(iso.slice(0, 10) + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const sum = (a) => a.reduce((x, y) => x + (y || 0), 0);
+const valid = (a) => a.filter((v) => v != null);
+const max = (a) => { const v = valid(a); return v.length ? Math.max(...v) : null; };
+const min = (a) => { const v = valid(a); return v.length ? Math.min(...v) : null; };
+const median = (a) => { const v = valid(a).sort((x, y) => x - y); return v.length ? v[Math.floor(v.length / 2)] : null; };
+
+/* ---------- the four-step scale used by every rating ---------- */
+// q = 4 best ... 1 worst. Each metric brings its own words.
+const LEVEL_COLOR = { 4: "--good", 3: "--good", 2: "--warn", 1: "--crit" };
+function meter(q, neutral) {
+  const c = neutral ? "" : `style="--on:var(${LEVEL_COLOR[q]})"`;
+  return `<span class="meter ${neutral ? "neutral" : ""}" aria-hidden="true">${[1, 2, 3, 4].map((k) =>
+    `<i class="${k <= q ? "on" : ""}" ${k <= q && !neutral ? `style="background:var(${LEVEL_COLOR[q]})${q === 3 ? ";opacity:.55" : ""}"` : ""}></i>`).join("")}</span>`;
+}
+function rate(value, steps, words) {
+  // steps: thresholds for q4,q3,q2 (higher-is-better if steps descending)
+  if (value == null) return null;
+  const hib = steps[0] > steps[2];
+  let q = 1;
+  for (let k = 0; k < 3; k++) if (hib ? value >= steps[k] : value <= steps[k]) { q = 4 - k; break; }
+  return { q, word: words[4 - q] };
+}
+
+/* ---------- analysis (prototype logic; the real app does this in the decoder module) ---------- */
+const TH = {
+  signal: { steps: [-70, -85, -92], words: ["High", "Normal", "Weak", "Critical"], unit: "dBm" },
+  link: { steps: [3, 10, 25], words: ["High", "Normal", "Weak", "Critical"] },
+  battR: { steps: [25, 40, 60], words: ["Good", "OK", "Tired", "Check"] },
+  fet: { steps: [50, 70, 85], words: ["Cool", "Warm", "Hot", "Too hot"] },
+  battT: { steps: [40, 50, 60], words: ["Cool", "Warm", "Hot", "Too hot"] },
+  rx: { steps: [5.6, 5.2, 4.8], words: ["Steady", "OK", "Dips", "Brown-out risk"] },
+  used: { steps: [50, 70, 80], words: ["Plenty left", "Fine", "Land soon", "Over-drawn"] },
+  eff: { steps: [1.1, 0.9, 0.7], words: ["Better than usual", "Typical", "Below usual", "Much lower"] },
+};
+const PHASES = {
+  ground: { label: "On ground", color: "--s-ground" },
+  motor: { label: "Motor climb", color: "--s-motor" },
+  glide: { label: "Gliding", color: "--s-glide" },
+  lift: { label: "Lift (thermal)", color: "--s-lift" },
+};
+const LIPO = [[3.5, 0], [3.68, 10], [3.73, 20], [3.77, 30], [3.8, 40], [3.84, 50], [3.87, 60], [3.92, 70], [3.97, 80], [4.06, 90], [4.2, 100]];
+function lipoPct(v) {
+  if (v == null) return null;
+  if (v <= LIPO[0][0]) return 0; if (v >= 4.2) return 100;
+  for (let i = 1; i < LIPO.length; i++) if (v <= LIPO[i][0]) {
+    const [v0, p0] = LIPO[i - 1], [v1, p1] = LIPO[i];
+    return p0 + (p1 - p0) * (v - v0) / (v1 - v0);
+  }
+}
+
+function analyse(s) {
+  const r = { s, type: "clock" };
+  const x = s.series;
+  if (!x) return r;
+  const n = x.alt.length;
+  r.n = n;
+  r.t = Array.from({ length: n }, (_, i) => i);
+  r.motor = r.t.map((i) => (x.thr[i] || 0) > 5 || (x.amps[i] || 0) > 1);
+  r.maxAlt = max(x.alt);
+  r.motorSecs = r.motor.filter(Boolean).length;
+  r.type = r.maxAlt > 10 ? "flight" : r.motorSecs > 0 ? "ground" : "power";
+  r.mah = sum(x.amps) / 3.6;
+  r.maxAmps = max(x.ampsMax);
+  r.frameLosses = sum(x.fl);
+  r.holds = sum(x.holds);
+  r.fades = sum(x.fades);
+
+  // smoothed climb (9 s window) for lift detection
+  const sm = r.t.map((i) => { let a = 0, c = 0; for (let k = i - 4; k <= i + 4; k++) if (x.climb[k] != null) { a += x.climb[k]; c++; } return c ? a / c : 0; });
+  r.smClimb = sm;
+  let first = x.alt.findIndex((v) => v != null && v > 3), last = n - 1 - [...x.alt].reverse().findIndex((v) => v != null && v > 3);
+  if (r.type !== "flight") { first = n; last = -1; }
+  // a motor pause of up to 5 s still counts as the same climb
+  const motorM = r.motor.slice();
+  for (let i = 0; i < n; i++) if (!r.motor[i]) { let j = i; while (j < n && !r.motor[j]) j++; if (i > 0 && j < n && j - i <= 5) for (let k = i; k < j; k++) motorM[k] = true; i = j; }
+  // lift only counts once the motor has been off for 8 s (ignores the zoom after a climb)
+  const offFor = (i) => !motorM.slice(Math.max(0, i - 8), i + 1).some(Boolean);
+  const raw = r.t.map((i) => motorM[i] ? "motor" : (i < first || i > last) ? "ground" : sm[i] > 0.2 && offFor(i) ? "lift" : "glide");
+  r.phases = mergeRuns(raw);
+  if (r.type === "flight") {
+    r.airStart = first; r.airEnd = last;
+    r.airtime = last - first;
+  }
+
+  // motor climbs: gain and charge
+  r.climbs = r.phases.filter((p) => p.kind === "motor").map((p) => {
+    const a0 = x.alt[p.start] ?? 0;
+    let top = a0; for (let i = p.start; i <= Math.min(n - 1, p.end + 8); i++) if (x.alt[i] != null) top = Math.max(top, x.alt[i]);
+    const mah = sum(x.amps.slice(p.start, p.end + 1)) / 3.6;
+    return { ...p, gain: top - a0, mah, eff: mah > 5 ? (top - a0) / mah * 100 : null };
+  });
+  r.lifts = r.phases.filter((p) => p.kind === "lift").map((p) => {
+    const a0 = x.alt[p.start] ?? 0, a1 = x.alt[p.end] ?? a0;
+    return { ...p, gain: a1 - a0, rate: (a1 - a0) / Math.max(1, p.end - p.start) };
+  });
+  r.liftGain = sum(r.lifts.map((l) => Math.max(0, l.gain)));
+  r.liftSecs = sum(r.lifts.map((l) => l.end - l.start + 1));
+  const glideIdx = r.t.filter((i) => raw[i] === "glide" && (x.alt[i] || 0) > 5);
+  r.glideSecs = glideIdx.length;
+  r.sink = glideIdx.length > 20 ? -median(glideIdx.map((i) => x.climb[i])) : null;
+  const totalGain = sum(r.climbs.map((c) => c.gain)), climbMah = sum(r.climbs.map((c) => c.mah));
+  r.eff = climbMah > 20 ? totalGain / climbMah * 100 : null;
+
+  // per-second levels
+  r.sigLevel = x.dbm.map((v) => v == null ? null : rate(v, TH.signal.steps, TH.signal.words).q);
+  r.linkLevel = r.t.map((i) => {
+    if ((x.holds[i] || 0) > 0) return 1;
+    if (x.fl[i] == null) return null;
+    let c = 0; for (let k = Math.max(0, i - 9); k <= i; k++) c += x.fl[k] || 0;
+    return rate(c, TH.link.steps, TH.link.words).q;
+  });
+  const airIdx = r.type === "flight" ? r.t.filter((i) => i >= first && i <= last) : r.t;
+  r.sigOverall = overall(airIdx.map((i) => r.sigLevel[i]), TH.signal.words);
+  r.linkOverall = overall(airIdx.map((i) => r.linkLevel[i]), TH.link.words);
+  r.dbmMin = min(x.dbm); r.dbmMedian = median(airIdx.map((i) => x.dbm[i]));
+
+  // battery
+  const pts = r.t.filter((i) => x.amps[i] != null && x.escV[i] != null);
+  if (pts.length > 30 && r.maxAmps > 5) {
+    const mx = pts.reduce((a, i) => a + x.amps[i], 0) / pts.length, my = pts.reduce((a, i) => a + x.escV[i], 0) / pts.length;
+    let num = 0, den = 0; pts.forEach((i) => { num += (x.amps[i] - mx) * (x.escV[i] - my); den += (x.amps[i] - mx) ** 2; });
+    r.resistance = -num / den * 1000;
+  }
+  const cells = s.battery?.cells || 3;
+  const restAt = (idx) => median(idx.filter((i) => !r.motor[i] && !r.motor[i - 1] && !r.motor[i - 2]).map((i) => x.escV[i]));
+  r.vStart = max(x.escV.slice(0, 30)); // voltage only drops under load, so the early maximum is the resting value r.vEnd = restAt(r.t.slice(-25));
+  r.cellStart = r.vStart != null ? r.vStart / cells : null; r.cellEnd = r.vEnd != null ? r.vEnd / cells : null;
+  r.vMinLoad = min(x.escV);
+  r.capacity = s.battery?.capacity || 2200;
+  r.capacityAssumed = !s.battery?.capacity;
+  r.usedPct = r.mah / r.capacity * 100;
+  r.hasCells = x.c1.some((v) => v != null);
+  if (r.hasCells && r.type === "flight") {
+    const c = valid(x.c1.slice(first, last)), c2 = valid(x.c2.slice(first, last)), c3 = valid(x.c3.slice(first, last));
+    r.cellsFrozen = c.length > 30 && new Set(c).size === 1 && new Set(c2).size === 1 && new Set(c3).size === 1;
+    r.cellSpread = max(r.t.map((i) => x.c1[i] == null ? null : Math.max(x.c1[i], x.c2[i], x.c3[i]) - Math.min(x.c1[i], x.c2[i], x.c3[i])));
+  }
+  r.fetMax = max(x.fet); r.becTMax = max(x.becT); r.battTMax = max(x.battT);
+  r.rxMin = min(x.rxV); r.becVMin = min(x.becV);
+  r.gMax = max(x.g); r.rotMax = max(x.rot);
+  r.modes = [...new Set(valid(x.fm))];
+
+  // data check
+  r.issues = [];
+  if (r.cellsFrozen) r.issues.push({ q: 1, title: "Battery data stuck", text: `The smart battery sent the same cell voltages (${x.c1.find((v) => v != null)} / ${x.c2.find((v) => v != null)} / ${x.c3.find((v) => v != null)} V) for the whole flight, although the motor drew up to ${f(r.maxAmps)} A. The battery readings in this session are not trustworthy.` });
+  if (!s.battery && r.type === "flight") r.issues.push({ q: 2, title: "Battery not reporting", text: "No smart-battery data in this session. Battery charge is estimated from the motor controller instead." });
+  if (s.battery && !r.hasCells && r.type === "flight") r.issues.push({ q: 2, title: "No cell voltages", text: "The battery identified itself but never sent individual cell voltages." });
+  return r;
+}
+function mergeRuns(raw) {
+  let runs = [];
+  raw.forEach((k, i) => { const l = runs[runs.length - 1]; if (l && l.kind === k) l.end = i; else runs.push({ kind: k, start: i, end: i }); });
+  runs = runs.map((p, k) => ({ ...p, kind: (p.kind === "lift" && p.end - p.start < 10) || (p.kind === "motor" && p.end - p.start < 2 && runs[k - 1]?.kind !== "ground") ? "glide" : p.kind }));
+  const out = [];
+  runs.forEach((p) => { const l = out[out.length - 1]; if (l && l.kind === p.kind) l.end = p.end; else out.push({ ...p }); });
+  return out;
+}
+function overall(levels, words) {
+  const v = valid(levels).sort((a, b) => a - b);
+  if (!v.length) return null;
+  const q = v[Math.floor(v.length * 0.10)]; // the level held at least 90 % of the time
+  const worst = v[0];
+  const share = (lv) => v.filter((x) => x <= lv).length / v.length;
+  return { q, word: words[4 - q], worst, worstWord: words[4 - worst], weakShare: share(2) };
+}
+
+const A = D.sessions.map(analyse);
+// personal baseline for efficiency: median of all flights in this file
+const effBase = median(A.filter((a) => a.type === "flight").map((a) => a.eff));
+const sinkBase = median(A.filter((a) => a.type === "flight").map((a) => a.sink));
+// battery identities, named by first appearance
+const BATT = {};
+A.forEach((a) => { const b = a.s.battery; if (b && !BATT[b.id]) BATT[b.id] = { ...b, name: "Battery " + "ABCDEFGH"[Object.keys(BATT).length], sessions: [] }; if (b) BATT[b.id].sessions.push(a); });
+const battName = (s) => s.battery ? BATT[s.battery.id].name : null;
+
+const TYPE = {
+  flight: { label: "Flight", color: "--s-alt" },
+  ground: { label: "Ground test", color: "--s-motor" },
+  power: { label: "Powered on", color: "--s-glide" },
+  clock: { label: "No model data", color: "--s-ground" },
+};
+
+/* ---------- state ---------- */
+const store = { get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+const state = { view: "sessions", sel: 15, tab: "overview", filter: store.get("tlm.filter", "flights"), level: store.get("tlm.level", "standard") };
+let charts = [];
+
+function visibleSessions() { return A.filter((a) => state.filter === "all" || a.type === "flight"); }
+
+/* ---------- side list ---------- */
+function renderList() {
+  const el = document.getElementById("slist");
+  let html = "", day = "";
+  visibleSessions().forEach((a) => {
+    const d = a.s.start ? dayOf(a.s.start) : "Unknown date";
+    if (d !== day) { html += `<div class="sday">${d}</div>`; day = d; }
+    const t = TYPE[a.type];
+    const meta = a.type === "flight" ? `${f(a.maxAlt, 0)} m · ${clock(a.airtime)}` : a.type === "clock" ? "" : clock(a.s.duration);
+    html += `<button class="sitem ${a.type === "flight" ? "" : "dim"}" data-sel="${a.s.index}" aria-current="${a.s.index === state.sel}">
+      <span class="t num">${timeOf(a.s.start)}</span>
+      <span class="k"><span class="kdot" style="background:var(${t.color})"></span>${t.label}${a.issues?.some((i) => i.q === 1) ? ' <span title="Data problem" style="color:var(--crit);font-weight:700">!</span>' : ""}</span>
+      <span class="m num">${meta}</span>
+      ${a.type === "flight" ? `<canvas data-spark="${a.s.index}" width="220" height="32"></canvas>` : ""}
+    </button>`;
+  });
+  el.innerHTML = html;
+  el.querySelectorAll("[data-sel]").forEach((b) => b.addEventListener("click", () => select(+b.dataset.sel)));
+  el.querySelectorAll("canvas[data-spark]").forEach(drawSpark);
+  document.getElementById("f-flights").setAttribute("aria-pressed", state.filter === "flights");
+  document.getElementById("f-all").setAttribute("aria-pressed", state.filter === "all");
+  document.getElementById("f-flights").textContent = `Flights (${A.filter((a) => a.type === "flight").length})`;
+  document.getElementById("f-all").textContent = `All (${A.length})`;
+}
+function drawSpark(cv) {
+  const a = A[+cv.dataset.spark], x = a.s.series, ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height, n = x.alt.length, top = a.maxAlt;
+  // phase colour underlay
+  a.phases.forEach((p) => { ctx.fillStyle = css(PHASES[p.kind].color); ctx.globalAlpha = p.kind === "glide" || p.kind === "ground" ? 0.25 : 0.55; ctx.fillRect(p.start / n * W, H - 5, (p.end - p.start + 1) / n * W, 5); });
+  ctx.globalAlpha = 1; ctx.strokeStyle = css("--s-alt"); ctx.lineWidth = 1.5; ctx.beginPath();
+  x.alt.forEach((v, i) => { if (v == null) return; const px = i / n * W, py = H - 6 - Math.max(0, v) / top * (H - 8); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); });
+  ctx.stroke();
+}
+function renderPicker() {
+  return `<div class="mpicker">
+    <button class="btn" data-step="-1" aria-label="Previous session">‹</button>
+    <select id="mpick" aria-label="Session">${visibleSessions().map((a) => `<option value="${a.s.index}" ${a.s.index === state.sel ? "selected" : ""}>${a.s.start ? a.s.start.slice(5, 10).split("-").reverse().join(".") + " " + timeOf(a.s.start) : "?"} · ${TYPE[a.type].label}${a.type === "flight" ? " · " + f(a.maxAlt, 0) + " m" : ""}</option>`).join("")}</select>
+    <button class="btn" data-step="1" aria-label="Next session">›</button></div>`;
+}
+
+/* ---------- charts ---------- */
+function destroyCharts() { charts.forEach((c) => c.u.destroy()); charts.forEach((c) => c.ro?.disconnect()); charts = []; }
+function axisCfg(fmt, opts = {}) {
+  const font = `12px ${css("--font-body")}`;
+  return {
+    stroke: css("--ink-3"), font, size: opts.size ?? 30, gap: 4,
+    grid: { stroke: css("--grid"), width: 1, show: opts.grid !== false },
+    ticks: { stroke: css("--grid"), width: 1, size: 3, show: opts.grid !== false },
+    values: fmt ? (u, v) => v.map(fmt) : undefined, show: opts.show !== false,
+  };
+}
+// el: container element; cfg: { a, series:[{key|data,label,color,unit,dec,fill}], height, phases, bands, yMin, yMax, readout(i) }
+function lineChart(el, cfg) {
+  const a = cfg.a, plot = el.querySelector(".plot"), ro = el.querySelector(".ro");
+  const data = [a.t, ...cfg.series.map((s) => s.data)];
+  const restRO = cfg.rest || "";
+  ro.textContent = restRO;
+  const opts = {
+    width: plot.clientWidth || 600, height: cfg.height || 170,
+    padding: [8, 8, 0, 0],
+    legend: { show: false },
+    cursor: { sync: { key: "s" + a.s.index }, points: { size: 7, width: 2, fill: css("--surface") }, drag: { x: false, y: false } },
+    scales: { x: { time: false }, y: { range: (u, lo, hi) => (lo == null || hi == null) ? [cfg.yMin ?? 0, cfg.yMax ?? 1] : [cfg.yMin ?? (lo < 0 ? lo : 0), cfg.yMax ?? (hi === lo ? hi + 1 : hi + (hi - lo) * 0.06)] } },
+    axes: [axisCfg(clock, { size: 26 }), axisCfg(cfg.yfmt || ((v) => v), { size: 46 })],
+    series: [{}, ...cfg.series.map((s) => ({
+      label: s.label, stroke: css(s.color), width: s.width ?? 2, spanGaps: true,
+      fill: s.fill ? hexAlpha(css(s.color), s.fill) : undefined, points: { show: false },
+      paths: s.bars ? uPlot.paths.bars({ size: [1, 6], gap: 0 }) : undefined,
+    }))],
+    hooks: {
+      drawClear: [(u) => {
+        const ctx = u.ctx, { top, height } = u.bbox;
+        if (cfg.phases) a.phases.forEach((p) => {
+          if (p.kind === "glide") return;
+          const x0 = u.valToPos(p.start - .5, "x", true), x1 = u.valToPos(p.end + .5, "x", true);
+          ctx.fillStyle = hexAlpha(css(PHASES[p.kind].color), p.kind === "ground" ? .35 : .16);
+          ctx.fillRect(x0, top, x1 - x0, height);
+        });
+        if (cfg.bands) cfg.bands.forEach((b) => {
+          const y0 = u.valToPos(b.to, "y", true), y1 = u.valToPos(b.from, "y", true);
+          ctx.fillStyle = hexAlpha(css(b.color), b.alpha ?? .08); ctx.fillRect(u.bbox.left, Math.max(top, y0), u.bbox.width, Math.min(top + height, y1) - Math.max(top, y0));
+        });
+      }],
+      setCursor: [(u) => {
+        const i = u.cursor.idx;
+        ro.textContent = i == null ? restRO : `at ${clock(i)} · ` + (cfg.readout ? cfg.readout(i) : cfg.series.map((s) => `${s.label ? s.label + " " : ""}${f(s.data[i], s.dec ?? 1)} ${s.unit}`).join(" · "));
+      }],
+    },
+  };
+  const u = new uPlot(opts, data, plot);
+  const rob = new ResizeObserver(() => { const w = plot.clientWidth; if (w && Math.abs(w - u.width) > 2) u.setSize({ width: w, height: u.height }); });
+  rob.observe(plot);
+  charts.push({ u, ro: rob });
+  return u;
+}
+// a thin strip coloured per second (levels or phases), aligned with line charts
+function strip(el, a, colorAt, height = 22) {
+  const plot = el.querySelector(".plot");
+  const opts = {
+    width: plot.clientWidth || 600, height, padding: [0, 8, 0, 0], legend: { show: false },
+    cursor: { sync: { key: "s" + a.s.index }, points: { show: false }, drag: { x: false, y: false }, y: false },
+    scales: { x: { time: false }, y: { range: [0, 1] } },
+    axes: [axisCfg(null, { show: false }), { ...axisCfg(() => "", { size: 46, grid: false }), values: () => [] }],
+    series: [{}, { show: false }],
+    hooks: {
+      drawClear: [(u) => {
+        const ctx = u.ctx, { top, height } = u.bbox;
+        let i = 0;
+        while (i < a.n) {
+          const c = colorAt(i); let j = i;
+          while (j + 1 < a.n && colorAt(j + 1) === c) j++;
+          if (c) { ctx.fillStyle = c; const x0 = u.valToPos(i - .5, "x", true), x1 = u.valToPos(j + .5, "x", true); ctx.fillRect(x0, top, x1 - x0, height); }
+          i = j + 1;
+        }
+      }],
+    },
+  };
+  const u = new uPlot(opts, [a.t, a.t.map(() => 0)], plot);
+  const rob = new ResizeObserver(() => { const w = plot.clientWidth; if (w && Math.abs(w - u.width) > 2) u.setSize({ width: w, height: u.height }); });
+  rob.observe(plot);
+  charts.push({ u, ro: rob });
+}
+function hexAlpha(hex, al) {
+  const h = hex.replace("#", ""); const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
+  return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${al})`;
+}
+const levelColor = (q) => q == null ? null : q === 3 ? hexAlpha(css("--good"), .45) : css(LEVEL_COLOR[q]);
+const phaseColor = (a) => (i) => { const p = a.phases.find((p) => i >= p.start && i <= p.end); return p ? (p.kind === "glide" ? hexAlpha(css("--s-glide"), .6) : css(PHASES[p.kind].color)) : null; };
+
+function chartBox(id, title, extra = "") { return `<div class="chart" id="${id}"><div class="ch"><b>${title}</b><span class="ro"></span></div>${extra}<div class="plot"></div></div>`; }
+function stripBox(id, label, right = "") { return `<div class="chart" id="${id}" style="padding-top:4px"><div class="striplabel"><span>${label}</span><span>${right}</span></div><div class="plot"></div></div>`; }
+function legend(items) { return `<div class="legend">${items.map(([c, l, line]) => `<span><i class="${line ? "ln" : ""}" style="background:${c.startsWith("--") ? `var(${c})` : c}"></i>${l}</span>`).join("")}</div>`; }
+const phaseLegend = (a) => legend(Object.entries(PHASES).filter(([k]) => a.phases.some((p) => p.kind === k)).map(([k, p]) => [p.color, p.label]));
+const levelLegend = (words) => legend([[css("--good"), words[0]], [hexAlpha(css("--good"), .45), words[1]], [css("--warn"), words[2]], [css("--crit"), words[3]]]);
+
+/* ---------- rating card ---------- */
+function ratingCard(name, r, oneLiner, details, opts = {}) {
+  if (!r) return `<div class="card rating"><div class="name">${name}</div><div class="word" style="color:var(--ink-3)">No data</div><div class="hint">${oneLiner || "This session has no readings for this."}</div></div>`;
+  return `<div class="card rating">
+    <div class="top3"><span class="name">${name}</span>${meter(r.q, opts.neutral)}</div>
+    <div class="word">${r.word}</div>
+    <div class="hint">${oneLiner}</div>
+    ${details ? `<details class="more lv-std"><summary>Details</summary><dl class="kv">${details.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl></details>` : ""}
+  </div>`;
+}
+function tile(label, value, unit, sub) { return `<div class="card tile"><div class="l">${label}</div><div class="v num">${value}<small>${unit || ""}</small></div>${sub ? `<div class="hint">${sub}</div>` : ""}</div>`; }
+function issueBox(i) { return `<div class="alert" style="border-color:var(${LEVEL_COLOR[i.q]})"><span class="ic" style="background:var(${LEVEL_COLOR[i.q]})">!</span><div><b>${i.title}</b><span class="hint">${i.text}</span></div></div>`; }
+
+/* ---------- session view ---------- */
+const TABS = [
+  ["overview", "Overview"], ["height", "Height & lift"], ["energy", "Motor & energy"], ["battery", "Battery"], ["link", "Radio link"], ["aircraft", "Aircraft"], ["raw", "Raw data", "lv-exp"],
+];
+function renderSession() {
+  const a = A[state.sel], s = a.s, vis = visibleSessions(), pos = vis.findIndex((v) => v === a);
+  const t = TYPE[a.type];
+  const bname = battName(s);
+  let html = renderPicker() + `<div class="shead">
+    <div><h1>${t.label}${s.start ? ` · ${dayOf(s.start)}, ${timeOf(s.start)}` : ""}</h1>
+    <div class="sub"><span class="pill"><span class="kdot" style="background:var(${t.color})"></span>${a.type === "flight" ? "Airtime " + clock(a.airtime) + " min" : "Session " + dur(s.duration)}</span>
+      <span>${esc(s.model || "Unknown model")}</span>
+      ${bname ? `<span class="pill">${bname} · ${s.battery.cycles} cycles</span>` : a.type !== "clock" ? `<span class="pill">Battery not identified</span>` : ""}
+      <span class="lv-exp mono">session #${s.index} · byte offset ${s.offset} · ${s.records} records</span></div></div>
+    <div class="navbtns"><button class="btn" data-step="-1" ${pos <= 0 ? "disabled" : ""}>‹ Previous</button><button class="btn" data-step="1" ${pos >= vis.length - 1 ? "disabled" : ""}>Next ›</button></div>
+  </div>`;
+  if (a.type === "clock") {
+    html += `<div class="card empty"><h3>Transmitter only</h3><p>The transmitter was switched on with this model selected, but no receiver data arrived. Usually this means the model was not powered.</p><p class="lv-exp mono">${s.records} record(s): wall-clock only</p></div>`;
+    document.getElementById("main").innerHTML = html; wireMain(); return;
+  }
+  html += `<div class="tabs" role="tablist">${TABS.map(([k, l, cls]) => `<button role="tab" class="${cls || ""}" data-tab="${k}" aria-selected="${state.tab === k}">${l}</button>`).join("")}</div>`;
+  html += `<div id="tab" class="grid"></div>`;
+  document.getElementById("main").innerHTML = html;
+  wireMain();
+  renderTab();
+}
+function wireMain() {
+  const m = document.getElementById("main");
+  m.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => step(+b.dataset.step)));
+  m.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => { state.tab = b.dataset.tab; m.querySelectorAll("[data-tab]").forEach((x) => x.setAttribute("aria-selected", x === b)); renderTab(); }));
+  const p = document.getElementById("mpick"); if (p) p.addEventListener("change", () => select(+p.value));
+}
+
+function renderTab() {
+  destroyCharts();
+  if (state.tab === "raw" && state.level !== "expert") state.tab = "overview";
+  const a = A[state.sel], el = document.getElementById("tab");
+  el.innerHTML = ({ overview: tabOverview, height: tabHeight, energy: tabEnergy, battery: tabBattery, link: tabLink, aircraft: tabAircraft, raw: tabRaw })[state.tab](a);
+  (afterRender[state.tab] || (() => {}))(a);
+  el.querySelectorAll("[data-jump]").forEach((b) => b.addEventListener("click", () => jump(+b.dataset.jump)));
+  el.querySelectorAll("tr[data-toggle]").forEach((tr) => tr.addEventListener("click", () => { const d = document.getElementById(tr.dataset.toggle); d.hidden = !d.hidden; }));
+}
+function jump(i) {
+  charts.forEach(({ u }) => { if (u.data[0].length > i) u.setCursor({ left: u.valToPos(i, "x"), top: Math.max(1, u.bbox.height / devicePixelRatio / 2) }); });
+}
+
+/* overview */
+function summarySentence(a) {
+  const x = a.s.series;
+  if (a.type === "ground") return `Ground test of <b>${dur(a.s.duration)}</b>. The motor ran for <b>${a.motorSecs} s</b> and drew up to <b>${f(a.maxAmps)} A</b>.`;
+  if (a.type === "power") return `The model was switched on for <b>${dur(a.s.duration)}</b> without running the motor.`;
+  const parts = [`<b>${durWords(a.airtime)}</b> in the air, up to <b>${f(a.maxAlt, 0)} m</b>.`];
+  parts.push(`The motor ran <b>${a.climbs.length} times</b> for <b>${clock(a.motorSecs)} min</b> in total.`);
+  if (a.lifts.length) parts.push(`You found lift <b>${a.lifts.length} time${a.lifts.length > 1 ? "s" : ""}</b> and gained <b>${f(a.liftGain, 0)} m</b> without motor.`);
+  else parts.push("No lift was found.");
+  parts.push(`Radio link: <b>${a.linkOverall.word.toLowerCase()}</b>. Battery: <b>${f(a.usedPct, 0)} %</b> used.`);
+  return parts.join(" ");
+}
+function moments(a) {
+  const x = a.s.series, m = [];
+  const im = x.alt.indexOf(a.maxAlt); m.push(["Highest point", `${f(a.maxAlt)} m`, im]);
+  if (a.lifts.length) { const l = [...a.lifts].sort((p, q) => q.gain - p.gain)[0]; m.push(["Best lift", `+${f(l.gain, 0)} m in ${l.end - l.start} s`, l.start]); }
+  const ig = x.g.indexOf(a.gMax); m.push(["Hardest load", `${f(a.gMax)} g`, ig]);
+  const id = x.dbm.indexOf(a.dbmMin); m.push(["Weakest signal", TH.signal.words[4 - rate(a.dbmMin, TH.signal.steps, TH.signal.words).q] + ` <span class="lv-std">(${f(a.dbmMin, 0)} dBm)</span>`, id]);
+  let fmax = 0, fi = 0; x.fl.forEach((v, i) => { if ((v || 0) > fmax) { fmax = v; fi = i; } }); if (fmax) m.push(["Most frame losses", `${fmax} in one second`, fi]);
+  return `<div class="card"><h3>Moments</h3><div class="hint lv-simple">Tap a moment to see it in the chart.</div><table class="tbl"><tbody>${m.map(([k, v, i]) => `<tr class="clickable" data-jump="${i}"><td>${k}</td><td>${v}</td><td class="r num" style="color:var(--ink-3)">${clock(i)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function ratingsFor(a) {
+  const used = rate(a.usedPct, TH.used.steps, TH.used.words);
+  const br = a.resistance != null && !a.cellsFrozen ? rate(a.resistance, TH.battR.steps, TH.battR.words) : null;
+  const temp = rate(Math.max(a.fetMax || 0), TH.fet.steps, TH.fet.words);
+  const rx = a.holds > 0 ? { q: 1, word: "Lost frames held" } : rate(a.rxMin, TH.rx.steps, TH.rx.words);
+  const loads = a.gMax == null ? null : a.gMax < 2.5 ? { q: 1, word: "Gentle" } : a.gMax < 4 ? { q: 2, word: "Moderate" } : a.gMax < 6 ? { q: 3, word: "Sporty" } : { q: 4, word: "Hard" };
+  const dq = a.issues.length ? { q: Math.min(...a.issues.map((i) => i.q)), word: a.issues.length === 1 ? a.issues[0].title : a.issues.length + " problems" } : { q: 4, word: "All good" };
+  return [
+    ratingCard("Radio link", a.linkOverall ? { q: a.linkOverall.q, word: a.linkOverall.word } : null,
+      a.linkOverall ? `How reliably commands reached the model. ${a.linkOverall.worst < a.linkOverall.q ? `Briefly ${a.linkOverall.worstWord.toLowerCase()}.` : ""}` : "",
+      [["Frame losses", a.frameLosses], ["Holds (failsafe)", a.holds], ["Fades antenna A", a.fades], ["Time weak or worse", f(a.linkOverall?.weakShare * 100, 0) + " %"]]),
+    ratingCard("Signal strength", a.sigOverall ? { q: a.sigOverall.q, word: a.sigOverall.word } : null,
+      "Strength of the transmitter signal at the receiver.",
+      [["Typical", f(a.dbmMedian, 0) + " dBm"], ["Weakest", f(a.dbmMin, 0) + " dBm"], ["Levels", "≥ −70 high · ≥ −85 normal · ≥ −92 weak"]]),
+    ratingCard("Battery used", used, `${f(a.mah, 0)} of ${a.capacity} mAh${a.capacityAssumed ? " (capacity assumed)" : ""}. Rule of thumb: stay below 80 %.`,
+      [["Charge used by motor", f(a.mah, 0) + " mAh"], ["Per cell at start (rest)", f(a.cellStart, 2) + " V"], ["Per cell at end (rest)", f(a.cellEnd, 2) + " V"]]),
+    ratingCard("Battery condition", br, br ? `How much the voltage drops under load. ${a.s.battery ? "" : "Battery not identified."}` : a.cellsFrozen ? "Battery data stuck, see the data check." : "Not enough motor use to judge.",
+      br ? [["Voltage drop at 20 A", f(a.resistance * 20 / 1000, 2) + " V"], ["Internal resistance (estimate)", f(a.resistance, 0) + " mΩ"], ["Lowest voltage under load", f(a.vMinLoad, 2) + " V"]] : null),
+    ratingCard("Temperatures", temp, "Motor controller. Battery and BEC on the Aircraft tab.",
+      [["Controller max", f(a.fetMax, 0) + " °C"], ["BEC max", f(a.becTMax, 0) + " °C"], ["Battery max", a.battTMax != null ? f(a.battTMax, 0) + " °C" : "–"]]),
+    ratingCard("Receiver power", rx, "Voltage for receiver and servos.",
+      [["Receiver min", f(a.rxMin, 2) + " V"], ["BEC min", f(a.becVMin, 2) + " V"]]),
+    ratingCard("Flying style", loads, "Strongest acceleration felt by the model. Not a quality rating.",
+      [["Max load", f(a.gMax, 1) + " g"], ["Fastest rotation", f(a.rotMax, 0) + " °/s"]], { neutral: true }),
+    ratingCard("Data check", dq, a.issues.length ? "Some readings in this session look wrong." : "No stuck or missing sensors found."),
+  ].join("");
+}
+function tabOverview(a) {
+  let h = `<p class="summary">${summarySentence(a)}</p>`;
+  h += a.issues.map(issueBox).join("");
+  if (a.type === "flight") {
+    h += `<div class="grid g4">${tile("Airtime", clock(a.airtime), " min")}${tile("Highest", f(a.maxAlt, 0), " m")}${tile("Motor time", clock(a.motorSecs), " min", `${a.climbs.length} climbs`)}${tile("Lift found", a.lifts.length ? "+" + f(a.liftGain, 0) : "0", a.lifts.length ? " m" : "", a.lifts.length ? `${a.lifts.length}× · ${clock(a.liftSecs)} min` : "no thermals")}</div>`;
+    h += chartBox("c-alt", "Height", phaseLegend(a));
+  } else {
+    h += chartBox("c-thr", "Throttle");
+  }
+  h += `<div class="sectionhead"><h2>Health check</h2><p>Every rating uses the same four steps. Open <i>Details</i> for the numbers.</p></div>`;
+  h += `<div class="grid g4">${ratingsFor(a)}</div>`;
+  if (a.type === "flight") h += moments(a);
+  return h;
+}
+const afterRender = {
+  overview(a) {
+    const x = a.s.series;
+    if (a.type === "flight") lineChart(document.getElementById("c-alt"), { a, phases: true, height: 210, series: [{ data: x.alt, color: "--s-alt", unit: "m", fill: .12 }], yfmt: (v) => v + " m", rest: `max ${f(a.maxAlt)} m`, readout: (i) => `${f(x.alt[i])} m · ${phaseAt(a, i)}` });
+    else lineChart(document.getElementById("c-thr"), { a, series: [{ data: x.thr, color: "--s-motor", unit: "%", fill: .15 }], yMax: 100, yfmt: (v) => v + " %" });
+  },
+  height(a) {
+    const x = a.s.series;
+    lineChart(document.getElementById("c-h"), { a, phases: true, height: 220, series: [{ data: x.alt, color: "--s-alt", unit: "m", fill: .12 }], yfmt: (v) => v + " m", readout: (i) => `${f(x.alt[i])} m · ${phaseAt(a, i)}` });
+    strip(document.getElementById("s-ph"), a, phaseColor(a), 18);
+    if (document.getElementById("c-climb")) lineChart(document.getElementById("c-climb"), { a, height: 150, series: [{ data: a.smClimb.map((v) => +v.toFixed(2)), color: "--s-lift", unit: "m/s", dec: 1 }], yfmt: (v) => v + "", yMin: -4, yMax: 6,
+      bands: [{ from: 0.2, to: 6, color: "--s-lift", alpha: .07 }] });
+  },
+  energy(a) {
+    const x = a.s.series;
+    lineChart(document.getElementById("c-thr2"), { a, phases: a.type === "flight", height: 150, series: [{ data: x.thr, color: "--s-motor", unit: "%", fill: .15 }], yMax: 100, yfmt: (v) => v + " %" });
+    if (document.getElementById("c-amps")) lineChart(document.getElementById("c-amps"), { a, height: 150, series: [{ data: x.amps, color: "--s-motor", unit: "A", fill: .1 }], yfmt: (v) => v + " A" });
+    if (document.getElementById("c-rpm")) lineChart(document.getElementById("c-rpm"), { a, height: 130, series: [{ data: x.rpm, color: "--s-4", unit: "rpm", dec: 0 }], yfmt: (v) => (v / 1000) + "k" });
+  },
+  battery(a) {
+    const x = a.s.series;
+    const cells = a.s.battery?.cells || 3;
+    lineChart(document.getElementById("c-volt"), { a, height: 170, phases: a.type === "flight", series: [{ data: x.escV.map((v) => v == null ? null : +(v / cells).toFixed(3)), color: "--s-alt", unit: "V", dec: 2 }], yMin: 3.3, yMax: 4.3, yfmt: (v) => v.toFixed(1) + " V",
+      bands: [{ from: 3.3, to: 3.5, color: "--crit", alpha: .1 }, { from: 3.5, to: 3.7, color: "--warn", alpha: .1 }] });
+    if (document.getElementById("c-cells")) lineChart(document.getElementById("c-cells"), { a, height: 160, series: [
+      { data: x.c1, color: "--s-alt", unit: "V", dec: 3, label: "1" }, { data: x.c2, color: "--s-motor", unit: "V", dec: 3, label: "2" }, { data: x.c3, color: "--s-lift", unit: "V", dec: 3, label: "3" }], yfmt: (v) => v.toFixed(2), yMin: Math.min(...valid([...x.c1, ...x.c2, ...x.c3])) - .02, yMax: Math.max(...valid([...x.c1, ...x.c2, ...x.c3])) + .02 });
+    if (document.getElementById("c-sag")) scatter(document.getElementById("c-sag"), a.t.filter((i) => x.amps[i] != null && x.escV[i] != null).map((i) => [x.amps[i], x.escV[i]]), { xl: "Motor current (A)", yl: "Battery voltage (V)", color: "--s-alt", fit: a.resistance });
+  },
+  link(a) {
+    const x = a.s.series;
+    strip(document.getElementById("s-link"), a, (i) => levelColor(a.linkLevel[i]));
+    strip(document.getElementById("s-sig"), a, (i) => levelColor(a.sigLevel[i]));
+    if (document.getElementById("c-dbm")) lineChart(document.getElementById("c-dbm"), { a, height: 160, series: [{ data: x.dbm, color: "--s-alt", unit: "dBm", dec: 0, width: 1.5 }], yMin: -100, yMax: -30, yfmt: (v) => v,
+      bands: [{ from: -100, to: -92, color: "--crit" }, { from: -92, to: -85, color: "--warn" }] });
+    if (document.getElementById("c-fl")) lineChart(document.getElementById("c-fl"), { a, height: 130, series: [{ data: x.fl, color: "--s-motor", unit: "per s", dec: 0, bars: true, fill: .9, width: 0 }], yfmt: (v) => v });
+    lineChart(document.getElementById("c-alt3"), { a, height: 130, phases: true, series: [{ data: x.alt, color: "--s-alt", unit: "m", fill: .1 }], yfmt: (v) => v + " m" });
+    if (document.getElementById("c-sigalt")) scatter(document.getElementById("c-sigalt"), a.t.filter((i) => x.alt[i] != null && x.dbm[i] != null && i >= a.airStart && i <= a.airEnd).map((i) => [x.alt[i], x.dbm[i]]), { xl: "Height (m)", yl: "Signal (dBm)", color: "--s-alt" });
+  },
+  aircraft(a) {
+    const x = a.s.series;
+    lineChart(document.getElementById("c-temp"), { a, height: 160, series: [
+      { data: x.fet, color: "--s-motor", unit: "°C", label: "Controller", dec: 0 }, { data: x.becT, color: "--s-alt", unit: "°C", label: "BEC", dec: 0 }, ...(a.battTMax != null ? [{ data: x.battT, color: "--s-lift", unit: "°C", label: "Battery", dec: 0 }] : [])], yfmt: (v) => v + " °C", yMin: 0 });
+    lineChart(document.getElementById("c-rx"), { a, height: 140, series: [{ data: x.rxV, color: "--s-alt", unit: "V", label: "Receiver", dec: 2 }, { data: x.becV, color: "--s-motor", unit: "V", label: "BEC", dec: 2 }], yMin: 4.5, yMax: 6.5, yfmt: (v) => v.toFixed(1) + " V",
+      bands: [{ from: 4.5, to: 4.8, color: "--crit", alpha: .1 }] });
+    lineChart(document.getElementById("c-g"), { a, height: 140, phases: a.type === "flight", series: [{ data: x.g, color: "--s-4", unit: "g", dec: 1 }], yfmt: (v) => v + " g" });
+    if (document.getElementById("s-fm")) strip(document.getElementById("s-fm"), a, (i) => { const m = x.fm[i]; return m == null ? null : [css("--s-alt"), css("--s-motor"), css("--s-4"), css("--s-lift")][m] || css("--ink-3"); });
+  },
+};
+function phaseAt(a, i) { const p = a.phases.find((p) => i >= p.start && i <= p.end); return p ? PHASES[p.kind].label : ""; }
+
+/* height & lift */
+function tabHeight(a) {
+  if (a.type !== "flight") return `<div class="card empty">No flight in this session, so there is no height profile.</div>`;
+  let h = `<div class="sectionhead"><h2>What happened in the air</h2><p>Phases are detected automatically from motor use and climb rate.</p></div>`;
+  h += chartBox("c-h", "Height", phaseLegend(a)) + stripBox("s-ph", "Phases");
+  h += `<div class="lv-std">${chartBox("c-climb", "Climb rate (9 s average)", `<div class="hint" style="padding:0 4px 4px">Above the shaded line (+0.2 m/s) with motor off counts as lift.</div>`)}</div>`;
+  h += `<div class="grid g3">${tile("Motor climbs", a.climbs.length, "", `+${f(sum(a.climbs.map((c) => c.gain)), 0)} m with motor`)}${tile("Lift", a.lifts.length, "", a.lifts.length ? `+${f(a.liftGain, 0)} m in ${clock(a.liftSecs)} min` : "none found")}${tile("Gliding", clock(a.glideSecs), " min", a.sink ? `sinking ${f(a.sink, 1)} m/s ${cmp(a.sink, sinkBase, true)}` : "")}</div>`;
+  if (!a.lifts.length) h += `<p class="note">No lift found in this flight: after the motor stopped, the model never climbed on its own for 10 s or more. Lift phases would appear in green.</p>`;
+  h += `<div class="card"><h3>Phase by phase</h3><div class="scroll"><table class="tbl"><thead><tr><th>Start</th><th>Phase</th><th class="r">Duration</th><th class="r">Height change</th><th class="r lv-std">Avg climb</th></tr></thead><tbody>`;
+  a.phases.forEach((p) => {
+    const x = a.s.series, a0 = x.alt[p.start], a1 = x.alt[p.end], d = p.end - p.start + 1;
+    h += `<tr class="clickable" data-jump="${p.start}"><td class="num">${clock(p.start)}</td><td><span class="kdot" style="background:var(${PHASES[p.kind].color})"></span> ${PHASES[p.kind].label}</td><td class="r num">${clock(d)}</td><td class="r num">${a0 != null && a1 != null ? (a1 - a0 >= 0 ? "+" : "") + f(a1 - a0, 0) + " m" : "–"}</td><td class="r num lv-std">${a0 != null && a1 != null ? f((a1 - a0) / d, 1) + " m/s" : "–"}</td></tr>`;
+  });
+  h += `</tbody></table></div></div>`;
+  h += `<p class="note">Glide sink rate comes straight from the vario: it is the model's own sinking speed in calm air plus any rising or sinking air. Over many flights the typical value approximates your model's sink rate. A true glide ratio needs an airspeed or GPS sensor.</p>`;
+  return h;
+}
+function cmp(v, base, lowerBetter) {
+  if (v == null || base == null) return "";
+  const r = v / base;
+  if (Math.abs(r - 1) < .07) return "(as usual)";
+  return (lowerBetter ? r < 1 : r > 1) ? "(better than usual)" : "(worse than usual)";
+}
+
+/* motor & energy */
+function tabEnergy(a) {
+  const used = rate(a.usedPct, TH.used.steps, TH.used.words);
+  let h = `<div class="grid g3">
+    <div class="card rating"><div class="top3"><span class="name">Battery used</span>${meter(used.q)}</div><div class="word">${used.word}</div>
+      ${gauge(a.usedPct)}<div class="hint">${f(a.mah, 0)} of ${a.capacity} mAh used by the motor.</div></div>
+    ${a.type === "flight" && a.eff != null ? (() => { const e = rate(a.eff / effBase, TH.eff.steps, TH.eff.words); return `<div class="card rating"><div class="top3"><span class="name">Climb efficiency</span>${meter(e.q)}</div><div class="word">${e.word}</div><div class="hint">Height per battery charge, compared with your other flights in this file. <span class="lv-std">${f(a.eff, 0)} m per 100 mAh (your usual: ${f(effBase, 0)}).</span></div></div>`; })() : tile("Climb efficiency", "–", "", "Only for flights.")}
+    ${tile("Motor time", clock(a.motorSecs), " min", `max ${f(a.maxAmps)} A`)}
+  </div>`;
+  h += chartBox("c-thr2", "Throttle", a.type === "flight" ? phaseLegend(a) : "");
+  h += `<div class="lv-std">${chartBox("c-amps", "Motor current")}</div>`;
+  h += `<div class="lv-exp">${chartBox("c-rpm", "Motor speed (electrical rpm)", `<div class="hint" style="padding:0 4px 4px">Electrical rpm. Divide by half the motor's pole count for shaft rpm.</div>`)}</div>`;
+  if (a.climbs.length && a.type === "flight") {
+    h += `<div class="card"><h3>Each motor climb</h3><div class="scroll"><table class="tbl"><thead><tr><th>Start</th><th class="r">Duration</th><th class="r">Height gained</th><th class="r">Charge used</th><th>Efficiency</th><th class="r lv-std">m / 100 mAh</th></tr></thead><tbody>`;
+    a.climbs.forEach((c) => {
+      const e = c.eff != null ? rate(c.eff / effBase, TH.eff.steps, TH.eff.words) : null;
+      h += `<tr class="clickable" data-jump="${c.start}"><td class="num">${clock(c.start)}</td><td class="r num">${c.end - c.start + 1} s</td><td class="r num">+${f(c.gain, 0)} m</td><td class="r num">${f(c.mah, 0)} mAh</td><td>${e ? meter(e.q) + " " + e.word : "<span style='color:var(--ink-3)'>too short</span>"}</td><td class="r num lv-std">${f(c.eff, 0)}</td></tr>`;
+    });
+    h += `</tbody></table></div><p class="note">Short bursts count too. A climb that ends with a turn or a dive shows lower efficiency even with the same motor and propeller.</p></div>`;
+  }
+  return h;
+}
+function gauge(pct) {
+  const p = Math.min(100, pct || 0), q = rate(pct, TH.used.steps, TH.used.words).q;
+  return `<div style="position:relative;height:14px;background:var(--grid);border-radius:7px;overflow:hidden" role="img" aria-label="${f(pct, 0)} percent used">
+    <div style="position:absolute;inset:0 auto 0 0;width:${p}%;background:var(${LEVEL_COLOR[q]});${q === 3 ? "opacity:.6" : ""}"></div>
+    <div style="position:absolute;left:80%;top:0;bottom:0;width:2px;background:var(--ink-2)" title="80 % rule of thumb"></div></div>
+    <div class="num" style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3)"><span>0 %</span><span>${f(pct, 0)} % used</span><span>80 %</span></div>`;
+}
+
+/* battery */
+function tabBattery(a) {
+  const b = a.s.battery, bn = battName(a.s);
+  let h = a.issues.map(issueBox).join("");
+  h += `<div class="grid g3">`;
+  h += `<div class="card"><div class="l" style="font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)">Which battery</div>
+    <h3 style="font-size:24px">${bn || "Not identified"}</h3>
+    <div class="hint">${b ? `${b.chem} · ${b.cells} cells · ${b.capacity || "?"} mAh · <b>${b.cycles}</b> charge cycles` : "Smart batteries report their own ID. This one did not, or it is not a smart battery."}</div>
+    ${b ? `<div class="hint lv-exp mono">ID ${b.id} · limits ${b.empty} V empty / ${b.full} V full · ${b.cRating} C</div>` : ""}
+    ${b ? `<a href="#batteries" class="hint">See this battery's history</a>` : ""}</div>`;
+  const st = lipoPct(a.cellStart), en = lipoPct(a.cellEnd);
+  h += `<div class="card"><div class="l" style="font-size:12.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)">Charge level (estimate)</div>
+    <div style="display:flex;gap:12px;align-items:baseline;font-family:var(--font-display);font-size:30px;font-weight:600" class="num">${st != null ? f(st, 0) + "%" : "–"} <span style="font-size:18px;color:var(--ink-3)">→</span> ${en != null ? f(en, 0) + "%" : "–"}</div>
+    <div class="hint">At start and end, from the resting voltage. <span class="lv-std">${f(a.cellStart, 2)} V → ${f(a.cellEnd, 2)} V per cell.</span></div></div>`;
+  const br = a.resistance != null && !a.cellsFrozen ? rate(a.resistance, TH.battR.steps, TH.battR.words) : null;
+  h += ratingCard("Battery condition", br, br ? "Based on how much the voltage drops when the motor pulls hard. A tired pack drops more." : "Cannot judge in this session.",
+    br ? [["Voltage drop at 20 A", f(a.resistance * 20 / 1000, 2) + " V"], ["Internal resistance (estimate, incl. wiring)", f(a.resistance, 0) + " mΩ"], ["Levels", "≤ 25 good · ≤ 40 ok · ≤ 60 tired"]] : null);
+  h += `</div>`;
+  h += chartBox("c-volt", "Voltage per cell (from motor controller)", `<div class="hint" style="padding:0 4px 4px">Dips are the motor pulling current. Shaded: below 3.7 V and 3.5 V per cell.</div>`);
+  if (a.hasCells) h += `<div class="lv-std">${chartBox("c-cells", "Cell voltages (from smart battery)", legend([["--s-alt", "Cell 1", 1], ["--s-motor", "Cell 2", 1], ["--s-lift", "Cell 3", 1]]))}</div>`;
+  if (a.hasCells && a.cellSpread != null) {
+    const bal = rate(a.cellSpread * 1000, [10, 20, 40], ["Balanced", "OK", "Uneven", "Very uneven"]);
+    h += `<div class="grid g3 lv-std">${ratingCard("Cell balance", a.cellsFrozen ? null : bal, a.cellsFrozen ? "Not judged: battery data stuck." : `Largest difference between cells: ${f(a.cellSpread * 1000, 0)} mV.`)}</div>`;
+  }
+  if (a.resistance != null) h += `<div class="lv-exp"><div class="chart" id="c-sag"><div class="ch"><b>Voltage vs. current</b><span class="ro">slope = internal resistance</span></div><canvas class="plot" height="220"></canvas></div></div>`;
+  return h;
+}
+
+/* radio link */
+function tabLink(a) {
+  let h = `<div class="grid g2">${ratingsFor(a).split('<div class="card rating">').slice(1, 3).map((x) => '<div class="card rating">' + x).join("")}</div>`;
+  h += `<div class="sectionhead"><h2>Over time</h2><p>Green is good. Yellow and red show where the link got weak.</p></div>`;
+  h += stripBox("s-link", "Radio link", "") + stripBox("s-sig", "Signal strength", "") + levelLegend(TH.signal.words);
+  h += `<div class="lv-std">${chartBox("c-dbm", "Signal (dBm)")}</div>`;
+  h += `<div class="lv-std">${chartBox("c-fl", "Frame losses per second")}</div>`;
+  h += chartBox("c-alt3", "Height, for comparison");
+  if (a.type === "flight") h += `<div class="lv-exp"><div class="chart" id="c-sigalt"><div class="ch"><b>Signal vs. height</b><span class="ro">each dot = 1 s</span></div><canvas class="plot" height="220"></canvas></div></div>`;
+  h += `<p class="note">Height is the only distance hint without GPS: higher usually means farther away. With a GPS sensor this view would show signal against real distance.</p>`;
+  return h;
+}
+
+/* aircraft */
+function tabAircraft(a) {
+  let h = `<div class="grid g4">${ratingsFor(a).split('<div class="card rating">').slice(5, 8).map((x) => '<div class="card rating">' + x).join("")}${tile("Flight mode", a.modes.length ? a.modes.map((m) => m + 1).join(", ") : "–", "", "Mode switch positions used (unverified)")}</div>`;
+  h += chartBox("c-temp", "Temperatures", legend([["--s-motor", "Controller", 1], ["--s-alt", "BEC", 1], ...(a.battTMax != null ? [["--s-lift", "Battery", 1]] : [])]));
+  h += `<div class="lv-std">${chartBox("c-rx", "Receiver power", legend([["--s-alt", "Receiver", 1], ["--s-motor", "BEC output", 1]]))}</div>`;
+  h += `<div class="lv-std">${chartBox("c-g", "Load (total g)")}</div>`;
+  h += `<div class="lv-exp">${stripBox("s-fm", "Flight mode over time", "colour = mode 1 / 2 / 4")}</div>`;
+  return h;
+}
+
+/* raw data */
+function tabRaw(a) {
+  let h = `<div class="sectionhead"><h2>Sensors in this session</h2><p>Click a row for fields and raw packets.</p></div>`;
+  h += inventoryTable(a.s.inventory, "r" + a.s.index);
+  h += `<div class="card"><h3>Header blocks</h3><div class="hint">Model name and enabled sensors as stored by the transmitter. Bytes after the sensor pair look like alarm settings (unverified).</div><div class="scroll"><div class="hex">${a.s.headers.map(esc).join("\n")}</div></div></div>`;
+  return h;
+}
+const LV = { known: ["Understood", "--good"], partial: ["Partly understood", "--warn"], unknown: ["Not understood", "--crit"] };
+function inventoryTable(inv, pfx) {
+  let h = `<div class="card scroll"><table class="tbl"><thead><tr><th>Sensor</th><th>ID</th><th>Status</th><th class="r">Records</th><th class="r">Per second</th><th class="r">No data</th></tr></thead><tbody>`;
+  inv.forEach((st, k) => {
+    const id = `${pfx}-${k}`;
+    h += `<tr class="clickable" data-toggle="${id}"><td><b>${esc(st.name)}</b><br><span class="hint">${esc(st.desc)}</span></td><td class="mono">0x${st.key}</td><td><span class="pill"><span class="kdot" style="background:var(${LV[st.level][1]})"></span>${LV[st.level][0]}</span></td><td class="r">${st.count.toLocaleString("en")}</td><td class="r">${st.rate ?? "–"}</td><td class="r">${f(st.noData * 100, 0)} %</td></tr>
+      <tr id="${id}" hidden><td colspan="6" style="background:var(--sunken)">
+        ${st.fields.length ? `<table class="tbl"><thead><tr><th>Field</th><th class="r">Min</th><th class="r">Max</th><th>Unit</th><th class="r">No data</th></tr></thead><tbody>${st.fields.map((fl) => `<tr><td>${esc(fl.name)}</td><td class="r">${fl.min ?? "–"}</td><td class="r">${fl.max ?? "–"}</td><td>${esc(fl.unit)}</td><td class="r">${f(fl.noData * 100, 0)} %</td></tr>`).join("")}</tbody></table>` : `<div class="hint">No decoder yet.</div>`}
+        <div class="hint" style="margin-top:8px">Most common raw packets (16 bytes):</div>
+        <div class="hex">${st.samples.map((s) => `${String(s.count).padStart(6)}×  ${s.hex}`).join("\n")}</div></td></tr>`;
+  });
+  return h + `</tbody></table></div>`;
+}
+
+/* scatter (canvas) */
+function scatter(el, pts, o) {
+  const cv = el.querySelector("canvas"); const draw = () => {
+    const W = cv.clientWidth, H = 220, dpr = devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + "px";
+    const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr); ctx.clearRect(0, 0, W, H);
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const L = 50, R = 10, T = 8, B = 34, X = (v) => L + (v - x0) / (x1 - x0 || 1) * (W - L - R), Y = (v) => H - B - (v - y0) / (y1 - y0 || 1) * (H - T - B);
+    ctx.strokeStyle = css("--grid"); ctx.fillStyle = css("--ink-3"); ctx.font = `12px ${css("--font-body")}`; ctx.lineWidth = 1;
+    for (let k = 0; k <= 4; k++) { const yv = y0 + (y1 - y0) * k / 4, xv = x0 + (x1 - x0) * k / 4; ctx.beginPath(); ctx.moveTo(L, Y(yv)); ctx.lineTo(W - R, Y(yv)); ctx.stroke(); ctx.textAlign = "right"; ctx.fillText(yv.toFixed(1), L - 6, Y(yv) + 4); ctx.textAlign = "center"; ctx.fillText(xv.toFixed(0), X(xv), H - B + 16); }
+    ctx.textAlign = "center"; ctx.fillText(o.xl, L + (W - L - R) / 2, H - 4);
+    ctx.fillStyle = hexAlpha(css(o.color), .35); pts.forEach(([x, y]) => { ctx.beginPath(); ctx.arc(X(x), Y(y), 2.2, 0, 7); ctx.fill(); });
+    if (o.fit) { const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length, k = -o.fit / 1000; ctx.strokeStyle = css("--ink"); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(x0), Y(my + k * (x0 - mx))); ctx.lineTo(X(x1), Y(my + k * (x1 - mx))); ctx.stroke(); }
+    ctx.save(); ctx.translate(12, T + (H - T - B) / 2); ctx.rotate(-Math.PI / 2); ctx.fillStyle = css("--ink-3"); ctx.textAlign = "center"; ctx.fillText(o.yl, 0, 0); ctx.restore();
+  };
+  draw(); const rob = new ResizeObserver(draw); rob.observe(cv); charts.push({ u: { destroy() {} }, ro: rob });
+}
+
+/* ---------- batteries page ---------- */
+function renderBatteries() {
+  destroyCharts();
+  let h = `<div class="sectionhead"><h2 style="font-size:28px">Batteries</h2><p>Smart batteries report their own ID and charge cycles, so every session can be linked to the pack that powered it.</p></div>`;
+  h += `<div class="proto">Prototype: names (Battery A, B …) are given in order of first use. The real app would let you rename them, e.g. “Blue #2”.</div>`;
+  Object.values(BATT).forEach((b) => {
+    const fl = b.sessions.filter((a) => a.type === "flight");
+    const rs = fl.map((a) => a.cellsFrozen ? null : a.resistance).filter((v) => v != null);
+    const cond = rs.length ? rate(median(rs), TH.battR.steps, TH.battR.words) : null;
+    const stuck = b.sessions.some((a) => a.cellsFrozen);
+    h += `<div class="card"><div class="sectionhead"><h3 style="font-size:22px">${b.name}</h3><span class="pill">${b.chem} · ${b.cells}S · ${b.capacity} mAh</span></div>
+      <div class="grid g4">${tile("Charge cycles", Math.max(...b.sessions.map((a) => a.s.battery.cycles)), "", "as reported by the pack")}${tile("Flights", fl.length, "", `${b.sessions.length} sessions in total`)}
+      ${ratingCard("Condition", cond, cond ? "Median of its flights." : "Not enough data.")}
+      ${ratingCard("Data quality", stuck ? { q: 1, word: "Stuck data seen" } : b.sessions.some((a) => !a.hasCells) ? { q: 2, word: "Partial data" } : { q: 4, word: "Reliable" }, stuck ? "Sent frozen cell voltages at least once. Possibly a faulty pack." : b.sessions.every((a) => !a.hasCells) ? "Identifies itself but never sends cell voltages." : "Readings looked plausible.")}</div>
+      <div class="scroll"><table class="tbl"><thead><tr><th>Date</th><th>Session</th><th class="r">Cycles</th><th class="r">Charge used</th><th class="r lv-std">Per cell start → end</th><th>Condition</th></tr></thead><tbody>
+      ${b.sessions.map((a) => { const c = a.resistance != null && !a.cellsFrozen ? rate(a.resistance, TH.battR.steps, TH.battR.words) : null; return `<tr class="clickable" data-open="${a.s.index}"><td class="num">${a.s.start.slice(0, 10).split("-").reverse().join(".")} ${timeOf(a.s.start)}</td><td>${TYPE[a.type].label}${a.cellsFrozen ? ' <b style="color:var(--crit)">· data stuck</b>' : ""}</td><td class="r num">${a.s.battery.cycles}</td><td class="r num">${f(a.mah, 0)} mAh</td><td class="r num lv-std">${f(a.cellStart, 2)} → ${f(a.cellEnd, 2)} V</td><td>${c ? meter(c.q) + " " + c.word : "–"}</td></tr>`; }).join("")}
+      </tbody></table></div></div>`;
+  });
+  const unknown = A.filter((a) => a.type === "flight" && !a.s.battery);
+  if (unknown.length) h += `<div class="card"><h3>Flights with an unidentified battery</h3><div class="hint">No smart-battery data. Possibly the faulty pack after it stopped reporting, or a different battery.</div>
+    <table class="tbl"><tbody>${unknown.map((a) => `<tr class="clickable" data-open="${a.s.index}"><td class="num">${a.s.start.slice(0, 10).split("-").reverse().join(".")} ${timeOf(a.s.start)}</td><td class="r num">${f(a.mah, 0)} mAh</td><td>${a.resistance ? meter(rate(a.resistance, TH.battR.steps, TH.battR.words).q) + " " + rate(a.resistance, TH.battR.steps, TH.battR.words).word : "–"}</td></tr>`).join("")}</tbody></table></div>`;
+  h += `<p class="note">Condition compares voltage drop under load between flights. On 7 Nov the drop was about twice as large as on 10 Oct. That fits the battery that later stopped reporting.</p>`;
+  const m = document.getElementById("main"); m.innerHTML = h;
+  m.querySelectorAll("[data-open]").forEach((r) => r.addEventListener("click", () => { state.tab = "battery"; select(+r.dataset.open); }));
+}
+
+/* ---------- inventory page ---------- */
+function renderInventory() {
+  destroyCharts();
+  const kinds = {}; A.forEach((a) => kinds[a.type] = (kinds[a.type] || 0) + 1);
+  let h = `<div class="sectionhead"><h2 style="font-size:28px">Data inventory</h2><p>Everything found in the file, including the parts that are not understood yet.</p></div>`;
+  h += `<div class="grid g4">${tile("File", esc(D.file.name), "", `${(D.file.size / 1e6).toFixed(1)} MB`)}${tile("Sessions", D.file.sessions, "", `${kinds.flight || 0} flights · ${kinds.ground || 0} ground tests · ${kinds.power || 0} powered on · ${kinds.clock || 0} transmitter only`)}${tile("Sensor streams", D.fileInventory.length, "", `${D.fileInventory.filter((s) => s.level !== "known").length} not fully understood`)}${tile("GPS", "none", "", "Add a GPS sensor for distance and speed")}</div>`;
+  h += inventoryTable(D.fileInventory, "f");
+  h += `<div class="card"><h3>All sessions</h3><div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Start</th><th>Kind</th><th class="r">Duration</th><th class="r">Max height</th><th class="r">Records</th></tr></thead><tbody>${A.map((a) => `<tr class="clickable" data-open="${a.s.index}"><td class="num">${a.s.index}</td><td class="num">${a.s.start ? a.s.start.slice(0, 16).replace("T", " ") : "–"}</td><td>${TYPE[a.type].label}</td><td class="r num">${dur(a.s.duration)}</td><td class="r num">${a.maxAlt != null ? f(a.maxAlt, 1) + " m" : "–"}</td><td class="r num">${a.s.records.toLocaleString("en")}</td></tr>`).join("")}</tbody></table></div></div>`;
+  const m = document.getElementById("main"); m.innerHTML = h;
+  m.querySelectorAll("tr[data-toggle]").forEach((tr) => tr.addEventListener("click", () => { const d = document.getElementById(tr.dataset.toggle); d.hidden = !d.hidden; }));
+  m.querySelectorAll("[data-open]").forEach((r) => r.addEventListener("click", () => { state.filter = "all"; store.set("tlm.filter", "all"); state.tab = "overview"; select(+r.dataset.open); }));
+}
+
+/* ---------- navigation ---------- */
+function select(i) { state.sel = i; if (state.filter === "flights" && A[i].type !== "flight") state.filter = "all"; go("session-" + i); }
+function step(d) { const v = visibleSessions(), p = v.findIndex((a) => a.s.index === state.sel); const n = v[Math.max(0, Math.min(v.length - 1, (p < 0 ? 0 : p) + d))]; if (n) select(n.s.index); }
+function go(hash) { if (location.hash !== "#" + hash) location.hash = hash; else route(); }
+function route() {
+  const h = location.hash.slice(1) || "session-" + state.sel;
+  const m = /^session-(\d+)$/.exec(h);
+  if (m && A[+m[1]]) { state.view = "sessions"; state.sel = +m[1]; }
+  else if (h === "sessions") state.view = "sessions";
+  else if (h === "batteries" || h === "inventory") state.view = h;
+  document.querySelectorAll("[data-nav]").forEach((a) => a.setAttribute("aria-current", a.dataset.nav === state.view ? "page" : "false"));
+  document.body.dataset.level = state.level;
+  document.querySelectorAll("#levelSeg button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.level === state.level));
+  renderList();
+  if (state.view === "batteries") renderBatteries();
+  else if (state.view === "inventory") renderInventory();
+  else renderSession();
+}
+document.querySelectorAll("#levelSeg button").forEach((b) => b.addEventListener("click", () => { state.level = b.dataset.level; store.set("tlm.level", state.level); route(); }));
+document.querySelectorAll("#filterSeg button").forEach((b) => b.addEventListener("click", () => { state.filter = b.dataset.filter; store.set("tlm.filter", state.filter); renderList(); }));
+document.addEventListener("keydown", (e) => {
+  if (state.view !== "sessions" || e.target.closest("input,select,textarea")) return;
+  if (e.key === "ArrowLeft" || e.key === "k") step(-1);
+  if (e.key === "ArrowRight" || e.key === "j") step(1);
+});
+window.addEventListener("hashchange", route);
+const drop = document.getElementById("drop");
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+document.getElementById("fileName").textContent = D.file.name;
+document.getElementById("fileSize").textContent = (D.file.size / 1e6).toFixed(1) + " MB";
+const mq = matchMedia("(prefers-color-scheme: dark)");
+mq.addEventListener?.("change", route);
+new MutationObserver(route).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+route();
+</script>
