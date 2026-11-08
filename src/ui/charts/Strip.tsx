@@ -88,7 +88,7 @@ export function Strip({ syncKey, label, right, n, colorAt, height = 22 }: Props)
   return (
     <div className="chart" style={{ paddingTop: 4 }}>
       <div className="striplabel"><span>{label}</span><span>{right}</span></div>
-      <div className="plot" ref={plotRef} />
+      <div className="plot" ref={plotRef} role="img" aria-label={typeof label === "string" ? label : undefined} />
     </div>
   );
 }

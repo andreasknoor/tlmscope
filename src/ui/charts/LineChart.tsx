@@ -158,7 +158,7 @@ export function LineChart(props: Props) {
     <div className="chart">
       <div className="ch"><b>{props.title}</b><span className="ro" ref={roRef}> </span></div>
       {props.extra}
-      <div className="plot" ref={plotRef} />
+      <div className="plot" ref={plotRef} role="img" aria-label={props.title} />
     </div>
   );
 }
