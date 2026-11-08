@@ -108,12 +108,17 @@ describe("Spektrum TLM: all sample files", () => {
     });
   }
 
-  it("keeps the unknown 0x7A stream of the AutoLog files as raw data", () => {
+  it("reads the throttle stick from the 0x7A stream of the AutoLog files", () => {
     const s = loadSample("002~Easy Glider 4_20261003.TLM").sessions[2];
-    const r = s.raw.find((x) => x.key === "0x7a")!;
-    expect(r.understood).toBe("none");
-    expect(r.count).toBeGreaterThan(100_000);
-    expect(r.samples.length).toBeGreaterThan(0);
+    const stick = s.channels.get("throttle_command")!;
+    const esc = s.channels.get("throttle_output")!;
+    expect(stick.t.length).toBeGreaterThan(100_000);
+    // At full throttle the stick and the ESC agree.
+    const iEsc = esc.v.findIndex((v) => v > 99);
+    const iStick = stick.t.findIndex((t) => t >= esc.t[iEsc]);
+    expect(stick.v[iStick]).toBeGreaterThan(95);
+    // The status bits page stays raw.
+    expect(s.raw.find((x) => x.key === "0x7a/0")!.understood).toBe("none");
   });
 
   it("finds the 3 Oct morning flight that only the AutoLog file contains", () => {

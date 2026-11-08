@@ -35,7 +35,9 @@ const r = (v: number | null, d = 3) => (v === null ? null : Math.round(v * 10 **
 export function streamKey(p: Uint8Array): string {
   const id = p[0];
   const k = "0x" + id.toString(16).padStart(2, "0");
-  return id === 0x42 ? `${k}/0x${(p[2] & 0xf0).toString(16).padStart(2, "0")}` : k;
+  if (id === 0x42) return `${k}/0x${(p[2] & 0xf0).toString(16).padStart(2, "0")}`;
+  if (id === 0x7a) return `${k}/${p[1]}`;
+  return k;
 }
 
 export const SENSORS: Record<string, SensorDef> = {
@@ -236,13 +238,37 @@ export const SENSORS: Record<string, SensorDef> = {
     note: "Decoded from the specification (little-endian BCD). Not yet checked against a real GPS log.",
     decode: (p) => decodeGpsStat(p),
   },
+  "0x7a/1": {
+    label: "Transmitter stick positions",
+    understood: "partial",
+    note: "Only in AutoLog files. Signed 12-bit values (−2047…2047), little-endian. Offset 4 is the throttle stick (matches the ESC throttle, r = 0.88). Offsets 6, 8, 10 rest around 0 and are probably aileron, elevator and rudder (unverified). Offset 2 is unknown.",
+    decode: (p) => {
+      const v = (o: number) => (((p[o] | (p[o + 1] << 8)) << 16) >> 16);
+      return [
+        { name: "Value @2 (unknown)", unit: "", value: v(2), channel: "raw:spektrum.0x7a.@2" },
+        { name: "Throttle stick", unit: "%", value: Math.round(((v(4) + 2047) / 4094) * 1000) / 10, channel: "throttle_command" },
+        { name: "Stick @6 (aileron?)", unit: "", value: v(6), channel: "raw:spektrum.0x7a.@6" },
+        { name: "Stick @8 (elevator?)", unit: "", value: v(8), channel: "raw:spektrum.0x7a.@8" },
+        { name: "Stick @10 (rudder?)", unit: "", value: v(10), channel: "raw:spektrum.0x7a.@10" },
+        { name: "Value @12", unit: "", value: v(12) },
+      ];
+    },
+  },
+  "0x7a/0": {
+    label: "Transmitter status bits",
+    understood: "none",
+    note: "Only in AutoLog files, alternating with the stick positions. Bytes 2–3 look like a bit field (switch positions?). Not decoded.",
+    decode: (p) => [
+      { name: "Byte 2", unit: "", value: p[2] },
+      { name: "Byte 3", unit: "", value: p[3] },
+    ],
+  },
   "0x00": { label: "Empty slot", understood: "none", note: "No sensor id. Mostly zeros; some records carry fragments of other packets.", decode: () => [] },
 };
 
 /** Labels for sensors we know by name but do not decode. */
 export const KNOWN_UNDECODED: Record<string, string> = {
   "0x76": "Unknown 0x76",
-  "0x7a": "Unknown 0x7A (high rate, AutoLog files)",
   "0x12": "Altitude sensor (declared, no data seen)",
 };
 
