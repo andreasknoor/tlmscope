@@ -1,6 +1,6 @@
 # tlmscope: implementation plan
 
-Status: Phases 1 and 2 done (2026-11-08). Phase 3 next. Nothing in here is built yet, apart from the HTML prototype (`prototype/`).
+Status: Phases 1–5 done, Phase 6 done except the production release (2026-11-09). Open: how to deploy to Vercel without going public (see below). Nothing in here is built yet, apart from the HTML prototype (`prototype/`).
 
 ## 1. Goal and scope
 
