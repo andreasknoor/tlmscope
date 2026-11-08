@@ -10,10 +10,13 @@ let worker: Worker | null = null;
 let nextId = 1;
 const pending = new Map<number, (r: LoadResult) => void>();
 
+/** Kept as a plain expression so the bundler recognises and bundles the worker. */
+const createWorker = () => new Worker(new URL("../worker/parse.worker", import.meta.url), { type: "module" });
+
 function getWorker(): Worker | null {
   if (worker) return worker;
   try {
-    worker = new Worker(new URL("../worker/parse.worker.ts", import.meta.url), { type: "module" });
+    worker = createWorker();
     worker.onmessage = (e: MessageEvent<ParseResponse>) => {
       const r = e.data;
       const done = pending.get(r.id);

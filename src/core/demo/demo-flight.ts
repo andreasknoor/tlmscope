@@ -56,7 +56,7 @@ function simulate(): State[] {
     const dist = Math.hypot(s.east, s.north);
     if (ph !== "ground" && ph !== "thermal" && dist > 330) {
       const want = (Math.atan2(-s.east, -s.north) * 180) / Math.PI;
-      let diff = ((want - s.heading + 540) % 360) - 180;
+      const diff = ((want - s.heading + 540) % 360) - 180;
       turn = Math.max(-20, Math.min(20, diff));
     }
     s.turnRate = turn;

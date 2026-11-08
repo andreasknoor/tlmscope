@@ -6,7 +6,15 @@ TLMscope shows what happened during your RC flights. It reads the telemetry logs
 
 Files are read in your browser. Nothing is uploaded.
 
-> **Status:** in development. The log reader, the data model and the analysis library are done (Phases 1 and 2 of [the plan](docs/implementation-plan.md)). The web app is not built yet. A clickable prototype lives in [`prototype/`](prototype/).
+> **Status:** working app, not yet published (see [the plan](docs/implementation-plan.md)). Screenshots are at the end of this page.
+
+## Using the app
+
+1. Drop one or more `.TLM` files onto the page, or click **Load demo flight** to try a synthetic flight with GPS and a thermal.
+2. Pick a session on the left (or with ← →). Each session has tabs: overview, height & lift, flight path, motor & energy, battery, radio link, aircraft.
+3. Choose how much detail you want: **Simple** (default) shows plain-language ratings, **Standard** adds charts, **Expert** adds raw data. **Show details** opens the exact values on every card at once.
+4. The interface is available in English and German (EN / DE, top right). **Help** explains which transmitters and sensors are supported.
+
 
 ## Who can use it
 
@@ -63,6 +71,9 @@ npm test                                   # unit tests; tests that need the pri
 npm run inspect -- samples/Easy_Glider_4.TLM          # sessions and sensor inventory
 npm run inspect -- samples/*.TLM --fields --samples   # with decoded fields and raw packets
 npm run docs                               # regenerate the channel table below
+npm run dev                                # app on http://localhost:3000
+npm run build                              # static export to out/
+npm run demo                               # regenerate public/demo/demo-flight.TLM
 ```
 
 The code in `src/core/` is framework-free TypeScript. It runs in the browser, in Node.js (`node file.ts` runs it directly) and in tests.
@@ -72,7 +83,11 @@ src/core/
   model/        types, channel catalogue, normalisation (counters, derived mAh, frozen data)
   adapters/     one folder per input format, plus registry.ts
   analysis/     flight analyses on canonical channels, thresholds.ts holds every rating limit
-cli/            inspect and docs scripts
+  demo/         synthetic demo flight (also used by the end-to-end tests)
+src/ui/         React views, charts (uPlot), map (MapLibre + deck.gl)
+src/worker/     Web Worker that parses files off the main thread
+src/i18n/       English and German texts
+cli/            inspect, docs and demo scripts
 samples/        real logs used by the tests (private, not in the repository, see samples/README.md)
 prototype/      HTML prototype and brand sheet
 brand/          logo files
@@ -246,3 +261,11 @@ Byte 0 = sensor id, byte 1 = secondary id. Offsets below are within the 16-byte 
 | `0x12` | Altitude sensor | declared in headers, no records seen | |
 
 Sources: Spektrum `spektrumTelemetrySensors.h` structure layouts, the project's own analysis of the sample files, and the reference decoder in [`reference/tlm.py`](reference/tlm.py).
+
+## Screenshots
+
+Both show the synthetic demo flight, not real pilot data.
+
+![Overview of a flight: summary sentence, height profile with motor climbs, lift and gliding, and the health check](docs/images/overview.jpg)
+
+![Flight path: map with the 3D path coloured by phase, distance and speed, and a height chart that moves the marker on the map](docs/images/flight-path.jpg)
