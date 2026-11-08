@@ -231,7 +231,10 @@ def series(recs):
             x, y, z = (be16(p, o, True) / 100 for o in (2, 4, 6))
             a["g"].append(math.sqrt(x * x + y * y + z * z))
         elif sid == 0x1A:
-            a["rot"].append(max(abs(be16(p, o, True) / 10) for o in (2, 4, 6)))
+            rates = [be16(p, o, True) / 10 for o in (2, 4, 6)]
+            a["rot"].append(max(abs(v) for v in rates))
+            for key, v in zip(("rx", "ry", "rz"), rates):
+                a[key].append(v)
         elif sid == 0x05:
             a["fm"].append(p[2])
         elif sid == 0x42 and p[2] & 0xF0 == 0x10:
@@ -241,7 +244,7 @@ def series(recs):
                     a["c%d" % (k + 1)].append(c / 1000)
                 a["battT"].append(i8(p, 3))
     keys = ["alt", "climb", "thr", "amps", "ampsMax", "escV", "rpm", "fet", "becT", "becV", "rxV", "dbm",
-            "fl", "holds", "fades", "g", "rot", "fm", "c1", "c2", "c3", "battT"]
+            "fl", "holds", "fades", "g", "rot", "rx", "ry", "rz", "fm", "c1", "c2", "c3", "battT"]
     out = {k: [] for k in keys}
     for a in acc:
         for k in keys:
