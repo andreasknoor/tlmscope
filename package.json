@@ -10,12 +10,21 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "inspect": "node cli/inspect.ts",
-    "docs": "node cli/docs.ts"
+    "docs": "node cli/docs.ts",
+    "demo": "node cli/make-demo.ts",
+    "predev": "node cli/copy-maplibre-worker.ts",
+    "prebuild": "node cli/copy-maplibre-worker.ts"
   },
   "dependencies": {
+    "@deck.gl/core": "^9.4.1",
+    "@deck.gl/layers": "^9.4.1",
+    "@deck.gl/mapbox": "^9.4.1",
+    "maplibre-gl": "^6.17.0",
     "next": "16.4.5",
+    "next-intl": "^4.14.9",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "uplot": "^1.6.32"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

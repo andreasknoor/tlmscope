@@ -45,3 +45,5 @@ next-env.d.ts
 !/samples/README.md
 # Derived from the logs; regenerate with prototype/export_data.py
 /prototype/data.js
+# Copied from node_modules by cli/copy-maplibre-worker.ts
+/public/maplibre/

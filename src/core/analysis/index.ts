@@ -1,6 +1,7 @@
 import type { LogFile, Session } from "../model/types.ts";
 import { batteryCondition, batteryUse, cellBalance, chargeEstimate, type BatteryCondition, type BatteryUse, type CellBalance, type ChargeEstimate } from "./battery.ts";
 import { circling, classify, flightProfile, type Circling, type FlightProfile, type SessionKind } from "./flight.ts";
+import { track, type Track } from "./gps.ts";
 import { Grid, medianOf } from "./grid.ts";
 import { dataIssues, loads, moments, receiverPower, temperatures, type DataIssue, type Loads, type Moment, type ReceiverPower, type Temperatures } from "./health.ts";
 import { linkQuality, signalStrength, type LinkAnalysis, type SignalAnalysis } from "./link.ts";
@@ -13,6 +14,7 @@ export interface SessionAnalysis {
   grid: Grid;
   profile: Result<FlightProfile>;
   circling: Result<Circling>;
+  track: Result<Track>;
   link: Result<LinkAnalysis>;
   signal: Result<SignalAnalysis>;
   batteryUse: Result<BatteryUse>;
@@ -50,6 +52,7 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
   return {
     session, kind, grid, profile,
     circling: circ,
+    track: track(session, grid),
     link, signal,
     batteryUse: batteryUse(session, opts.assumedCapacityMah),
     batteryCondition: batteryCondition(session, grid),
@@ -96,4 +99,4 @@ export function analyseLogs(logs: LogFile[], opts: Omit<AnalysisOptions, "batter
 }
 
 export * from "./thresholds.ts";
-export type { SessionKind, FlightProfile, Circling, LinkAnalysis, SignalAnalysis, BatteryUse, BatteryCondition, ChargeEstimate, CellBalance, Temperatures, ReceiverPower, Loads, DataIssue, Moment, Result };
+export type { SessionKind, FlightProfile, Circling, Track, LinkAnalysis, SignalAnalysis, BatteryUse, BatteryCondition, ChargeEstimate, CellBalance, Temperatures, ReceiverPower, Loads, DataIssue, Moment, Result };
