@@ -6,7 +6,7 @@ TLMscope shows what happened during your RC flights. It reads the telemetry logs
 
 Files are read in your browser. Nothing is uploaded.
 
-> **Status:** in development. The log reader and the data model are done (Phase 1 of [the plan](docs/implementation-plan.md)). The web app is not built yet. A clickable prototype lives in [`prototype/`](prototype/).
+> **Status:** in development. The log reader, the data model and the analysis library are done (Phases 1 and 2 of [the plan](docs/implementation-plan.md)). The web app is not built yet. A clickable prototype lives in [`prototype/`](prototype/).
 
 ## Who can use it
 
@@ -71,7 +71,7 @@ The code in `src/core/` is framework-free TypeScript. It runs in the browser, in
 src/core/
   model/        types, channel catalogue, normalisation (counters, derived mAh, frozen data)
   adapters/     one folder per input format, plus registry.ts
-  analysis/     flight analyses on canonical channels (Phase 2)
+  analysis/     flight analyses on canonical channels, thresholds.ts holds every rating limit
 cli/            inspect and docs scripts
 samples/        real logs used by the tests
 prototype/      HTML prototype and brand sheet
@@ -113,6 +113,28 @@ interface LogAdapter {
 4. Leave session classification (flight, ground test, …) to the analysis layer.
 5. Put everything you cannot map into raw streams or `raw:` channels.
 6. Add real sample files and tests.
+
+### Analyses
+
+Analyses work only on canonical channels, resampled to a 1-second grid, so they work for every format that delivers the channels they need. Each returns either a result or the list of missing channels.
+
+| Analysis | Needs | Result |
+|---|---|---|
+| Session kind | any channel; `altitude` or `ground_speed` for flights | flight, ground test, powered on, transmitter only |
+| Flight profile | `altitude` and one of `throttle_output`, `motor_current`, `throttle_command` | phases (ground, motor climb, glide, lift), climbs with height gained and charge used, lift, glide sink rate, airtime |
+| Circling | `rotation_rate.pitch`, `rotation_rate.yaw` | full circles, direction, time turning |
+| Radio link | `frame_losses` or `link_quality` | level per second, overall level, frame losses per minute, holds in the air, fades |
+| Signal strength | `signal_dbm` | level per second, overall level, weakest moment |
+| Battery used | `consumed_mah` | mAh and percent of capacity (reported or assumed) |
+| Battery condition | `pack_voltage`, `motor_current` | internal resistance per cell from voltage sag |
+| Charge estimate | `pack_voltage` | state of charge at start and end, from resting voltage |
+| Cell balance | `cell_voltage.1`, `cell_voltage.2` (…) | largest spread between cells |
+| Temperatures | any of `temperature.esc`, `.battery`, `.bec` | maxima and levels |
+| Receiver power | `rx_voltage` | lowest voltage, level |
+| Loads | `accel.x/y/z` | highest total g, flying style |
+| Data check | – | frozen channels, battery not reporting, no cell voltages |
+
+Every rating uses four levels. The overall level of a flight is the level held for at least 75 % of the airtime. All limits and their sources are in [`src/core/analysis/thresholds.ts`](src/core/analysis/thresholds.ts).
 
 ### Channel catalogue
 

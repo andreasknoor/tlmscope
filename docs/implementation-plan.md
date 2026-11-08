@@ -1,6 +1,6 @@
 # tlmscope: implementation plan
 
-Status: decisions D1–D9 made, plan ready for final review, 2026-11-08. Nothing in here is built yet, apart from the HTML prototype (`prototype/`).
+Status: Phases 1 and 2 done (2026-11-08). Phase 3 next. Nothing in here is built yet, apart from the HTML prototype (`prototype/`).
 
 ## 1. Goal and scope
 
