@@ -1,6 +1,6 @@
 # tlmscope: implementation plan
 
-Status: draft for review, 2026-11-08. Nothing in here is built yet, apart from the HTML prototype (`prototype/`).
+Status: decisions D1–D9 made, plan ready for final review, 2026-11-08. Nothing in here is built yet, apart from the HTML prototype (`prototype/`).
 
 ## 1. Goal and scope
 
@@ -19,15 +19,32 @@ Out of scope (see section 8): the EdgeTX adapter (until a real EdgeTX log is ava
 
 | # | Decision | Proposal | Why |
 |---|---|---|---|
-| D1 | Framework | Next.js (App Router) + TypeScript, static export where possible, hosted on Vercel | Your default. No server code is needed, because files are parsed in the browser. |
-| D2 | Charts | uPlot | Fast with tens of thousands of points, small (~50 kB), synced cursors. Proven in the prototype. |
+| D1 | Framework | **Decided:** Next.js (App Router) + TypeScript, static export where possible, hosted on Vercel | Your default. No server code is needed, because files are parsed in the browser. |
+| D2 | Charts | **Decided:** uPlot | Fast with tens of thousands of points, small (~50 kB), synced cursors. Proven in the prototype. |
 | D3 | Map and 3D path | **Decided:** MapLibre GL JS for the map, deck.gl for the 3D path layer | Open source, no API key required. Tiles from a free provider first, switchable later. |
-| D4 | Tests | Vitest (already installed) | Fast, TypeScript-native, also runs the decoder outside the browser. |
-| D5 | i18n | next-intl with `en` and `de` message files | Standard for the App Router. Plural forms and number/date formats per locale. |
-| D6 | Parsing location | Web Worker | Keeps the UI responsive on the 9.5 MB AutoLog files (≈ 470 000 records). |
+| D4 | Tests | **Decided:** Vitest (already installed) | Fast, TypeScript-native, also runs the decoder outside the browser. |
+| D5 | i18n | **Decided:** next-intl with `en` and `de` message files | Standard for the App Router. Plural forms and number/date formats per locale. |
+| D6 | Parsing location | **Decided:** Web Worker | Keeps the UI responsive on the 9.5 MB AutoLog files (≈ 470 000 records). |
 | D7 | Persistence | **Decided:** none in v1. Files are dropped again each visit. | Matches “data stays local” and keeps v1 small. Battery names and history across visits come later (IndexedDB). |
 | D8 | Name and logo | **Decided:** spelling “TLMscope” with logo A (climb trace) | Readable at 16 px, fits gliders and powered models alike. |
-| D9 | Rating thresholds | Researched alternatives pending decision; kept in one config file either way | No reference data from other pilots yet. Easy to tune. |
+| D9 | Rating thresholds | **Decided:** researched values in section 2.1, all in one config file | No reference data from other pilots yet. Easy to tune. |
+
+### 2.1 Rating thresholds (D9)
+
+Every rating uses four levels. The overall rating of a flight is the level held for at least 75 % of the airtime, shown together with the share of weak time (e.g. “Normal, 21 % weak”).
+
+| Rating | Levels | Basis |
+|---|---|---|
+| Signal strength | high ≥ −70 · normal ≥ −80 · weak ≥ −85 · below: critical (dBm) | Your own flights: frame losses rise from ≈ 0.2/s at −75…−80 dBm to ≈ 1/s at −80…−85 and ≈ 4/s below −85. Spektrum publishes no dBm limits. |
+| Radio link | high ≤ 20 · normal ≤ 100 frame losses per minute · weak above · critical = any hold while airborne | Spektrum receiver manuals: up to ~100 frame losses per minute in the air are normal. Any hold in flight needs action. |
+| Antenna fades | hint “move this antenna” above 500 per flight | Spektrum receiver manuals: 50–100 per flight typical. |
+| Receiver power | steady ≥ 5.2 · OK ≥ 4.8 · dips ≥ 4.0 · below: brown-out risk (V) | AR8360T manual: stay above 4.8 V under load. DSM receivers drop out below ~3.5 V. |
+| Battery used | plenty ≤ 50 · fine ≤ 70 · land soon ≤ 80 · over-drawn above (% of capacity) | Common 80 % rule (hobby practice, not a manufacturer value). |
+| Charge estimate | resting-voltage table, 3.84 V ≈ 50 % | Matches published 3.80–3.85 V ≈ 40–50 %. Marked as an estimate. |
+| Battery condition | per cell: good ≤ 10 · OK ≤ 12 · tired ≤ 15 · check above (mΩ), plus the trend per battery | LiPo primers: < 10 excellent, 10–12 acceptable, > 15 retire. The in-flight estimate includes wiring, so it reads slightly high. |
+| Battery temperature | cool ≤ 45 · warm ≤ 55 · hot ≤ 60 · too hot above (°C); the pack's own limit wins | 35–45 °C after a flight is normal; 60 °C is the common ceiling. |
+| Controller temperature | cool ≤ 50 · warm ≤ 70 · hot ≤ 85 · too hot above (°C) | No Avian limit published. Shown with that note. |
+| Cell balance | ≤ 10 · ≤ 20 · ≤ 40 mV spread | Not researched yet. |
 
 ## 3. Architecture
 

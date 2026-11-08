@@ -344,11 +344,12 @@ const word = (th, q) => W(th.words)[4 - q];
 
 /* ---------- thresholds (proposals) ---------- */
 const TH = {
-  signal: { steps: [-70, -85, -92], words: { en: ["High", "Normal", "Weak", "Critical"], de: ["Hoch", "Normal", "Schwach", "Kritisch"] } },
-  link: { steps: [3, 10, 25], words: { en: ["High", "Normal", "Weak", "Critical"], de: ["Hoch", "Normal", "Schwach", "Kritisch"] } },
-  battR: { steps: [25, 40, 60], words: { en: ["Good", "OK", "Tired", "Check"], de: ["Gut", "OK", "Müde", "Prüfen"] } },
+  signal: { steps: [-70, -80, -85], words: { en: ["High", "Normal", "Weak", "Critical"], de: ["Hoch", "Normal", "Schwach", "Kritisch"] } },
+  link: { steps: [20, 100, Infinity], words: { en: ["High", "Normal", "Weak", "Critical"], de: ["Hoch", "Normal", "Schwach", "Kritisch"] } },
+  battR: { steps: [10, 12, 15], words: { en: ["Good", "OK", "Tired", "Check"], de: ["Gut", "OK", "Müde", "Prüfen"] } },
   fet: { steps: [50, 70, 85], words: { en: ["Cool", "Warm", "Hot", "Too hot"], de: ["Kühl", "Warm", "Heiß", "Zu heiß"] } },
-  rx: { steps: [5.6, 5.2, 4.8], words: { en: ["Steady", "OK", "Dips", "Brown-out risk"], de: ["Stabil", "OK", "Einbrüche", "Ausfallgefahr"] } },
+  battT: { steps: [45, 55, 60], words: { en: ["Cool", "Warm", "Hot", "Too hot"], de: ["Kühl", "Warm", "Heiß", "Zu heiß"] } },
+  rx: { steps: [5.2, 4.8, 4.0], words: { en: ["Steady", "OK", "Dips", "Brown-out risk"], de: ["Stabil", "OK", "Einbrüche", "Ausfallgefahr"] } },
   used: { steps: [50, 70, 80], words: { en: ["Plenty left", "Fine", "Land soon", "Over-drawn"], de: ["Viel übrig", "Gut", "Bald landen", "Zu tief entladen"] } },
   eff: { steps: [1.1, 0.9, 0.7], words: { en: ["Better than usual", "Typical", "Below usual", "Much lower"], de: ["Besser als sonst", "Wie üblich", "Schwächer als sonst", "Deutlich schwächer"] } },
   balance: { steps: [10, 20, 40], words: { en: ["Balanced", "OK", "Uneven", "Very uneven"], de: ["Ausgeglichen", "OK", "Ungleich", "Stark ungleich"] } },
@@ -426,7 +427,7 @@ function analyse(s) {
   r.linkLevel = r.t.map((i) => {
     if ((x.holds[i] || 0) > 0) return 1;
     if (x.fl[i] == null) return null;
-    let c = 0; for (let k = Math.max(0, i - 9); k <= i; k++) c += x.fl[k] || 0;
+    let c = 0; for (let k = Math.max(0, i - 59); k <= i; k++) c += x.fl[k] || 0; // frame losses in the last minute
     return rate(c, TH.link).q;
   });
   const airIdx = r.type === "flight" ? r.t.filter((i) => i >= first && i <= last) : r.t;
@@ -509,7 +510,7 @@ function mergeRuns(raw) {
 function overall(levels) {
   const v = valid(levels).sort((a, b) => a - b);
   if (!v.length) return null;
-  return { q: v[Math.floor(v.length * 0.10)], worst: v[0], weakShare: v.filter((x) => x <= 2).length / v.length }; // the level held at least 90 % of the time
+  return { q: v[Math.floor(v.length * 0.25)], worst: v[0], weakShare: v.filter((x) => x <= 2).length / v.length }; // the level held at least 75 % of the time
 }
 
 const A = D.sessions.map(analyse);
@@ -754,13 +755,13 @@ const RATING = {
     const o = a.linkOverall;
     return ratingCard(L("Radio link", "Funkverbindung"), o && { q: o.q, word: word(TH.link, o.q) },
       o ? L("How reliably commands reached the model.", "Wie zuverlässig die Steuerbefehle beim Modell ankamen.") + (o.worst < o.q ? " " + L(`Briefly ${word(TH.link, o.worst).toLowerCase()}.`, `Kurzzeitig ${word(TH.link, o.worst).toLowerCase()}.`) : "") : "",
-      [["Frame losses", a.frameLosses], [L("Holds (failsafe)", "Holds (Failsafe)"), a.holds], [L("Fades antenna A", "Fades Antenne A"), a.fades], [L("Time weak or worse", "Zeit schwach oder schlechter"), f(o?.weakShare * 100, 0) + " %"]]);
+      [["Frame losses", a.frameLosses], [L("Frame losses per minute", "Frame Losses pro Minute"), f(a.frameLosses / Math.max(1, (a.airtime || a.s.duration) / 60), 0)], [L("Holds (failsafe)", "Holds (Failsafe)"), a.holds], [L("Fades antenna A", "Fades Antenne A"), a.fades + (a.fades > 500 ? L(" · move this antenna", " · Antenne versetzen") : "")], [L("Levels", "Stufen"), L("≤ 20/min high · ≤ 100/min normal · any hold critical", "≤ 20/min hoch · ≤ 100/min normal · jeder Hold kritisch")], [L("Time weak or worse", "Zeit schwach oder schlechter"), f(o?.weakShare * 100, 0) + " %"]]);
   },
   signal(a) {
     const o = a.sigOverall;
     return ratingCard(L("Signal strength", "Signalstärke"), o && { q: o.q, word: word(TH.signal, o.q) },
-      L("Strength of the transmitter signal at the receiver.", "Stärke des Sendersignals am Empfänger."),
-      [[L("Typical", "Typisch"), f(a.dbmMedian, 0) + " dBm"], [L("Weakest", "Schwächstes"), f(a.dbmMin, 0) + " dBm"], [L("Levels", "Stufen"), L("≥ −70 high · ≥ −85 normal · ≥ −92 weak", "≥ −70 hoch · ≥ −85 normal · ≥ −92 schwach")]]);
+      L("Strength of the transmitter signal at the receiver.", "Stärke des Sendersignals am Empfänger.") + (o && o.weakShare > .05 ? " " + L(`Weak or worse ${f(o.weakShare * 100, 0)} % of the time.`, `${f(o.weakShare * 100, 0)} % der Zeit schwach oder schlechter.`) : ""),
+      [[L("Typical", "Typisch"), f(a.dbmMedian, 0) + " dBm"], [L("Weakest", "Schwächstes"), f(a.dbmMin, 0) + " dBm"], [L("Levels", "Stufen"), L("≥ −70 high · ≥ −80 normal · ≥ −85 weak (from your own flights)", "≥ −70 hoch · ≥ −80 normal · ≥ −85 schwach (aus deinen Flügen abgeleitet)")]]);
   },
   used(a) {
     return ratingCard(L("Battery used", "Akku verbraucht"), rate(a.usedPct, TH.used),
@@ -768,14 +769,15 @@ const RATING = {
       [[L("Charge used by motor", "Vom Motor verbraucht"), f(a.mah, 0) + " mAh"], [L("Per cell at start (rest)", "Pro Zelle am Start (Ruhe)"), f(a.cellStart, 2) + " V"], [L("Per cell at end (rest)", "Pro Zelle am Ende (Ruhe)"), f(a.cellEnd, 2) + " V"]]);
   },
   cond(a) {
-    const br = a.resistance != null && !a.cellsFrozen ? rate(a.resistance, TH.battR) : null;
+    const br = a.resistance != null && !a.cellsFrozen ? rate(a.resistance / (a.s.battery?.cells || 3), TH.battR) : null;
     return ratingCard(L("Battery condition", "Akkuzustand"), br,
       br ? L("How much the voltage drops under load. A tired pack drops more.", "Wie stark die Spannung unter Last einbricht. Ein müder Akku bricht stärker ein.") : a.cellsFrozen ? L("Battery data stuck, see the data check.", "Akkudaten eingefroren, siehe Datencheck.") : L("Not enough motor use to judge.", "Zu wenig Motorlauf für eine Bewertung."),
-      br ? [[L("Voltage drop at 20 A", "Spannungseinbruch bei 20 A"), f(a.resistance * 20 / 1000, 2) + " V"], [L("Internal resistance (estimate, incl. wiring)", "Innenwiderstand (Schätzung, inkl. Kabel)"), f(a.resistance, 0) + " mΩ"], [L("Lowest voltage under load", "Tiefste Spannung unter Last"), f(a.vMinLoad, 2) + " V"]] : null);
+      br ? [[L("Voltage drop at 20 A", "Spannungseinbruch bei 20 A"), f(a.resistance * 20 / 1000, 2) + " V"], [L("Internal resistance per cell (estimate, incl. wiring)", "Innenwiderstand pro Zelle (Schätzung, inkl. Kabel)"), f(a.resistance / (a.s.battery?.cells || 3), 1) + " mΩ"], [L("Levels per cell", "Stufen pro Zelle"), L("≤ 10 good · ≤ 12 OK · ≤ 15 tired", "≤ 10 gut · ≤ 12 OK · ≤ 15 müde")], [L("Lowest voltage under load", "Tiefste Spannung unter Last"), f(a.vMinLoad, 2) + " V"]] : null);
   },
   temp(a) {
-    return ratingCard(L("Temperatures", "Temperaturen"), rate(a.fetMax, TH.fet), L("Motor controller. Battery and BEC on the Aircraft tab.", "Motorregler. Akku und BEC im Reiter Modell."),
-      [[L("Controller max", "Regler max."), f(a.fetMax, 0) + " °C"], ["BEC max", f(a.becTMax, 0) + " °C"], [L("Battery max", "Akku max."), a.battTMax != null ? f(a.battTMax, 0) + " °C" : "–"]]);
+    const tq = [rate(a.fetMax, TH.fet), a.battTMax != null ? rate(a.battTMax, TH.battT) : null].filter(Boolean).sort((p, q) => p.q - q.q)[0];
+    return ratingCard(L("Temperatures", "Temperaturen"), tq, L("The warmest of motor controller and battery.", "Der wärmere Wert von Motorregler und Akku."),
+      [[L("Controller max (no manufacturer limit published)", "Regler max. (kein Herstellerwert veröffentlicht)"), f(a.fetMax, 0) + " °C"], ["BEC max", f(a.becTMax, 0) + " °C"], [L("Battery max", "Akku max."), a.battTMax != null ? f(a.battTMax, 0) + " °C" : "–"]]);
   },
   rx(a) {
     const r = a.holds > 0 ? { q: 1, word: L("Lost frames held", "Failsafe aktiv") } : rate(a.rxMin, TH.rx);
@@ -835,7 +837,7 @@ const afterRender = {
     const x = a.s.series;
     strip(document.getElementById("s-link"), a, (i) => levelColor(a.linkLevel[i]));
     strip(document.getElementById("s-sig"), a, (i) => levelColor(a.sigLevel[i]));
-    lineChart(document.getElementById("c-dbm"), { a, height: 160, series: [{ data: x.dbm, color: "--s-alt", unit: "dBm", dec: 0, width: 1.5 }], yMin: -100, yMax: -30, bands: [{ from: -100, to: -92, color: "--crit" }, { from: -92, to: -85, color: "--warn" }] });
+    lineChart(document.getElementById("c-dbm"), { a, height: 160, series: [{ data: x.dbm, color: "--s-alt", unit: "dBm", dec: 0, width: 1.5 }], yMin: -100, yMax: -30, bands: [{ from: -100, to: -85, color: "--crit" }, { from: -85, to: -80, color: "--warn" }] });
     lineChart(document.getElementById("c-fl"), { a, height: 130, series: [{ data: x.fl, color: "--s-motor", unit: L("per s", "pro s"), dec: 0, bars: true, fill: .9, width: 0 }] });
     lineChart(document.getElementById("c-alt3"), { a, height: 130, phases: a.type === "flight", series: [{ data: x.alt, color: "--s-alt", unit: "m", fill: .1 }], yfmt: (v) => fa(v) + " m" });
     const sa = document.getElementById("c-sigalt");
@@ -1156,7 +1158,7 @@ function renderBatteries() {
   h += `<div class="proto">${L("Prototype: names (Battery A, B …) are given in order of first use.", "Prototyp: Die Namen (Akku A, B …) werden in der Reihenfolge der ersten Nutzung vergeben.")}</div>`;
   Object.values(BATT).forEach((b) => {
     const fl = b.sessions.filter((a) => a.type === "flight");
-    const rs = fl.map((a) => a.cellsFrozen ? null : a.resistance).filter((v) => v != null);
+    const rs = fl.map((a) => a.cellsFrozen ? null : a.resistance / (b.cells || 3)).filter((v) => v != null);
     const cond = rs.length ? rate(median(rs), TH.battR) : null;
     const stuck = b.sessions.some((a) => a.cellsFrozen);
     const dq = stuck ? { q: 1, word: L("Stuck data seen", "Eingefrorene Daten") } : b.sessions.every((a) => !a.hasCells) ? { q: 2, word: L("Partial data", "Unvollständige Daten") } : { q: 4, word: L("Reliable", "Zuverlässig") };
@@ -1165,12 +1167,12 @@ function renderBatteries() {
       ${ratingCard(L("Condition", "Zustand"), cond, cond ? L("Median of its flights.", "Median seiner Flüge.") : L("Not enough data.", "Zu wenig Daten."))}
       ${ratingCard(L("Data quality", "Datenqualität"), dq, stuck ? L("Sent frozen cell voltages at least once. Possibly a faulty pack.", "Hat mindestens einmal eingefrorene Zellspannungen gesendet. Möglicherweise defekt.") : b.sessions.every((a) => !a.hasCells) ? L("Identifies itself but never sends cell voltages.", "Identifiziert sich, sendet aber nie Zellspannungen.") : L("Readings looked plausible.", "Die Werte sahen plausibel aus."))}</div>
       <div class="scroll"><table class="tbl"><thead><tr><th>${L("Date", "Datum")}</th><th>${L("Session", "Sitzung")}</th><th class="r">${L("Cycles", "Zyklen")}</th><th class="r">${L("Charge used", "Verbrauch")}</th><th class="r lv-std">${L("Per cell start → end", "Pro Zelle Anfang → Ende")}</th><th>${L("Condition", "Zustand")}</th></tr></thead><tbody>
-      ${b.sessions.map((a) => { const c = a.resistance != null && !a.cellsFrozen ? rate(a.resistance, TH.battR) : null; return `<tr class="clickable" data-open="${a.s.index}"><td class="num">${dateShort(a.s.start)} ${timeOf(a.s.start)}</td><td>${typeName(a.type)}${a.cellsFrozen ? ` <b style="color:var(--crit)">· ${L("data stuck", "Daten eingefroren")}</b>` : ""}</td><td class="r num">${a.s.battery.cycles}</td><td class="r num">${f(a.mah, 0)} mAh</td><td class="r num lv-std">${f(a.cellStart, 2)} → ${f(a.cellEnd, 2)} V</td><td>${c ? meter(c.q) + " " + c.word : "–"}</td></tr>`; }).join("")}
+      ${b.sessions.map((a) => { const c = a.resistance != null && !a.cellsFrozen ? rate(a.resistance / (a.s.battery?.cells || 3), TH.battR) : null; return `<tr class="clickable" data-open="${a.s.index}"><td class="num">${dateShort(a.s.start)} ${timeOf(a.s.start)}</td><td>${typeName(a.type)}${a.cellsFrozen ? ` <b style="color:var(--crit)">· ${L("data stuck", "Daten eingefroren")}</b>` : ""}</td><td class="r num">${a.s.battery.cycles}</td><td class="r num">${f(a.mah, 0)} mAh</td><td class="r num lv-std">${f(a.cellStart, 2)} → ${f(a.cellEnd, 2)} V</td><td>${c ? meter(c.q) + " " + c.word : "–"}</td></tr>`; }).join("")}
       </tbody></table></div></div>`;
   });
   const unknown = A.filter((a) => a.type === "flight" && !a.s.battery);
   if (unknown.length) h += `<div class="card"><h3>${L("Flights with an unidentified battery", "Flüge mit unbekanntem Akku")}</h3><div class="hint">${L("No smart-battery data. Possibly the faulty pack after it stopped reporting, or a different battery.", "Keine Smart-Akku-Daten. Möglicherweise der defekte Akku, nachdem er aufgehört hat zu senden, oder ein anderer Akku.")}</div>
-    <table class="tbl"><tbody>${unknown.map((a) => { const c = a.resistance ? rate(a.resistance, TH.battR) : null; return `<tr class="clickable" data-open="${a.s.index}"><td class="num">${dateShort(a.s.start)} ${timeOf(a.s.start)}</td><td class="r num">${f(a.mah, 0)} mAh</td><td>${c ? meter(c.q) + " " + c.word : "–"}</td></tr>`; }).join("")}</tbody></table></div>`;
+    <table class="tbl"><tbody>${unknown.map((a) => { const c = a.resistance ? rate(a.resistance / (a.s.battery?.cells || 3), TH.battR) : null; return `<tr class="clickable" data-open="${a.s.index}"><td class="num">${dateShort(a.s.start)} ${timeOf(a.s.start)}</td><td class="r num">${f(a.mah, 0)} mAh</td><td>${c ? meter(c.q) + " " + c.word : "–"}</td></tr>`; }).join("")}</tbody></table></div>`;
   h += `<p class="note">${L("Condition compares the voltage drop under load between flights. On 7 Nov the drop was about twice as large as on 10 Oct. That fits the battery that later stopped reporting.", "Der Zustand vergleicht den Spannungseinbruch unter Last zwischen den Flügen. Am 7.11. war er etwa doppelt so groß wie am 10.10. Das passt zu dem Akku, der danach keine Daten mehr gesendet hat.")}</p>`;
   const m = document.getElementById("main"); m.innerHTML = h;
   m.querySelectorAll("[data-open]").forEach((r) => r.addEventListener("click", () => { state.tab = "battery"; select(+r.dataset.open); }));
