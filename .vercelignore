@@ -1,0 +1,8 @@
+# Never upload private flight logs or data derived from them.
+samples/
+prototype/data.js
+# Build output and local state
+out/
+.next/
+node_modules/
+.env*
