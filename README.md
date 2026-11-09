@@ -6,7 +6,11 @@ TLMscope shows what happened during your RC flights. It reads the telemetry logs
 
 Files are read in your browser. Nothing is uploaded.
 
-> **Status:** working app, not yet published (see [the plan](docs/implementation-plan.md)). Screenshots are at the end of this page.
+**Open the app: [tlmscope.andreasknoor.com](https://tlmscope.andreasknoor.com)**, or try it with the built-in demo flight.
+
+![TLMscope showing the demo flight: summary sentence, key numbers, height profile with motor climbs, lift and gliding, and the health check](docs/images/overview.jpg)
+
+> **Status:** working app, published on Vercel; every push to `main` goes live (see [the plan](docs/implementation-plan.md)). More screenshots are at the end of this page.
 
 ## Using the app
 
@@ -266,8 +270,6 @@ Sources: Spektrum `spektrumTelemetrySensors.h` structure layouts, the project's 
 
 ## Screenshots
 
-Both show the synthetic demo flight, not real pilot data.
-
-![Overview of a flight: summary sentence, height profile with motor climbs, lift and gliding, and the health check](docs/images/overview.jpg)
+All screenshots show the synthetic demo flight, not real pilot data. The overview is at the top of this page.
 
 ![Flight path: map with the 3D path coloured by phase, distance and speed, and a height chart that moves the marker on the map](docs/images/flight-path.jpg)
