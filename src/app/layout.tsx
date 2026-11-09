@@ -9,9 +9,31 @@ const display = Barlow_Semi_Condensed({ variable: "--font-display", subsets: ["l
 const body = Source_Sans_3({ variable: "--font-body", subsets: ["latin"] });
 const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], weight: ["400", "500"] });
 
+const SITE_URL = "https://tlmscope.andreasknoor.com";
+const TITLE = "TLMscope – Spektrum telemetry log viewer";
+const DESCRIPTION = "See what happened during your RC flights. Reads Spektrum telemetry logs (.TLM) in your browser: flight summaries, charts, map and 3D replay. Free, nothing uploaded.";
+
+// Link previews (Facebook, WhatsApp, X, Slack …) read the Open Graph and Twitter tags; the image
+// comes from app/opengraph-image.tsx and needs the absolute site address (metadataBase).
 export const metadata: Metadata = {
-  title: "TLMscope",
-  description: "See what happened during your RC flights. Reads Spektrum telemetry logs in your browser.",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
+  applicationName: "TLMscope",
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "TLMscope",
+    title: TITLE,
+    description: DESCRIPTION,
+    locale: "en_US",
+    alternateLocale: ["de_DE"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {
