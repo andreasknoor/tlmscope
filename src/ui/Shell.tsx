@@ -63,8 +63,17 @@ export function Wordmark() {
 function Header() {
   const t = useTranslations("app");
   const { view, go, settings, setSettings, openHelp, files } = useStore();
+  // The sidebar sits right below the header; its height can change when the header wraps.
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty("--top-h", `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
-    <header className="top">
+    <header className="top" ref={ref}>
       <a className="brand" href="#sessions" onClick={(e) => { e.preventDefault(); go("sessions"); }}>
         <Logo /><Wordmark />
       </a>
@@ -138,6 +147,11 @@ function Sidebar() {
   const kindEntries = modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter);
   const count = (m: string | null) => entries.filter((e) => (m === null || e.model.key === m) && (settings.filter === "all" || e.a.kind === "flight")).length;
   const [over, setOver] = useState(false);
+  // The list scrolls on its own: keep the chosen session in view (arrow keys, buttons, links).
+  const list = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    list.current?.querySelector<HTMLElement>('[aria-current="true"]')?.scrollIntoView({ block: "nearest" });
+  }, [selected?.key, settings.filter, modelFilter]);
   const input = useRef<HTMLInputElement>(null);
   const loc = settings.locale;
   const dayOf = (e: Entry) => (e.startMs !== null ? dayLabel(loc, e.startMs) : "?");
@@ -151,6 +165,7 @@ function Sidebar() {
         onDragLeave={() => setOver(false)}
         onDrop={(e) => { e.preventDefault(); setOver(false); addFiles([...e.dataTransfer.files]); }}
       >
+        <div className="files">
         {files.map((f) => {
           const fm = models.filter((m) => entries.some((e) => e.file === f && e.model === m));
           return (
@@ -164,6 +179,7 @@ function Sidebar() {
             </div>
           );
         })}
+        </div>
         <small>{t("app.dropMore")}</small>
         <div className="dropacts">
           <button className="btn" onClick={() => input.current?.click()}>{t("app.addFiles")}</button>
@@ -184,7 +200,7 @@ function Sidebar() {
           <ModelSelect id="model-filter" count={count} />
         </div>
       )}
-      <div className="slist">
+      <div className="slist" ref={list}>
         {visible.map((e, k) => {
           const d = dayOf(e);
           const head = k === 0 || dayOf(visible[k - 1]) !== d ? <div className="sday">{d}</div> : null;
@@ -195,15 +211,14 @@ function Sidebar() {
               {head}
               <button className={`sitem ${e.a.kind === "flight" ? "" : "dim"}`} aria-current={selected?.key === e.key} onClick={() => select(e.key)}>
                 <span className="t num">{e.startMs !== null ? timeLabel(loc, e.startMs) : "–"}</span>
-                {/* Each row names its model; the kind is added for sessions that are not flights. */}
+                {/* Each row names its model; sessions that are not flights get their kind on a second line. */}
                 <span className="k">
                   <ModelBadge model={e.model} />
                   <span className="mn">{modelName(e.model)}</span>
-                  {e.a.kind !== "flight" && <span>· {t(`kind.${e.a.kind}`)}</span>}
                   {e.a.issues.some((i) => i.level === 1) && <span title={t("issue.frozen")} style={{ color: "var(--crit)", fontWeight: 700 }}>!</span>}
                 </span>
                 <span className="m num">{meta}</span>
-                {e.a.kind === "flight" && <Spark e={e} />}
+                {e.a.kind === "flight" ? <Spark e={e} /> : <span className="kk"><span className="kdot" style={{ background: KIND_COLOR[e.a.kind] }} />{t(`kind.${e.a.kind}`)}</span>}
               </button>
             </div>
           );
