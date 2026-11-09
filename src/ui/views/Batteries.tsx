@@ -73,7 +73,9 @@ export function Batteries() {
               {ageing.points.length >= 2 && <AgeingChart ageing={ageing} title={t("batteries.ageingTitle")} note={t("batteries.ageingNote")} />}
               {ageing.points.some((p) => !p.used) && <p className="hint">{t("batteries.ageingCold")}</p>}
             </div>
-            <div className="scroll"><table className="tbl">
+            <details className="more sessionlist">
+              <summary>{t("batteries.sessionList", { n: list.length })}</summary>
+              <div className="scroll"><table className="tbl">
               <thead><tr><th>{t("batteries.date")}</th><th>{t("app.session")}</th><th className="r">{t("batteries.chargeCycles")}</th><th className="r">{t("energy.chargeUsed")}</th><th className="r lv-more">{t("battery.perCellStart")} → {t("battery.perCellEnd")}</th><th className="r lv-more">{t("batteries.resistance")}</th><th>{t("batteries.condition")}</th></tr></thead>
               <tbody>{[...list].reverse().map((e) => {
                 const ch = e.a.charge.available ? e.a.charge.value : null;
@@ -90,6 +92,7 @@ export function Batteries() {
                 );
               })}</tbody>
             </table></div>
+            </details>
           </div>
         );
       })}

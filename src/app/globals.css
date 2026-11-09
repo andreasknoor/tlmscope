@@ -190,6 +190,8 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 600; 
 details.more summary::-webkit-details-marker { display: none; }
 details.more summary::before { content: "+ "; }
 details.more[open] summary::before { content: "− "; }
+details.sessionlist { margin-top: 12px; }
+details.sessionlist[open] summary { margin-bottom: 8px; }
 .kv { display: grid; grid-template-columns: auto auto; gap: 2px 14px; margin: 6px 0 0; justify-content: start; }
 .kv dt { color: var(--ink-3); } .kv dd { margin: 0; font-variant-numeric: tabular-nums; color: var(--ink); }
 .alert { border-radius: var(--radius); padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); background: var(--surface); }

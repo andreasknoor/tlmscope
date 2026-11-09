@@ -431,6 +431,7 @@
     "ageingStable": "Kein nennenswerter Verschleiß: Der Widerstand steuert nicht auf die Aussortier-Grenze zu.",
     "ageingNow": "Jetzt {now} mΩ pro Zelle, {change} mΩ pro 10 Ladezyklen (Trend der letzten 10 Flüge).",
     "ageingCold": "Hohle Punkte sind Flüge unter 15 °C. Kalte Akkus messen zu hoch, deshalb zählen sie nicht zum Trend.",
+    "sessionList": "Alle Sitzungen ({n})",
     "resistance": "Widerstand pro Zelle"
   },
   "inv": {

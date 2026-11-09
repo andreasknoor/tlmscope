@@ -431,6 +431,7 @@
     "ageingStable": "No wear worth noting: the resistance is not heading for the retire level.",
     "ageingNow": "Now {now} mΩ per cell, {change} mΩ per 10 charge cycles (trend over the last 10 flights).",
     "ageingCold": "Hollow dots are flights below 15 °C. Cold packs read high, so they are left out of the trend.",
+    "sessionList": "All sessions ({n})",
     "resistance": "Resistance per cell"
   },
   "inv": {
