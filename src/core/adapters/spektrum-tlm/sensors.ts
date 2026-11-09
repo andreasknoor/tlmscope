@@ -89,7 +89,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x7e": {
     label: "RPM / signal",
     understood: "partial",
-    note: "Offset 8 = signal in dBm, offset 9 = signal in % (meaning unverified). Offset 14 counts up by about 1 per second (unknown, possibly receiver uptime).",
+    note: "Offset 8 = signal in dBm, offset 9 = signal in % (meaning unverified). Offset 14 counts seconds (Supra log: 48 → 581 in 533 s), most likely the receiver's time since power-on.",
     decode: (p) => {
       const dbm = i8(p, 8);
       const pct = i8(p, 9);
@@ -139,7 +139,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x05": {
     label: "Flight controller status (AS3X / SAFE)",
     understood: "partial",
-    note: "Byte 2 looks like the stabilization mode index (0-based, unverified). Byte 5 cycles 0x80–0x82 like a page number; bytes 6–9 then carry small values (gains?).",
+    note: "Byte 2 looks like the stabilization mode index (0-based, unverified); byte 4 is 0x80 + the same index. Byte 5 cycles 0x80–0x82 like a page number. Pages 0x81 and 0x82 stay the same within a mode (gains?); page 0x80 changes in flight (live values, not decoded).",
     decode: (p) => [
       { name: "Stabilization mode index (unverified)", unit: "", value: p[2], channel: "flight_mode", categorical: true },
       { name: "Byte 3", unit: "", value: p[3] },
@@ -228,14 +228,14 @@ export const SENSORS: Record<string, SensorDef> = {
   },
   "0x16": {
     label: "GPS location",
-    understood: "partial",
-    note: "Decoded from the specification (little-endian BCD). Not yet checked against a real GPS log.",
+    understood: "full",
+    note: "Little-endian BCD as in the specification. Checked against a real GPS log (Supra Fly, 2025/26): positions, course and HDOP are consistent. The altitude equals the vario height (relative to the take-off spot) to 0.1 m.",
     decode: (p) => decodeGpsLoc(p),
   },
   "0x17": {
     label: "GPS status",
-    understood: "partial",
-    note: "Decoded from the specification (little-endian BCD). Not yet checked against a real GPS log.",
+    understood: "full",
+    note: "Little-endian BCD as in the specification. Checked against a real GPS log: the ground speed (knots) matches the distance between positions. Records that are all zero carry no data.",
     decode: (p) => decodeGpsStat(p),
   },
   "0x7a/1": {
@@ -269,7 +269,10 @@ export const SENSORS: Record<string, SensorDef> = {
 /** Labels for sensors we know by name but do not decode. */
 export const KNOWN_UNDECODED: Record<string, string> = {
   "0x76": "Unknown 0x76",
-  "0x12": "Altitude sensor (declared, no data seen)",
+  "0x12": "Altitude sensor (declared; the Supra header pairs it with 0x40, the vario)",
+  "0x11": "Airspeed sensor (declared, only zeros seen)",
+  "0x50": "User-defined sensor (probably; content unknown)",
+  "0xff": "Damaged record (no sensor)",
 };
 
 /** GPS flags, byte 15 of 0x16. */

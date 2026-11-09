@@ -18,24 +18,37 @@ interface StreamAcc {
   samples: Map<string, number>;
 }
 
-/** Model name and declared sensors from the header blocks of one session. */
+/**
+ * The model block: byte 1 = 0x00 and bytes 4–5 = 10 27. Byte 0 differs between models
+ * (0x01 for a model in slot 2, 0x08 in another log), so it is most likely the model slot.
+ * The name starts at byte 6, sometimes after a few control bytes (02 20 in NX8 logs).
+ */
+export function isModelHeader(h: Uint8Array): boolean {
+  return h[1] === 0x00 && h[4] === 0x10 && h[5] === 0x27;
+}
+
+/** Model name, probable model slot and declared sensors from the header blocks of one session. */
 export function readHeaders(headers: Uint8Array[]) {
   let modelName: string | null = null;
+  let modelSlot: number | null = null;
   const declared: { id: string; secondary: string; bytes: string }[] = [];
   for (const h of headers) {
-    if (h[0] === 0x01 && h[1] === 0x00) {
-      const end = h.indexOf(0, 8);
-      const name = ascii(h.subarray(8, end < 0 ? h.length : end)).trim();
+    if (isModelHeader(h)) {
+      let start = 6;
+      while (start < h.length && h[start] !== 0 && h[start] <= 0x20) start++;
+      const end = h.indexOf(0, start);
+      const name = ascii(h.subarray(start, end < 0 ? h.length : end)).trim();
       if (name) modelName = name;
+      modelSlot = h[0] + 1;
     } else {
       declared.push({ id: `0x${h[0].toString(16).padStart(2, "0")}`, secondary: `0x${h[1].toString(16).padStart(2, "0")}`, bytes: hex(h) });
     }
   }
-  return { modelName, declared };
+  return { modelName, modelSlot, declared };
 }
 
 function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]): Session {
-  const { modelName, declared } = readHeaders(rs.headers);
+  const { modelName, modelSlot, declared } = readHeaders(rs.headers);
   const n = rs.ticks.length;
 
   // Time base: the first record that is not the wall-clock record.
@@ -61,8 +74,11 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
 
   for (let i = 0; i < n; i++) {
     const tick = rs.ticks[i];
-    if (tick < prevTick) backwards++;
-    prevTick = tick;
+    // The clock record often carries a tick just ahead of the first data record; it is not part of the time base.
+    if (data[rs.packetOffsets[i]] !== 0x7c) {
+      if (tick < prevTick) backwards++;
+      prevTick = tick;
+    }
     const t = (tick - base) / 100;
     const p = data.subarray(rs.packetOffsets[i], rs.packetOffsets[i] + PACKET_SIZE);
     const key = streamKey(p);
@@ -209,6 +225,7 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
     meta: {
       byteOffset: rs.offset,
       records: n,
+      ...(modelSlot !== null ? { modelSlot } : {}),
       headerBlocks: rs.headers.map(hex),
       declaredSensors: declared,
       ...(Object.keys(text).length ? { textScreen: Object.entries(text).sort((a, b) => +a[0] - +b[0]).map(([, l]) => l) } : {}),

@@ -13,6 +13,9 @@ import { useStore } from "../store";
 import { levelColor } from "./Link";
 import { PhaseLegend } from "./Overview";
 
+/** Glide colour on the map. */
+const MAP_GLIDE = "--s-alt";
+
 type ColourBy = "phase" | "height" | "signal";
 
 function GpsView() {
@@ -38,11 +41,12 @@ function GpsView() {
   const [marker, setMarker] = useState<number | null>(null);
   const alt = g.get("altitude");
   const top = Math.max(1, maxOf(alt) ?? 0);
+  // On the map, glides are blue: the chart grey would vanish next to the grey ground shadow.
   const colorAt = useCallback((i: number) => {
     if (colourBy === "height") return mix(cssVar("--h-low"), cssVar("--h-high"), Math.max(0, alt[i] ?? 0) / top);
     if (colourBy === "signal") return levelColor(sig?.levels[i] ?? null) ?? cssVar("--ink-3");
     const k = p?.phaseAt[i];
-    return cssVar(k === "glide" || !k ? "--s-alt" : PHASE_COLOR[k]);
+    return cssVar(k === "glide" || !k ? MAP_GLIDE : PHASE_COLOR[k]);
   }, [colourBy, alt, top, sig, p]);
   const altSeries = useMemo(() => [{ data: alt, color: "--s-alt", unit: "m", fill: 0.12 }], [alt]);
   const distSeries = useMemo(() => [{ data: tr?.distance ?? [], color: "--s-5", unit: "m", digits: 0, fill: 0.1 }], [tr]);
@@ -72,7 +76,7 @@ function GpsView() {
             </div>
           </div>
         </div>
-        {colourBy === "phase" && p ? <PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />
+        {colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />
           : colourBy === "height" ? <Legend items={[[`linear-gradient(90deg, var(--h-low), var(--h-high))`, `0 – ${num(loc, top, 0)} m`]]} />
           : <Legend items={[[cssVar("--good"), word("signal", 4)], [withAlpha(cssVar("--good"), 0.45), word("signal", 3)], [cssVar("--warn"), word("signal", 2)], [cssVar("--crit"), word("signal", 1)]]} />}
       </div>
@@ -81,7 +85,6 @@ function GpsView() {
       <LineChart syncKey={e!.key} title={t("path.follow")} series={altSeries} phases={p?.phases} height={150} yFormat={(x) => `${axisNum(loc, x)} m`}
         readout={(i) => `${num(loc, alt[i], 0)} m · ${t("path.away", { d: num(loc, tr.distance[i], 0) })}`} onCursor={setMarker} />
       <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)} m`} onCursor={setMarker} /></div>
-      <p className="note">{t("path.untested")}</p>
     </>
   );
 }

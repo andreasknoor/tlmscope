@@ -12,9 +12,10 @@ export function header(bytes: number[]): Uint8Array {
   return b;
 }
 
-export function modelHeader(name: string): Uint8Array {
+/** Model block as an NX8 writes it; `slot` is the model memory (1-based). */
+export function modelHeader(name: string, slot = 2): Uint8Array {
   const text = Array.from(name.slice(0, 23), (c) => c.charCodeAt(0) & 0x7f);
-  return header([0x01, 0x00, 0xb2, 0x00, 0x10, 0x27, 0x02, 0x20, ...text]);
+  return header([slot - 1, 0x00, 0xb2, 0x00, 0x10, 0x27, 0x02, 0x20, ...text]);
 }
 
 export function sensorHeader(id: number, secondary = id): Uint8Array {

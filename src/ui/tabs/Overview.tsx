@@ -11,9 +11,10 @@ import { useStore } from "../store";
 import { ConditionCard, DataCard, IssueAlerts, LinkCard, RxCard, SignalCard, StyleCard, TempCard, UsedCard } from "./ratings";
 import { MinMaxCard } from "./MinMax";
 
-export function PhaseLegend({ kinds }: { kinds: string[] }) {
+/** Colour of each phase; `glide` overrides the glide colour (the map draws glides in a stronger colour than the charts). */
+export function PhaseLegend({ kinds, glide }: { kinds: string[]; glide?: string }) {
   const t = useTranslations("phase");
-  return <Legend items={kinds.map((k) => [`var(${PHASE_COLOR[k]})`, t(k)] as [string, string])} />;
+  return <Legend items={kinds.map((k) => [k === "glide" && glide ? `var(${glide})` : `var(${PHASE_COLOR[k]})`, t(k)] as [string, string])} />;
 }
 
 export function OverviewTab() {

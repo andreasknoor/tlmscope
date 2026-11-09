@@ -293,7 +293,6 @@
     "distFromStart": "Entfernung vom Start",
     "away": "{d} m entfernt",
     "mapFailed": "Die Karte konnte nicht geladen werden. Sie braucht eine Internetverbindung und einen Browser mit WebGL.",
-    "untested": "Die GPS-Dekodierung folgt der Spektrum-Spezifikation und ist noch nicht mit einem echten GPS-Log geprüft.",
     "noFlight": "In dieser Sitzung wurde nicht geflogen."
   },
   "energy": {

@@ -86,6 +86,7 @@ describe.skipIf(!hasSamples)("Spektrum TLM: all sample files", () => {
     "002~Easy Glider 4_20261002.TLM": 5,
     "002~Easy Glider 4_20261003.TLM": 4,
     "Easy_Glider_4.TLM": 34,
+    "TelemetryLog supra .tlm": 130,
   };
 
   it("covers every sample in the folder", () => {
@@ -102,10 +103,10 @@ describe.skipIf(!hasSamples)("Spektrum TLM: all sample files", () => {
         expect(s.raw.reduce((n, r) => n + r.count, 0)).toBe(s.meta.records);
         for (const ch of s.channels.values()) {
           expect(ch.t.length).toBe(ch.v.length);
-          for (let i = 1; i < ch.t.length; i++) expect(ch.t[i]).toBeGreaterThanOrEqual(ch.t[i - 1]);
+          for (let i = 1; i < ch.t.length; i++) if (ch.t[i] < ch.t[i - 1]) expect.fail(`${name} #${s.index} ${ch.id}: time goes back at ${i}`);
         }
       }
-    });
+    }, 60_000); // the Supra log is 36 MB
   }
 
   it("reads the throttle stick from the 0x7A stream of the AutoLog files", () => {

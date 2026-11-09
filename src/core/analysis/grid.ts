@@ -35,6 +35,8 @@ export class Grid {
     if (hit) return hit;
     const out: Series = new Array(this.n).fill(null);
     const ch = this.session.channels.get(id);
+    // Labels and whole counts are not averaged (a GPS fix of "1.6" means nothing): the last value of the second counts.
+    if (ch && how === "mean" && (ch.kind === "categorical" || (ch.kind === "numeric" && ch.unit === "count"))) how = "last";
     if (ch) {
       const sum = new Float64Array(this.n);
       const cnt = new Uint32Array(this.n);

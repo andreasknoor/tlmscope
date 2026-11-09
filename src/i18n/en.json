@@ -293,7 +293,6 @@
     "distFromStart": "Distance from start",
     "away": "{d} m away",
     "mapFailed": "The map could not be loaded. It needs an internet connection and a browser with WebGL.",
-    "untested": "GPS decoding follows the Spektrum specification and has not been checked against a real GPS log yet.",
     "noFlight": "No flight in this session."
   },
   "energy": {
