@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
 import { cssVar, clock, dayLabel, num, timeLabel } from "./format";
 import { Help } from "./views/Help";
@@ -140,7 +140,7 @@ function Spark({ e }: { e: Entry }) {
 
 function Sidebar() {
   const t = useTranslations();
-  const { entries, visible, selected, select, settings, setSettings, addFiles, files, closeFile, closeAll, models, modelFilter } = useStore();
+  const { entries, visible, selected, select, step, settings, setSettings, addFiles, files, closeFile, closeAll, models, modelFilter } = useStore();
   const modelName = useModelName();
   const airtime = useAirtime();
   const multi = models.length > 1;
@@ -149,6 +149,16 @@ function Sidebar() {
   const [over, setOver] = useState(false);
   // The list scrolls on its own: keep the chosen session in view (arrow keys, buttons, links).
   const list = useRef<HTMLDivElement>(null);
+  // The list shows the newest session first; ← → and the buttons still move along the time axis.
+  const newestFirst = useMemo(() => [...visible].reverse(), [visible]);
+  // ↑ ↓ move through the list while a session in it has the focus (newer above, older below).
+  const onListKey = (ev: React.KeyboardEvent) => {
+    if (ev.key !== "ArrowUp" && ev.key !== "ArrowDown") return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    step(ev.key === "ArrowUp" ? 1 : -1);
+    requestAnimationFrame(() => list.current?.querySelector<HTMLElement>('[aria-current="true"]')?.focus());
+  };
   useEffect(() => {
     list.current?.querySelector<HTMLElement>('[aria-current="true"]')?.scrollIntoView({ block: "nearest" });
   }, [selected?.key, settings.filter, modelFilter]);
@@ -200,10 +210,10 @@ function Sidebar() {
           <ModelSelect id="model-filter" count={count} />
         </div>
       )}
-      <div className="slist" ref={list}>
-        {visible.map((e, k) => {
+      <div className="slist" ref={list} onKeyDown={onListKey}>
+        {newestFirst.map((e, k) => {
           const d = dayOf(e);
-          const head = k === 0 || dayOf(visible[k - 1]) !== d ? <div className="sday">{d}</div> : null;
+          const head = k === 0 || dayOf(newestFirst[k - 1]) !== d ? <div className="sday">{d}</div> : null;
           const p = e.a.profile.available ? e.a.profile.value : null;
           const meta = e.a.kind === "flight" && p ? (p.maxAltitudeM !== null ? `${num(loc, p.maxAltitudeM, 0)} m · ${airtime(p)}` : airtime(p)) : e.a.kind === "transmitter-only" ? "" : clock(e.a.session.durationS);
           return (
@@ -224,7 +234,7 @@ function Sidebar() {
           );
         })}
       </div>
-      <div className="keys"><kbd>←</kbd> <kbd>→</kbd> {t("app.keys")}</div>
+      <div className="keys"><kbd>←</kbd> <kbd>→</kbd> {t("app.keys")} · <kbd>↑</kbd> <kbd>↓</kbd> {t("app.keysList")}</div>
     </aside>
   );
 }

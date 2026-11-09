@@ -39,7 +39,7 @@ export function SessionView() {
         <div className="row">
           <button className="btn" onClick={() => step(-1)} aria-label={t("app.prevSession")}>‹</button>
           <select value={e.key} aria-label={t("app.session")} onChange={(ev) => select(ev.target.value)}>
-            {visible.map((x) => (
+            {[...visible].reverse().map((x) => (
               <option key={x.key} value={x.key}>
                 {x.startMs !== null ? `${dayLabel(loc, x.startMs)} ${timeLabel(loc, x.startMs)}` : "?"} · {modelName(x.model)} · {t(`kind.${x.a.kind}`)}
               </option>

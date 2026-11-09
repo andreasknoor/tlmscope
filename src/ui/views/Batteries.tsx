@@ -75,7 +75,7 @@ export function Batteries() {
             </div>
             <div className="scroll"><table className="tbl">
               <thead><tr><th>{t("batteries.date")}</th><th>{t("app.session")}</th><th className="r">{t("batteries.chargeCycles")}</th><th className="r">{t("energy.chargeUsed")}</th><th className="r lv-more">{t("battery.perCellStart")} → {t("battery.perCellEnd")}</th><th className="r lv-more">{t("batteries.resistance")}</th><th>{t("batteries.condition")}</th></tr></thead>
-              <tbody>{list.map((e) => {
+              <tbody>{[...list].reverse().map((e) => {
                 const ch = e.a.charge.available ? e.a.charge.value : null;
                 return (
                   <tr key={e.key} className="clickable" onClick={() => select(e.key, "battery")}>
@@ -97,7 +97,7 @@ export function Batteries() {
         <div className="card">
           <h3>{t("batteries.unknownTitle")}</h3>
           <div className="hint">{t("batteries.unknownHint")}</div>
-          <table className="tbl"><tbody>{unknown.map((e) => (
+          <table className="tbl"><tbody>{[...unknown].reverse().map((e) => (
             <tr key={e.key} className="clickable" onClick={() => select(e.key, "battery")}><td className="num">{when(e)}</td><td className="r num">{used(e)}</td><td>{condCell(e)}</td></tr>
           ))}</tbody></table>
         </div>
