@@ -1,6 +1,6 @@
 # Feature concepts: alarm settings, thermals, replay, battery ageing
 
-Status: concept for review, nothing built yet. The working prototype is `prototype/features.html`. It uses the synthetic demo flight plus invented example rows, which are marked as such.
+Status: battery ageing (v1.7), thermals (v1.8) and replay (v1.9) are built. Alarm settings are on hold (see the "later" list in the plan). The working prototype is `prototype/features.html`. It uses the synthetic demo flight plus invented example rows, which are marked as such.
 
 All four features follow the rules of the app:
 - analyses read canonical channels only,
