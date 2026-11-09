@@ -48,20 +48,20 @@ function Header() {
         </nav>
       )}
       <div className="spacer" />
+      {/* Phones: logo, language and help in row 1; navigation and the details toggle in row 2. */}
+      {files.length > 0 && <div className="hbreak" aria-hidden="true" />}
+      {files.length > 0 && (
+        <button className="toggle" aria-pressed={settings.details} aria-label={t("showDetails")} onClick={() => setSettings({ details: !settings.details })}>
+          <span className="sw" aria-hidden="true" /><span className="long">{t("showDetails")}</span><span className="short">{t("details")}</span>
+        </button>
+      )}
       <div className="controls">
-        {files.length > 0 && (
-          <>
-            <button className="toggle" aria-pressed={settings.details} onClick={() => setSettings({ details: !settings.details })}>
-              <span className="sw" aria-hidden="true" />{t("showDetails")}
-            </button>
-          </>
-        )}
         <div className="seg" role="group" aria-label="Language">
           {(["en", "de"] as const).map((l) => (
             <button key={l} aria-pressed={settings.locale === l} onClick={() => setSettings({ locale: l })}>{l.toUpperCase()}</button>
           ))}
         </div>
-        <button className="helpbtn" onClick={openHelp}><i aria-hidden="true">?</i>{t("help")}</button>
+        <button className="helpbtn" aria-label={t("help")} onClick={openHelp}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>
       </div>
     </header>
   );

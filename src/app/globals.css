@@ -62,6 +62,7 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .nav a { text-decoration: none; color: var(--ink-2); padding: 6px 10px; border-radius: 6px; font-weight: 600; }
 .nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
 .spacer { flex: 1; }
+.hbreak, .top .short { display: none; }
 .controls { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--sunken); }
 .seg button { border: 0; background: none; padding: 5px 12px; cursor: pointer; color: var(--ink-2); font-weight: 600; font-size: 13.5px; }
@@ -222,8 +223,17 @@ body:not([data-details="on"]) .lv-more { display: none !important; }
 
 @media (max-width: 1100px) { .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) {
-  /* The header wraps to three rows on phones; let it scroll away instead of covering the screen. */
-  .top { position: static; }
+  /* Two header rows on phones: logo, language and help; then navigation and details. It scrolls away. */
+  .top { position: static; row-gap: 8px; column-gap: 8px; }
+  .top .spacer { display: none; }
+  .top .controls { order: 1; margin-left: auto; }
+  .top .hbreak { display: block; order: 2; flex-basis: 100%; height: 0; margin-top: -8px; }
+  .top .nav { order: 3; flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; gap: 2px; margin-left: -6px; }
+  .top .nav a { padding: 6px 6px; white-space: nowrap; }
+  .top .toggle { order: 4; margin-left: auto; padding: 4px 8px 4px 5px; gap: 6px; }
+  .top .long { display: none; }
+  .top .short { display: inline; }
+  .helpbtn { padding: 4px; }
   .app { grid-template-columns: minmax(0, 1fr); }
   .side { display: none; }
   .mpicker { display: flex; gap: 6px; align-items: center; }
