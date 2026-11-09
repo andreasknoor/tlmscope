@@ -15,11 +15,19 @@ type ColourBy = "phase" | "height" | "signal";
 
 function GpsView() {
   const t = useTranslations();
-  const { selected: e, settings } = useStore();
+  const { selected: e, settings, entries } = useStore();
   const a = e!.a;
   const loc = settings.locale;
   const g = a.grid;
   const tr = a.track.available ? a.track.value : null;
+  // Thermal centres of every loaded flight within a few kilometres of this launch point.
+  const spots = useMemo(() => {
+    if (!tr) return [];
+    const near = (lat: number, lon: number) => Math.hypot((lat - tr.home.lat) * 111_000, (lon - tr.home.lon) * 111_000 * Math.cos((tr.home.lat * Math.PI) / 180)) < 5000;
+    return entries.flatMap((x) => (x.a.thermals?.list ?? [])
+      .filter((th) => th.centre && near(th.centre.lat, th.centre.lon))
+      .map((th) => ({ lat: th.centre!.lat, lon: th.centre!.lon, climb: th.avgClimb, own: x.key === e!.key })));
+  }, [entries, tr, e]);
   const p = a.profile.available ? a.profile.value : null;
   const sig = a.signal.available ? a.signal.value : null;
   const word = useLevelWord();
@@ -49,7 +57,7 @@ function GpsView() {
       <div className="chart">
         <div className="ch"><b>{t("path.map")}</b><span className="ro"> </span></div>
         <div className="mapwrap">
-          <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} />
+          <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} spots={spots} />
           <div className="tools">
             <div className="seg" role="group">
               <button aria-pressed={pitch > 0} onClick={() => setPitch(55)}>{t("path.view3d")}</button>
@@ -66,6 +74,7 @@ function GpsView() {
           : colourBy === "height" ? <Legend items={[[`linear-gradient(90deg, var(--h-low), var(--h-high))`, `0 – ${num(loc, top, 0)} m`]]} />
           : <Legend items={[[cssVar("--good"), word("signal", 4)], [withAlpha(cssVar("--good"), 0.45), word("signal", 3)], [cssVar("--warn"), word("signal", 2)], [cssVar("--crit"), word("signal", 1)]]} />}
       </div>
+      {spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
       <LineChart syncKey={e!.key} title={t("path.follow")} series={altSeries} phases={p?.phases} height={150} yFormat={(x) => `${axisNum(loc, x)} m`}
         readout={(i) => `${num(loc, alt[i], 0)} m · ${t("path.away", { d: num(loc, tr.distance[i], 0) })}`} onCursor={setMarker} />
       <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)} m`} onCursor={setMarker} /></div>

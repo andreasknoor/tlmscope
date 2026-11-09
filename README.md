@@ -144,6 +144,7 @@ Analyses work only on canonical channels, resampled to a 1-second grid, so they 
 | Session kind | any channel; `altitude` or `ground_speed` for flights | flight, ground test, powered on, transmitter only |
 | Flight profile | `altitude` and one of `throttle_output`, `motor_current`, `throttle_command` | phases (ground, motor climb, glide, lift), climbs with height gained and charge used, lift, glide sink rate, airtime |
 | Circling | `rotation_rate.pitch`, `rotation_rate.yaw` | full circles, direction, time turning |
+| Thermals | flight profile; circles with `rotation_rate.pitch/yaw`; centre and drift with GPS | per lift phase: gain, average and best 10 s climb, circles and height per circle, drift, motor time and mAh saved |
 | Radio link | `frame_losses` or `link_quality` | level per second, overall level, frame losses per minute, holds in the air, fades |
 | Signal strength | `signal_dbm` | level per second, overall level, weakest moment |
 | Battery used | `consumed_mah` | mAh and percent of capacity (reported or assumed) |

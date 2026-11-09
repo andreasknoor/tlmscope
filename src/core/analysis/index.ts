@@ -2,6 +2,7 @@ import type { LogFile, Session } from "../model/types.ts";
 import { batteryCondition, batteryUse, cellBalance, chargeEstimate, type BatteryCondition, type BatteryUse, type CellBalance, type ChargeEstimate } from "./battery.ts";
 import { circling, classify, flightProfile, type Circling, type FlightProfile, type SessionKind } from "./flight.ts";
 import { track, type Track } from "./gps.ts";
+import { thermals, type Thermals } from "./thermals.ts";
 import { Grid, medianOf } from "./grid.ts";
 import { dataIssues, loads, moments, receiverPower, temperatures, type DataIssue, type Loads, type Moment, type ReceiverPower, type Temperatures } from "./health.ts";
 import { linkQuality, signalStrength, type LinkAnalysis, type SignalAnalysis } from "./link.ts";
@@ -15,6 +16,8 @@ export interface SessionAnalysis {
   profile: Result<FlightProfile>;
   circling: Result<Circling>;
   track: Result<Track>;
+  /** Lift phases as thermals; null without a flight profile. */
+  thermals: Thermals | null;
   link: Result<LinkAnalysis>;
   signal: Result<SignalAnalysis>;
   batteryUse: Result<BatteryUse>;
@@ -49,10 +52,12 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
   const link = linkQuality(session, p, grid);
   const signal = signalStrength(session, p, grid);
   const ld = loads(session, grid);
+  const tr = track(session, grid);
   return {
     session, kind, grid, profile,
     circling: circ,
-    track: track(session, grid),
+    track: tr,
+    thermals: p && kind === "flight" ? thermals(p, grid, val(circ), val(tr)) : null,
     link, signal,
     batteryUse: batteryUse(session, opts.assumedCapacityMah),
     batteryCondition: batteryCondition(session, grid),
@@ -94,10 +99,15 @@ export function analyseLogs(logs: LogFile[], opts: Omit<AnalysisOptions, "batter
       a.efficiency = { ratio, level: rate(ratio, THRESHOLDS.efficiencyRatio) };
     }
     if (p?.glideSinkRate != null && sinkBaseline) a.sinkComparison = { ratio: p.glideSinkRate / sinkBaseline };
+    // A flight without motor climbs prices its thermals at the pilot's usual mAh per metre.
+    if (p && p.mPer100mAh == null && efficiencyBaseline && a.thermals?.list.length) {
+      a.thermals = thermals(p, a.grid, val(a.circling), val(a.track), efficiencyBaseline);
+    }
   }
   return { sessions, efficiencyBaseline, sinkBaseline };
 }
 
 export * from "./thresholds.ts";
 export { batteryAgeing, AGEING, type Ageing, type AgeingPoint } from "./ageing.ts";
+export type { Thermal, Thermals, ThermalCircle } from "./thermals.ts";
 export type { SessionKind, FlightProfile, Circling, Track, LinkAnalysis, SignalAnalysis, BatteryUse, BatteryCondition, ChargeEstimate, CellBalance, Temperatures, ReceiverPower, Loads, DataIssue, Moment, Result };

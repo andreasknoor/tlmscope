@@ -17,6 +17,8 @@ interface Props {
   colorAt: (i: number) => string;
   marker: number | null;
   pitch: number;
+  /** Thermal centres to mark: strength in m/s, `own` for this flight. */
+  spots?: { lat: number; lon: number; climb: number; own: boolean }[];
 }
 
 const toRgb = (c: string): [number, number, number] => {
@@ -28,7 +30,7 @@ const toRgb = (c: string): [number, number, number] => {
 };
 
 /** Map with the flight path in 3D. Libraries load only in the browser. */
-export function FlightMap({ track, height, colorAt, marker, pitch }: Props) {
+export function FlightMap({ track, height, colorAt, marker, pitch, spots = [] }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
@@ -91,11 +93,17 @@ export function FlightMap({ track, height, colorAt, marker, pitch }: Props) {
       layers: [
         new layers.PathLayer({ id: "shadow", data: [{ path: shadow }], getPath: (d: { path: [number, number][] }) => d.path, getColor: [60, 70, 80, 90], getWidth: 2, widthUnits: "pixels" }),
         new layers.PathLayer({ id: "path", data: segments, getPath: (d: (typeof segments)[number]) => d.path, getColor: (d: (typeof segments)[number]) => d.color, getWidth: 3, widthUnits: "pixels", capRounded: true, jointRounded: true }),
+        new layers.ScatterplotLayer({
+          id: "thermals", data: spots, getPosition: (d: (typeof spots)[number]) => [d.lon, d.lat, 0],
+          getFillColor: (d: (typeof spots)[number]) => [...toRgb(cssVar("--s-lift")), d.own ? 170 : 90] as [number, number, number, number],
+          getLineColor: toRgb(cssVar("--ink")), stroked: true, getLineWidth: (d: (typeof spots)[number]) => (d.own ? 2 : 0), lineWidthUnits: "pixels",
+          getRadius: (d: (typeof spots)[number]) => 12 + Math.max(0, d.climb) * 14, radiusUnits: "meters",
+        }),
         new layers.ScatterplotLayer({ id: "home", data: [track.home], getPosition: (d: Track["home"]) => [d.lon, d.lat, 0], getFillColor: toRgb(cssVar("--ink")), getRadius: 6, radiusUnits: "pixels" }),
         ...(m ? [new layers.ScatterplotLayer({ id: "marker", data: [m], getPosition: (d: [number, number, number]) => d, getFillColor: [255, 255, 255], getLineColor: toRgb(cssVar("--ink")), stroked: true, lineWidthUnits: "pixels", getLineWidth: 2.5, getRadius: 7, radiusUnits: "pixels" })] : []),
       ],
     });
-  }, [ready, track, height, colorAt, marker]);
+  }, [ready, track, height, colorAt, marker, spots]);
 
   return <div ref={el} style={{ position: "absolute", inset: 0 }} />;
 }

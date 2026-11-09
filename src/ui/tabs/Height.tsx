@@ -9,6 +9,7 @@ import { jumpTo } from "../charts/sync";
 import { axisNum, clock, cssVar, num, withAlpha } from "../format";
 import { useStore } from "../store";
 import { PhaseLegend } from "./Overview";
+import { ThermalsCard } from "./Thermals";
 
 export function HeightTab() {
   const t = useTranslations();
@@ -53,6 +54,7 @@ export function HeightTab() {
           sub={p.glideSinkRate !== null ? t("height.sinking", { rate: num(loc, p.glideSinkRate, 1), cmp }) : undefined} />
       </div>
       {!p.lifts.length && <p className="note">{t("height.noLift")}</p>}
+      {a.thermals && <ThermalsCard thermals={a.thermals} />}
       <div className="card">
         <h3>{t("height.byPhase")}</h3>
         <div className="scroll"><table className="tbl">

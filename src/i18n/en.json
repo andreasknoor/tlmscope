@@ -470,5 +470,33 @@
     "g1": "NX and iX: connect the transmitter by USB, choose the option to access internal storage in the USB settings, then copy the <code>.TLM</code> files.",
     "g2": "DX with SD card: take the SD card out and copy the <code>.TLM</code> files.",
     "independent": "TLMscope is an independent project, not made or endorsed by Spektrum or Horizon Hobby."
+  },
+  "thermals": {
+    "title": "Thermals",
+    "summary": "{n, plural, one {One thermal} other {# thermals}}: +{gain} m in {time} min without motor.",
+    "strongest": "{n, plural, one {Average} other {Strongest}}: {avg} m/s, best 10 s {best} m/s.",
+    "circles": "{n, plural, one {# full circle} other {# full circles}}, {secs} s each.",
+    "saved": "Saved about {secs} s of motor ({mah} mAh).",
+    "savedNoMah": "Saved about {secs} s of motor.",
+    "start": "Start",
+    "gain": "Gain",
+    "time": "Time",
+    "avg": "Average",
+    "best": "Best 10 s",
+    "circlesCol": "Circles",
+    "drift": "Drift",
+    "savedCol": "Saved",
+    "driftValue": "{d} m to the {dir}",
+    "n": "north",
+    "ne": "north-east",
+    "e": "east",
+    "se": "south-east",
+    "s": "south",
+    "sw": "south-west",
+    "w": "west",
+    "nw": "north-west",
+    "perCircleHint": "The small bars show the height gained in each circle. Even bars mean the core was well centred; drift shows where the wind carried the thermal.",
+    "savedHint": "“Saved” is the motor time and charge the same height would have cost at this flight's motor climbs.",
+    "mapLegend": "Green dots: thermal centres of all loaded flights near this field. Bigger means stronger, outlined means this flight."
   }
 }

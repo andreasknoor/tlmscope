@@ -28,6 +28,28 @@ describe("synthetic demo flight (end-to-end, including GPS)", () => {
     expect(value(a.circling).circles).toBeGreaterThanOrEqual(5);
   });
 
+  it("describes the thermal: strength, circles, drift with the wind and what it saved", () => {
+    const th = a.thermals!;
+    expect(th.list).toHaveLength(1);
+    const t = th.list[0];
+    expect(t.avgClimb).toBeGreaterThan(1);
+    expect(t.avgClimb).toBeLessThan(1.5);
+    expect(t.best10s!).toBeGreaterThan(t.avgClimb);
+    expect(t.circles.length).toBeGreaterThanOrEqual(6);
+    expect(t.secsPerCircle!).toBeGreaterThan(10);
+    expect(t.secsPerCircle!).toBeLessThan(18);
+    // the simulation's wind blows 1.8 m/s east and 0.6 m/s north
+    expect(t.drift!.bearingDeg).toBeGreaterThan(55);
+    expect(t.drift!.bearingDeg).toBeLessThan(85);
+    expect(t.drift!.speedMs).toBeGreaterThan(1.4);
+    expect(t.drift!.speedMs).toBeLessThan(2.4);
+    // +117 m at the motor's ~3.4 m/s and ~61 m per 100 mAh
+    expect(t.savedMotorS!).toBeGreaterThan(28);
+    expect(t.savedMotorS!).toBeLessThan(40);
+    expect(t.savedMah!).toBeGreaterThan(170);
+    expect(t.savedMah!).toBeLessThan(210);
+  });
+
   it("decodes the GPS track back to the simulated home and distances", () => {
     const tr = value(a.track);
     expect(tr.home.lat).toBeCloseTo(DEMO_HOME.lat, 4);

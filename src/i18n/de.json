@@ -470,5 +470,33 @@
     "g1": "NX und iX: Sender per USB anschließen, in den USB-Einstellungen den Zugriff auf den internen Speicher wählen, dann die <code>.TLM</code>-Dateien kopieren.",
     "g2": "DX mit SD-Karte: Karte entnehmen und die <code>.TLM</code>-Dateien kopieren.",
     "independent": "TLMscope ist ein unabhängiges Projekt und wird nicht von Spektrum oder Horizon Hobby hergestellt oder unterstützt."
+  },
+  "thermals": {
+    "title": "Thermik",
+    "summary": "{n, plural, one {Eine Thermik} other {# Thermiken}}: +{gain} m in {time} min ohne Motor.",
+    "strongest": "{n, plural, one {Im Schnitt} other {Stärkste}}: {avg} m/s, beste 10 s {best} m/s.",
+    "circles": "{n, plural, one {# voller Kreis} other {# volle Kreise}}, je {secs} s.",
+    "saved": "Hat etwa {secs} s Motorlauf gespart ({mah} mAh).",
+    "savedNoMah": "Hat etwa {secs} s Motorlauf gespart.",
+    "start": "Start",
+    "gain": "Gewinn",
+    "time": "Dauer",
+    "avg": "Schnitt",
+    "best": "Beste 10 s",
+    "circlesCol": "Kreise",
+    "drift": "Versatz",
+    "savedCol": "Gespart",
+    "driftValue": "{d} m nach {dir}",
+    "n": "Norden",
+    "ne": "Nordosten",
+    "e": "Osten",
+    "se": "Südosten",
+    "s": "Süden",
+    "sw": "Südwesten",
+    "w": "Westen",
+    "nw": "Nordwesten",
+    "perCircleHint": "Die kleinen Balken zeigen den Höhengewinn je Kreis. Gleichmäßige Balken heißen: gut zentriert. Der Versatz zeigt, wohin der Wind die Thermik getragen hat.",
+    "savedHint": "„Gespart“ ist die Motorzeit und Ladung, die dieselbe Höhe bei den Motorsteigflügen dieses Flugs gekostet hätte.",
+    "mapLegend": "Grüne Punkte: Thermik-Zentren aller geladenen Flüge an diesem Platz. Größer heißt stärker, umrandet heißt dieser Flug."
   }
 }

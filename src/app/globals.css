@@ -126,6 +126,7 @@ kbd { font: 500 11px var(--code); border: 1px solid var(--line); border-bottom-w
 
 .summary { font-size: 18px; line-height: 1.5; max-width: 70ch; color: var(--ink); }
 .summary b { font-weight: 700; }
+.sentence { font-size: 16px; line-height: 1.5; max-width: 75ch; }
 
 .stack { display: grid; gap: 12px; }
 .grid { display: grid; gap: 12px; }
