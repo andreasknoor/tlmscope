@@ -8,6 +8,7 @@ import { jumpTo } from "../charts/sync";
 import { axisNum, clock, duration, num } from "../format";
 import { useStore } from "../store";
 import { ConditionCard, DataCard, IssueAlerts, LinkCard, RxCard, SignalCard, StyleCard, TempCard, UsedCard } from "./ratings";
+import { MinMaxCard } from "./MinMax";
 
 export function PhaseLegend({ kinds }: { kinds: string[] }) {
   const t = useTranslations("phase");
@@ -97,6 +98,7 @@ export function OverviewTab() {
           </tbody></table>
         </div>
       )}
+      <MinMaxCard a={a} syncKey={e!.key} />
     </>
   );
 }

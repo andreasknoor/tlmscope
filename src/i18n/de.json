@@ -514,5 +514,12 @@
     "on": "an",
     "off": "aus",
     "hintNoMap": "Alle Diagramme laufen mit. Leertaste startet und stoppt."
+  },
+  "minmax": {
+    "title": "Tiefst- und Höchstwerte",
+    "hint": "Wie die Min/Max-Anzeige am Sender. Zähler zeigen ihre Summe. Ein Klick auf einen Wert zeigt den Moment in den Diagrammen.",
+    "value": "Messwert",
+    "min": "Tiefster",
+    "max": "Höchster"
   }
 }

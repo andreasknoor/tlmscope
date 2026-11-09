@@ -514,5 +514,12 @@
     "on": "on",
     "off": "off",
     "hintNoMap": "Every chart follows. Space starts and stops."
+  },
+  "minmax": {
+    "title": "Lowest and highest values",
+    "hint": "Like the min/max screen on the transmitter. Counters show their total. Click a value to see that moment in the charts.",
+    "value": "Value",
+    "min": "Lowest",
+    "max": "Highest"
   }
 }
