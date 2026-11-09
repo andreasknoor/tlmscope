@@ -68,7 +68,7 @@ function GpsView() {
       </div>
       <LineChart syncKey={e!.key} title={t("path.follow")} series={altSeries} phases={p?.phases} height={150} yFormat={(x) => `${axisNum(loc, x)} m`}
         readout={(i) => `${num(loc, alt[i], 0)} m · ${t("path.away", { d: num(loc, tr.distance[i], 0) })}`} onCursor={setMarker} />
-      <div className="lv-std"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)} m`} onCursor={setMarker} /></div>
+      <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)} m`} onCursor={setMarker} /></div>
       <p className="note">{t("path.untested")}</p>
     </>
   );

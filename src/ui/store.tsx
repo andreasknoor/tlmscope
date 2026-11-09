@@ -6,7 +6,6 @@ import type { LogFile } from "@/core/model/types";
 import type { Locale } from "./format";
 
 export type View = "sessions" | "batteries" | "inventory";
-export type Level = "simple" | "standard" | "expert";
 export type Tab = "overview" | "height" | "path" | "energy" | "battery" | "link" | "aircraft" | "raw";
 
 /** One session of one file, as shown in the list. */
@@ -21,7 +20,6 @@ export interface Entry {
 }
 
 export interface Settings {
-  level: Level;
   details: boolean;
   locale: Locale;
   filter: "flights" | "all";

@@ -60,15 +60,15 @@ export function EnergyTab() {
         <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thr} phases={flight ? p.phases : null} height={150} yMax={100}
           yFormat={(x) => `${axisNum(loc, x)} %`} extra={flight ? <PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} /> : null} />
       )}
-      {g.has("motor_current") && <div className="lv-std"><LineChart syncKey={e!.key} title={t("energy.motorCurrent")} series={amps} height={150} yFormat={(x) => `${axisNum(loc, x)} A`} /></div>}
+      {g.has("motor_current") && <div className="lv-more"><LineChart syncKey={e!.key} title={t("energy.motorCurrent")} series={amps} height={150} yFormat={(x) => `${axisNum(loc, x)} A`} /></div>}
       {g.has("rpm_electrical") && (
-        <div className="lv-exp"><LineChart syncKey={e!.key} title={t("energy.rpm")} series={rpm} height={130} yFormat={(x) => `${axisNum(loc, x / 1000)}k`} extra={<div className="sub">{t("energy.rpmHint")}</div>} /></div>
+        <div className="lv-more"><LineChart syncKey={e!.key} title={t("energy.rpm")} series={rpm} height={130} yFormat={(x) => `${axisNum(loc, x / 1000)}k`} extra={<div className="sub">{t("energy.rpmHint")}</div>} /></div>
       )}
       {flight && p.climbs.length > 0 && (
         <div className="card">
           <h3>{t("energy.eachClimb")}</h3>
           <div className="scroll"><table className="tbl">
-            <thead><tr><th>{t("height.start")}</th><th className="r">{t("height.duration")}</th><th className="r">{t("energy.gained")}</th><th className="r">{t("energy.chargeUsed")}</th><th>{t("energy.efficiency")}</th><th className="r lv-std">m / 100 mAh</th></tr></thead>
+            <thead><tr><th>{t("height.start")}</th><th className="r">{t("height.duration")}</th><th className="r">{t("energy.gained")}</th><th className="r">{t("energy.chargeUsed")}</th><th>{t("energy.efficiency")}</th><th className="r lv-more">m / 100 mAh</th></tr></thead>
             <tbody>
               {p.climbs.map((c) => {
                 const lvl = c.mPer100mAh !== null && analysis?.efficiencyBaseline ? rate(c.mPer100mAh / analysis.efficiencyBaseline, THRESHOLDS.efficiencyRatio) : null;
@@ -79,7 +79,7 @@ export function EnergyTab() {
                     <td className="r num">+{num(loc, c.gainM, 0)} m</td>
                     <td className="r num">{c.mah === null ? "–" : `${num(loc, c.mah, 0)} mAh`}</td>
                     <td>{lvl ? <><Meter level={lvl} /> {word("efficiency", lvl)}</> : <span style={{ color: "var(--ink-3)" }}>{t("energy.tooShort")}</span>}</td>
-                    <td className="r num lv-std">{num(loc, c.mPer100mAh, 0)}</td>
+                    <td className="r num lv-more">{num(loc, c.mPer100mAh, 0)}</td>
                   </tr>
                 );
               })}

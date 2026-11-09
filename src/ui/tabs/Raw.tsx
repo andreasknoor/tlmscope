@@ -23,7 +23,8 @@ export function StreamTable({ streams, seconds }: { streams: RawStream[]; second
   const { settings } = useStore();
   const [open, setOpen] = useState<Set<string>>(new Set());
   const loc = settings.locale;
-  const isOpen = (k: string) => settings.details !== open.has(k);
+  // Rows open one by one; the details toggle already decides whether this table shows at all.
+  const isOpen = (k: string) => open.has(k);
   const toggle = (k: string) => setOpen((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; });
   return (
     <div className="card scroll">

@@ -217,7 +217,8 @@ dialog.helpdlg::backdrop { background: var(--scrim); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* detail levels */
-body[data-level="simple"] .lv-std, body[data-level="simple"] .lv-exp, body[data-level="standard"] .lv-exp { display: none !important; }
+/* Charts and columns that only show with "Show details" on. */
+body:not([data-details="on"]) .lv-more { display: none !important; }
 
 @media (max-width: 1100px) { .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) {

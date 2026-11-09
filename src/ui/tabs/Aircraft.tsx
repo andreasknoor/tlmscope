@@ -43,11 +43,11 @@ export function AircraftTab() {
       </div>
       {temps.length > 0 && <LineChart syncKey={e!.key} title={t("rating.temps")} series={temps} height={160} yMin={0} yFormat={(x) => `${axisNum(loc, x)} °C`}
         extra={<Legend items={temps.map((s) => [`var(${s.color})`, s.label, true])} />} />}
-      {power.length > 0 && <div className="lv-std"><LineChart syncKey={e!.key} title={t("rating.rx")} series={power} height={140} yMin={4} yMax={6.5}
+      {power.length > 0 && <div className="lv-more"><LineChart syncKey={e!.key} title={t("rating.rx")} series={power} height={140} yMin={4} yMax={6.5}
         yFormat={(x) => `${num(loc, x, 1)} V`} bands={[{ from: 4, to: 4.8, color: "--crit", alpha: 0.1 }]}
         extra={<Legend items={power.map((s) => [`var(${s.color})`, s.label, true])} />} /></div>}
-      {g.has("accel.x") && <div className="lv-std"><LineChart syncKey={e!.key} title={t("aircraft.load")} series={load} phases={a.kind === "flight" ? p?.phases : null} height={140} yFormat={(x) => `${axisNum(loc, x)} g`} /></div>}
-      {modes.length > 0 && <div className="lv-exp"><Strip syncKey={e!.key} label={t("aircraft.fmOverTime")} n={g.n} colorAt={fmColor}
+      {g.has("accel.x") && <div className="lv-more"><LineChart syncKey={e!.key} title={t("aircraft.load")} series={load} phases={a.kind === "flight" ? p?.phases : null} height={140} yFormat={(x) => `${axisNum(loc, x)} g`} /></div>}
+      {modes.length > 0 && <div className="lv-more"><Strip syncKey={e!.key} label={t("aircraft.fmOverTime")} n={g.n} colorAt={fmColor}
         right={<Legend style={{ padding: 0 }} items={modes.map((m) => [`var(${MODE_COLORS[m % MODE_COLORS.length]})`, `${t("aircraft.flightMode")} ${m + 1}`])} />} /></div>}
     </>
   );

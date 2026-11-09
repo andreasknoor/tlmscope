@@ -51,13 +51,6 @@ function Header() {
       <div className="controls">
         {files.length > 0 && (
           <>
-            <div className="ctl"><span>{t("detail")}</span>
-              <div className="seg" role="group" aria-label={t("detail")}>
-                {(["simple", "standard", "expert"] as const).map((l) => (
-                  <button key={l} aria-pressed={settings.level === l} onClick={() => setSettings({ level: l })}>{t(l)}</button>
-                ))}
-              </div>
-            </div>
             <button className="toggle" aria-pressed={settings.details} onClick={() => setSettings({ details: !settings.details })}>
               <span className="sw" aria-hidden="true" />{t("showDetails")}
             </button>

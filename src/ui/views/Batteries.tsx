@@ -52,7 +52,7 @@ export function Batteries() {
               <RatingCard name={t("batteries.dataQuality")} level={dq.l} word={dq.w} hint={dq.h} />
             </div>
             <div className="scroll"><table className="tbl">
-              <thead><tr><th>{t("batteries.date")}</th><th>{t("app.session")}</th><th className="r">{t("batteries.chargeCycles")}</th><th className="r">{t("energy.chargeUsed")}</th><th className="r lv-std">{t("battery.perCellStart")} → {t("battery.perCellEnd")}</th><th>{t("batteries.condition")}</th></tr></thead>
+              <thead><tr><th>{t("batteries.date")}</th><th>{t("app.session")}</th><th className="r">{t("batteries.chargeCycles")}</th><th className="r">{t("energy.chargeUsed")}</th><th className="r lv-more">{t("battery.perCellStart")} → {t("battery.perCellEnd")}</th><th>{t("batteries.condition")}</th></tr></thead>
               <tbody>{list.map((e) => {
                 const ch = e.a.charge.available ? e.a.charge.value : null;
                 return (
@@ -61,7 +61,7 @@ export function Batteries() {
                     <td>{t(`kind.${e.a.kind}`)}{e.a.issues.some((i) => i.kind === "frozen") && <b style={{ color: "var(--crit)" }}> · {t("batteries.dataStuck")}</b>}</td>
                     <td className="r num">{e.a.session.battery?.chargeCycles}</td>
                     <td className="r num">{used(e)}</td>
-                    <td className="r num lv-std">{num(loc, ch?.startCellV, 2)} → {num(loc, ch?.endCellV, 2)} V</td>
+                    <td className="r num lv-more">{num(loc, ch?.startCellV, 2)} → {num(loc, ch?.endCellV, 2)} V</td>
                     <td>{condCell(e)}</td>
                   </tr>
                 );

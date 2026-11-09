@@ -42,7 +42,7 @@ export function HeightTab() {
         extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)} m`}
         readout={(i) => `${num(loc, alt[i], 1)} m · ${p.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} />
       <Strip syncKey={e!.key} label={t("height.phases")} n={p.n} colorAt={phaseColor} height={18} />
-      <div className="lv-std">
+      <div className="lv-more">
         <LineChart syncKey={e!.key} title={t("height.climbRate")} series={climbSeries} height={150} yMin={-4} yMax={6}
           bands={[{ from: 0.2, to: 6, color: "--s-lift", alpha: 0.07 }]} extra={<div className="sub">{t("height.climbHint")}</div>} />
       </div>
@@ -56,7 +56,7 @@ export function HeightTab() {
       <div className="card">
         <h3>{t("height.byPhase")}</h3>
         <div className="scroll"><table className="tbl">
-          <thead><tr><th>{t("height.start")}</th><th>{t("height.phase")}</th><th className="r">{t("height.duration")}</th><th className="r">{t("height.heightChange")}</th><th className="r lv-std">{t("height.avgClimb")}</th></tr></thead>
+          <thead><tr><th>{t("height.start")}</th><th>{t("height.phase")}</th><th className="r">{t("height.duration")}</th><th className="r">{t("height.heightChange")}</th><th className="r lv-more">{t("height.avgClimb")}</th></tr></thead>
           <tbody>
             {p.phases.map((ph) => {
               const a0 = alt[ph.start], a1 = alt[ph.end], d = ph.end - ph.start + 1;
@@ -67,7 +67,7 @@ export function HeightTab() {
                   <td><span className="kdot" style={{ background: `var(${PHASE_COLOR[ph.kind]})` }} /> {t(`phase.${ph.kind}`)}</td>
                   <td className="r num">{clock(d)}</td>
                   <td className="r num">{diff === null ? "–" : `${diff >= 0 ? "+" : ""}${num(loc, diff, 0)} m`}</td>
-                  <td className="r num lv-std">{diff === null ? "–" : `${num(loc, diff / d, 1)} m/s`}</td>
+                  <td className="r num lv-more">{diff === null ? "–" : `${num(loc, diff / d, 1)} m/s`}</td>
                 </tr>
               );
             })}

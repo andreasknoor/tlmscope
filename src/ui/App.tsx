@@ -11,7 +11,7 @@ import { Shell } from "./Shell";
 import { StoreContext, type Entry, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
-const DEFAULTS: Settings = { level: "simple", details: false, locale: "en", filter: "flights" };
+const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights" };
 const SETTINGS_KEY = "tlmscope.settings";
 /** Capacity assumed for batteries that do not report one (the most common Spektrum Smart 3S size). */
 const ASSUMED_CAPACITY = 2200;
@@ -20,7 +20,10 @@ export const DEMO_FILE = "demo-flight.TLM";
 function readSettings(): Settings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    return raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS;
+    if (!raw) return DEFAULTS;
+    // Older versions stored a detail level next to the details toggle; it is now part of the toggle.
+    const { level, ...saved } = JSON.parse(raw) as Partial<Settings> & { level?: string };
+    return { ...DEFAULTS, ...saved, details: saved.details ?? (level !== undefined && level !== "simple") };
   } catch {
     return DEFAULTS;
   }
@@ -42,8 +45,8 @@ export function App() {
   useEffect(() => setSettingsState(readSettings()), []);
   useEffect(() => {
     document.documentElement.lang = settings.locale;
-    document.body.dataset.level = settings.level;
-  }, [settings.locale, settings.level]);
+    document.body.dataset.details = settings.details ? "on" : "off";
+  }, [settings.locale, settings.details]);
 
   const setSettings = useCallback((patch: Partial<Settings>) => {
     setSettingsState((s) => {

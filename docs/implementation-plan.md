@@ -10,7 +10,7 @@ In scope for this plan:
 - Spektrum TLM adapter, tested against all six sample files.
 - Format-neutral model, channel catalogue and analysis library, all framework-free and unit-tested.
 - Next.js app with the views from the prototype: sessions, session tabs, batteries, data inventory, help.
-- English and German UI, three detail levels, a global details toggle.
+- English and German UI, one global "Show details" toggle (the three detail levels were merged into it in v1.2).
 - Flight path view: circling analysis without GPS; map and 3D path with GPS.
 
 Out of scope (see section 8): the EdgeTX adapter (until a real EdgeTX log is available), cloud storage, accounts, live telemetry, editing transmitter settings.
@@ -237,9 +237,9 @@ Every phase ends with passing tests, a short demo, small focused commits and you
 ### Phase 3: App shell and overview
 - Next.js app, file drop for several files, parsing in a Web Worker, loading and error states (corrupt file, wrong format).
 - Session list with flights/all filter, keyboard navigation, URL per session.
-- Header controls: detail level (Simple default), details toggle, EN/DE, help dialog.
+- Header controls: details toggle (off by default), EN/DE, help dialog.
 - Overview tab: summary sentence, tiles, height chart with phases, health check cards, moments.
-- Data inventory page and the Raw data tab (Expert).
+- Data inventory page and the Raw data tab (with details on).
 - Vercel preview deployment.
 
 **Done when:** your sample files open in the deployed preview and the Overview matches the prototype.

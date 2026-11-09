@@ -24,7 +24,7 @@ export function SessionView() {
   const s = e.a.session;
   const p = e.a.profile.available ? e.a.profile.value : null;
   const pos = visible.findIndex((x) => x.key === e.key);
-  const current: Tab = tab === "raw" && settings.level !== "expert" ? "overview" : tab;
+  const current: Tab = tab === "raw" && !settings.details ? "overview" : tab;
   const isDemo = demo && e.file.fileName.startsWith("demo-");
 
   return (
@@ -50,7 +50,7 @@ export function SessionView() {
             <span>{s.modelName ?? t("app.unknownModel")}</span>
             {e.batteryLetter ? <span className="pill">{t("battery.name", { letter: e.batteryLetter })} · {t("app.cycles", { n: s.battery?.chargeCycles ?? "?" })}</span>
               : e.a.kind !== "transmitter-only" ? <span className="pill">{t("app.batteryNotIdentified")}</span> : null}
-            <span className="lv-exp mono">{e.file.fileName} · #{s.index} · {String(s.meta.records)} records</span>
+            <span className="lv-more mono">{e.file.fileName} · #{s.index} · {String(s.meta.records)} records</span>
           </div>
         </div>
         <div className="navbtns">
@@ -65,7 +65,7 @@ export function SessionView() {
         <>
           <div className="tabs" role="tablist">
             {TABS.map((k) => (
-              <button key={k} role="tab" className={k === "raw" ? "lv-exp" : ""} aria-selected={current === k} onClick={() => setTab(k)}>{t(`tabs.${k}`)}</button>
+              <button key={k} role="tab" className={k === "raw" ? "lv-more" : ""} aria-selected={current === k} onClick={() => setTab(k)}>{t(`tabs.${k}`)}</button>
             ))}
           </div>
           <div className="stack" role="tabpanel">

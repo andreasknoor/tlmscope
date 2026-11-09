@@ -46,7 +46,7 @@ export function BatteryTab() {
           <div className="hint">
             {b ? rich("battery.identity", { chem: b.chemistry ?? "?", cells: b.cells ?? "?", capacity: b.capacityMah ?? "?", cycles: b.chargeCycles ?? "?" }) : t("battery.noIdentity")}
           </div>
-          {b && <div className="hint lv-exp mono">ID {b.id} · {b.emptyCellV} / {b.fullCellV} V · {b.dischargeRatingC} C</div>}
+          {b && <div className="hint lv-more mono">ID {b.id} · {b.emptyCellV} / {b.fullCellV} V · {b.dischargeRatingC} C</div>}
           {b && <a href="#batteries" className="hint" onClick={(ev) => { ev.preventDefault(); go("batteries"); }}>{t("battery.history")}</a>}
         </div>
         <div className="card">
@@ -65,19 +65,19 @@ export function BatteryTab() {
           extra={<div className="sub">{t("battery.voltageHint")}</div>} />
       )}
       {cellSeries.length > 0 && (
-        <div className="lv-std">
+        <div className="lv-more">
           <LineChart syncKey={e!.key} title={t("battery.cells")} series={cellSeries} height={160} yMin={Math.min(...allCells) - 0.02} yMax={Math.max(...allCells) + 0.02}
             yFormat={(x) => num(loc, x, 2)} extra={<Legend items={cellSeries.map((s, i) => [`var(${s.color})`, t("battery.cell", { n: i + 1 }), true])} />} />
         </div>
       )}
       {cellSeries.length > 1 && (
-        <div className="grid g3 lv-std">
+        <div className="grid g3 lv-more">
           <RatingCard name={t("rating.balance")} level={bal?.level ?? null} word={word("balance", bal?.level ?? null)}
             hint={bal ? t("rating.balanceHint", { mv: num(loc, bal.maxSpreadMv, 0) }) : frozen ? t("rating.balanceFrozen") : ""} />
         </div>
       )}
       {cond && sagPoints.length > 0 && (
-        <div className="lv-exp">
+        <div className="lv-more">
           <Scatter title={t("battery.sag")} note={t("battery.sagHint")} points={sagPoints} xLabel={t("energy.motorCurrent") + " (A)"} yLabel="V" color="--s-alt"
             slope={-(cond.resistancePerCellMilliOhm * cond.cells) / 1000} />
         </div>
