@@ -26,7 +26,7 @@ Node 24+. Scripts run TypeScript directly with `node file.ts`, so `src/core` imp
 ## Deployment and versioning
 
 - Every push to `main` deploys to production on Vercel (https://tlmscope.andreasknoor.com). `vercel.json` sets the build to `npm test && npm run build`, so a failing test blocks the deploy. GitHub Actions (`.github/workflows/ci.yml`) runs lint, typecheck, tests and build.
-- `vercel.json` also holds the security headers. The CSP allows only `'self'` plus `https://tiles.openfreemap.org` (map style, tiles, glyphs, sprites); a new external host must be added there or it will be blocked in production.
+- `vercel.json` also holds the security headers. The CSP allows only `'self'` plus `https://tiles.openfreemap.org` (map style, tiles, glyphs, sprites) and Umami page-view counting (`cloud.umami.is` script, `gateway.umami.is` endpoint, script tag in `src/app/layout.tsx`); a new external host must be added there or it will be blocked in production, and described on the privacy page (`src/app/legal/page.tsx`).
 - Bump the minor version in `package.json` with every deployed update (shown as `major.minor` in the header via `NEXT_PUBLIC_APP_VERSION`); the major version changes only on the owner's explicit decision. Commits are titled `Version X.Y: …`.
 - All code, comments, docs, commit messages and UI text are in English (German UI text lives only in `src/i18n/de.json` and `streams.de.json`). UI wording is plain language: simple levels first, exact values behind the "Show details" toggle.
 

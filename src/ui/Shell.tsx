@@ -11,6 +11,7 @@ import { SessionView } from "./views/SessionView";
 import { Welcome } from "./views/Welcome";
 import { useStore, type Entry } from "./store";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { OPERATOR, REPO_URL } from "@/legal/contact";
 import { PHASE_COLOR } from "./charts/LineChart";
 
 export const KIND_COLOR: Record<string, string> = { flight: "var(--s-alt)", "ground-test": "var(--s-motor)", "powered-on": "var(--s-glide)", "transmitter-only": "var(--s-ground)" };
@@ -164,6 +165,18 @@ function Sidebar() {
   );
 }
 
+function Footer() {
+  const t = useTranslations("footer");
+  return (
+    <footer className="foot">
+      <span>TLMscope {t("by", { name: OPERATOR.name })}</span>
+      <a href={REPO_URL} target="_blank" rel="noopener noreferrer">{t("source")}</a>
+      <span>{t("notAffiliated")}</span>
+      <a href="legal">{t("legal")}</a>
+    </footer>
+  );
+}
+
 export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
   const t = useTranslations();
   const { files, view, selected, tab } = useStore();
@@ -199,6 +212,7 @@ export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLD
           </main>
         </div>
       )}
+      <Footer />
       <Help dialogRef={helpRef} />
     </>
   );

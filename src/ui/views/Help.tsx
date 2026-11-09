@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import type { RefObject } from "react";
+import { OPERATOR, REPO_URL } from "@/legal/contact";
 import { useRich } from "../bits";
 
 const ST_COLOR: Record<string, string> = { ok: "var(--good)", exp: "var(--warn)", spec: "var(--warn)", raw: "var(--ink-3)", part: "var(--warn)" };
@@ -9,6 +10,7 @@ const ST_COLOR: Record<string, string> = { ok: "var(--good)", exp: "var(--warn)"
 export function Help({ dialogRef }: { dialogRef: RefObject<HTMLDialogElement | null> }) {
   const t = useTranslations("help");
   const ta = useTranslations("app");
+  const tf = useTranslations("footer");
   const rich = useRich();
   const st = (k: string) => <span className="st"><span className="kdot" style={{ background: ST_COLOR[k] }} />{t(`st.${k}`)}</span>;
   const radios: [string, string, string][] = [["r1", "r1w", "ok"], ["r2", "r2w", "exp"], ["r3", "r3w", "exp"]];
@@ -32,6 +34,9 @@ export function Help({ dialogRef }: { dialogRef: RefObject<HTMLDialogElement | n
         <p>{t("privateText")}</p>
         <h3>{t("getLogs")}</h3>
         <ul><li>{rich("help.g1")}</li><li>{rich("help.g2")}</li></ul>
+        <h3>{t("about")}</h3>
+        <p>{t("aboutText", { name: OPERATOR.name })}</p>
+        <p><a href={REPO_URL} target="_blank" rel="noopener noreferrer">{t("aboutLink")}</a> · <a href="legal">{tf("legal")}</a></p>
         <p className="note">{t("independent")}</p>
       </div>
     </dialog>

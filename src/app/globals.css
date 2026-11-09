@@ -259,3 +259,16 @@ body:not([data-details="on"]) .lv-more { display: none !important; }
   .mapwrap { height: 340px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Footer and legal page */
+/* The footer sits at the bottom of short pages: body is a column, the content in between grows. */
+body { display: flex; flex-direction: column; }
+body > .welcome, body > .app, body > .legal { flex: 1 0 auto; width: 100%; }
+.foot { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: center; padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px)); font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--line); }
+.foot a { color: inherit; }
+.foot a:hover { color: var(--ink); }
+.legal { max-width: 760px; margin: 32px auto 48px; padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+.legal h1 { font-size: 30px; margin-top: 18px; }
+.legal h2 { font-size: 18px; margin-top: 10px; }
+.legal p { max-width: 75ch; }
+.legal hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }

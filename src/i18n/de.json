@@ -472,11 +472,20 @@
     "n6": "Einstellungen an Sender oder Empfänger ändern. TLMscope liest nur.",
     "n7": "Autos und Boote (Spektrum-Bodensender) stehen nicht im Fokus. Deren Logs funktionieren eventuell teilweise.",
     "private": "Deine Daten bleiben bei dir",
-    "privateText": "Dateien werden in deinem Browser gelesen und nie hochgeladen. Es gibt kein Konto, kein Tracking und keinen Server, der deine Daten speichert. Eine Ausnahme: Bei Logs mit GPS lädt die Karte im Tab Flugweg Kartenbilder von OpenFreeMap (tiles.openfreemap.org). Wie jede Website sieht dieser Dienst deine IP-Adresse und welcher Kartenausschnitt abgefragt wird, also ungefähr, wo der Flug war. Deine Log-Datei selbst wird nicht übertragen.",
+    "privateText": "Dateien werden in deinem Browser gelesen und nie hochgeladen. Es gibt kein Konto, keine Cookies und keinen Server, der deine Daten speichert. Gezählt werden nur anonyme Seitenaufrufe (Umami, ohne Cookies, ohne Inhalte deiner Dateien). Eine Ausnahme: Bei Logs mit GPS lädt die Karte im Tab Flugweg Kartenbilder von OpenFreeMap (tiles.openfreemap.org). Wie jede Website sieht dieser Dienst deine IP-Adresse und welcher Kartenausschnitt abgefragt wird, also ungefähr, wo der Flug war. Deine Log-Datei selbst wird nicht übertragen.",
     "getLogs": "So kommst du an deine Log-Dateien",
     "g1": "NX und iX: Sender per USB anschließen, in den USB-Einstellungen den Zugriff auf den internen Speicher wählen, dann die <code>.TLM</code>-Dateien kopieren.",
     "g2": "DX mit SD-Karte: Karte entnehmen und die <code>.TLM</code>-Dateien kopieren.",
-    "independent": "TLMscope ist ein unabhängiges Projekt und wird nicht von Spektrum oder Horizon Hobby hergestellt oder unterstützt."
+    "independent": "TLMscope ist ein unabhängiges Projekt und wird nicht von Spektrum oder Horizon Hobby hergestellt oder unterstützt.",
+    "about": "Über TLMscope",
+    "aboutText": "TLMscope ist von {name}. Es entstand, um meine eigenen Modellflüge besser zu verstehen, als es das Senderdisplay erlaubt. Es ist kostenlos und ohne Werbung, und der Quellcode ist offen. Ideen, Fragen und Fehlermeldungen sind auf GitHub willkommen.",
+    "aboutLink": "TLMscope auf GitHub"
+  },
+  "footer": {
+    "by": "von {name}",
+    "source": "Quellcode",
+    "notAffiliated": "Nicht mit Spektrum verbunden",
+    "legal": "Impressum & Datenschutz"
   },
   "thermals": {
     "title": "Thermik",

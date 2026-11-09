@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Barlow_Semi_Condensed, JetBrains_Mono, Source_Sans_3 } from "next/font/google";
 import "uplot/dist/uPlot.min.css";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -23,7 +24,20 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        {/* Cookieless page-view counting (Umami Cloud). Only on the live domain; honours "Do Not Track";
+            no URL hash or query. Allowed in the CSP in vercel.json and described on the privacy page. */}
+        <Script
+          src="https://cloud.umami.is/script.js"
+          data-website-id="172a6628-9f2e-4adb-804c-34d1355bc80c"
+          data-domains="tlmscope.andreasknoor.com"
+          data-do-not-track="true"
+          data-exclude-hash="true"
+          data-exclude-search="true"
+          strategy="lazyOnload"
+        />
+      </body>
     </html>
   );
 }

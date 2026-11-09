@@ -472,11 +472,20 @@
     "n6": "Changing settings on the transmitter or receiver. TLMscope only reads.",
     "n7": "Cars and boats (Spektrum surface radios) are not a focus. Their logs may partly work.",
     "private": "Your data stays with you",
-    "privateText": "Files are read in your browser and never uploaded. There is no account, no tracking and no server that stores your data. One exception: for logs with GPS, the map on the Flight path tab loads map images from OpenFreeMap (tiles.openfreemap.org). Like any website, that service sees your IP address and which map area is requested, so roughly where the flight was. Your log file itself is not sent.",
+    "privateText": "Files are read in your browser and never uploaded. There is no account, no cookies and no server that stores your data. Only anonymous page views are counted (Umami, without cookies and without anything from your files). One exception: for logs with GPS, the map on the Flight path tab loads map images from OpenFreeMap (tiles.openfreemap.org). Like any website, that service sees your IP address and which map area is requested, so roughly where the flight was. Your log file itself is not sent.",
     "getLogs": "How to get your log files",
     "g1": "NX and iX: connect the transmitter by USB, choose the option to access internal storage in the USB settings, then copy the <code>.TLM</code> files.",
     "g2": "DX with SD card: take the SD card out and copy the <code>.TLM</code> files.",
-    "independent": "TLMscope is an independent project, not made or endorsed by Spektrum or Horizon Hobby."
+    "independent": "TLMscope is an independent project, not made or endorsed by Spektrum or Horizon Hobby.",
+    "about": "About",
+    "aboutText": "TLMscope is made by {name}. It started as a way to understand my own RC flights better than the transmitter screen allows. It is free, has no ads, and the source code is open. Ideas, questions and bug reports are welcome on GitHub.",
+    "aboutLink": "TLMscope on GitHub"
+  },
+  "footer": {
+    "by": "by {name}",
+    "source": "Source code",
+    "notAffiliated": "Not affiliated with Spektrum",
+    "legal": "Imprint & privacy"
   },
   "thermals": {
     "title": "Thermals",
