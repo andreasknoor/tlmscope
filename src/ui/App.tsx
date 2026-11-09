@@ -157,16 +157,6 @@ export function App() {
     history.replaceState(null, "", location.pathname);
   }, []);
 
-  // Nothing is stored, so reloading or leaving would drop the user's files: let the browser ask first.
-  // The demo alone can be reloaded with one click and needs no warning.
-  const hasOwnFiles = files.some((f) => f.fileName !== DEMO_FILE);
-  useEffect(() => {
-    if (!hasOwnFiles) return;
-    const onBeforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [hasOwnFiles]);
-
   // keyboard: arrows step through sessions
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
