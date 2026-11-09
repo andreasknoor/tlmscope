@@ -4,7 +4,7 @@ import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Legend, Tile, useLevelWord } from "../bits";
-import { FlightMap } from "../charts/FlightMap";
+import { FlightMap, LINE_STYLES, MARKER_STYLES, type LineStyle, type MarkerStyle } from "../charts/FlightMap";
 import { Replay } from "../charts/Replay";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
@@ -38,6 +38,9 @@ function GpsView() {
   const word = useLevelWord();
   const [colourBy, setColourBy] = useState<ColourBy>("phase");
   const [pitch, setPitch] = useState(55);
+  const [lineStyle, setLineStyle] = useState<LineStyle>("thick");
+  const [markerStyle, setMarkerStyle] = useState<MarkerStyle>("plane");
+  const [shadow, setShadow] = useState(false);
   const [marker, setMarker] = useState<number | null>(null);
   // Full screen: map and replay fill the browser window. Esc closes; the page behind does not scroll.
   const [full, setFull] = useState(false);
@@ -81,7 +84,7 @@ function GpsView() {
           <button className="btn" onClick={() => setFull(!full)} aria-pressed={full}>{full ? `✕ ${t("path.closeFull")}` : `⤢ ${t("path.full")}`}</button>
         </div>
         <div className="mapwrap">
-          <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} spots={spots} failedText={t("path.mapFailed")} />
+          <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} markerStyle={markerStyle} shadow={shadow} spots={spots} failedText={t("path.mapFailed")} />
           <div className="tools">
             <div className="seg" role="group">
               <button aria-pressed={pitch > 0} onClick={() => setPitch(55)}>{t("path.view3d")}</button>
@@ -92,6 +95,13 @@ function GpsView() {
                 <button key={c} aria-pressed={colourBy === c} onClick={() => setColourBy(c)}>{t(`path.by${c[0].toUpperCase()}${c.slice(1)}`)}</button>
               ))}
             </div>
+            <select className="mapselect" aria-label={t("path.line")} value={lineStyle} onChange={(ev) => setLineStyle(ev.target.value as LineStyle)}>
+              {LINE_STYLES.map((l) => <option key={l} value={l}>{t(`path.line_${l}`)}</option>)}
+            </select>
+            <select className="mapselect" aria-label={t("path.marker")} value={markerStyle} onChange={(ev) => setMarkerStyle(ev.target.value as MarkerStyle)}>
+              {MARKER_STYLES.map((k) => <option key={k} value={k}>{t(`path.marker_${k}`)}</option>)}
+            </select>
+            <div className="seg"><button aria-pressed={shadow} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
           </div>
         </div>
         {colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />

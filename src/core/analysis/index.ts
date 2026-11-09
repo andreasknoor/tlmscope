@@ -143,6 +143,7 @@ export function analyseLogs(logs: LogFile[], opts: Omit<AnalysisOptions, "batter
 }
 
 export * from "./thresholds.ts";
+export { attitudeFromPath, type Attitude } from "./attitude.ts";
 export { batteryAgeing, AGEING, type Ageing, type AgeingPoint } from "./ageing.ts";
 export type { Thermal, Thermals, ThermalCircle } from "./thermals.ts";
 export type { SessionKind, FlightProfile, Circling, Track, LinkAnalysis, SignalAnalysis, BatteryUse, BatteryCondition, ChargeEstimate, CellBalance, Temperatures, ReceiverPower, Loads, DataIssue, Moment, Result };

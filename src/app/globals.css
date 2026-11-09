@@ -220,6 +220,7 @@ details.sessionlist[open] summary { margin-bottom: 8px; }
 .mapwrap { position: relative; height: 440px; border-radius: 8px; overflow: hidden; background: var(--sunken); }
 .mapwrap .tools { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 2; pointer-events: none; }
 .mapwrap .tools > * { pointer-events: auto; }
+.mapselect { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink-2); font: inherit; font-weight: 600; font-size: 13.5px; padding: 4px 8px; cursor: pointer; }
 /* Map and replay; in full screen they fill the browser window. */
 .mapgroup { display: contents; }
 .mapgroup.full { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: flex; flex-direction: column; gap: 10px;
