@@ -38,7 +38,7 @@ function GpsView() {
   const word = useLevelWord();
   const [colourBy, setColourBy] = useState<ColourBy>("phase");
   const [pitch, setPitch] = useState(55);
-  const [lineStyle, setLineStyle] = useState<LineStyle>("thick");
+  const [lineStyle, setLineStyle] = useState<LineStyle>("thin");
   const [markerStyle, setMarkerStyle] = useState<MarkerStyle>("plane");
   const [shadow, setShadow] = useState(false);
   const [marker, setMarker] = useState<number | null>(null);

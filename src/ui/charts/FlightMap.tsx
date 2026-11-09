@@ -13,7 +13,7 @@ export const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 
 /** How the flight path is drawn, chosen in the map tools. */
 export type LineStyle = "thin" | "thinDashed" | "thick" | "thickDashed";
-export const LINE_STYLES: LineStyle[] = ["thick", "thickDashed", "thin", "thinDashed"];
+export const LINE_STYLES: LineStyle[] = ["thin", "thinDashed", "thick", "thickDashed"];
 const LINE_WIDTH = { thin: 2, thick: 4 };
 /** How the model is shown in the replay. */
 export type MarkerStyle = "plane" | "dot";
@@ -165,6 +165,10 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
       const p: [number, number, number] = [track.lon[i]!, track.lat[i]!, Math.max(0, height[i] ?? 0)];
       shadow.push([p[0], p[1]]);
       if (!cur) { cur = { path: [], colors: [] }; lines.push(cur); }
+      // Skip a point that repeats the last one (the model standing on the ground): deck.gl's
+      // dashed billboard lines divide by the segment length and throw zero-length segments off to infinity.
+      const last = cur.path[cur.path.length - 1];
+      if (last && last[0] === p[0] && last[1] === p[1] && Math.abs(last[2] - p[2]) < 0.01) continue;
       cur.path.push(p);
       cur.colors.push(toRgb(colorAt(i)));
     }
