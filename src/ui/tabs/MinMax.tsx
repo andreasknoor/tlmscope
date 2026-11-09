@@ -16,7 +16,8 @@ export function MinMaxCard({ a, syncKey }: { a: SessionAnalysis; syncKey: string
   const { settings } = useStore();
   const loc = settings.locale;
   const g = a.grid;
-  const rows = CATALOGUE.filter((c) => c.kind !== "categorical" && g.has(c.id)).map((c) => {
+  // The vario also reports the climb rate averaged over 0.25–3 s; only the standard one is listed.
+  const rows = CATALOGUE.filter((c) => c.kind !== "categorical" && !c.id.startsWith("climb_rate.") && g.has(c.id)).map((c) => {
     const lo = g.get(c.id, "min"), hi = g.get(c.id, "max");
     let min: number | null = null, max: number | null = null, minAt = 0, maxAt = 0;
     for (let i = 0; i < g.n; i++) {
