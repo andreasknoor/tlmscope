@@ -247,7 +247,14 @@ dialog.helpdlg::backdrop { background: var(--scrim); }
 .welcome .bigdrop.over { border-color: var(--accent); background: var(--accent-soft); }
 .welcome .bigdrop b { font: 600 22px var(--display); }
 .errorbox { border: 1px solid var(--crit); border-radius: var(--radius); padding: 10px 14px; background: var(--surface); color: var(--ink); }
-.loading { color: var(--ink-2); }
+.loadcard { border: 1px solid var(--accent); border-radius: var(--radius); padding: 12px 14px; background: var(--surface); display: flex; flex-direction: column; gap: 8px; }
+.loadcard .lc-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.loadcard .lc-head b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.loadcard .lc-pct { margin-left: auto; color: var(--ink-2); font-weight: 600; }
+.loadcard .lc-bar { height: 8px; border-radius: 4px; background: var(--grid); overflow: hidden; }
+.loadcard .lc-bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .2s; }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--accent-soft); border-top-color: var(--accent); flex: none; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .infobox { border: 1px solid var(--accent); border-radius: var(--radius); padding: 10px 14px; background: var(--surface); color: var(--ink); }
 
 .note { font-size: 13px; color: var(--ink-3); border-left: 3px solid var(--line); padding-left: 10px; max-width: 75ch; }
@@ -283,7 +290,7 @@ body:not([data-details="on"]) .lv-more { display: none !important; }
   .navbtns { margin-left: 0; }
   .mapwrap { height: 340px; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } .spinner { animation-duration: 2.4s; } }
 
 /* Footer and legal page */
 /* The footer sits at the bottom of short pages: body is a column, the content in between grows. */

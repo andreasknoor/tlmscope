@@ -144,5 +144,6 @@ export interface LogAdapter {
   label: string;
   /** Cheap check on the first bytes and the file name. */
   canRead(head: Uint8Array, fileName: string): boolean;
-  parse(data: Uint8Array, fileName: string): LogFile;
+  /** `onProgress` gets the share done (0…1) now and then; large files take seconds. */
+  parse(data: Uint8Array, fileName: string, onProgress?: (share: number) => void): LogFile;
 }

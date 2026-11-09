@@ -242,14 +242,23 @@ export const spektrumTlm: LogAdapter = {
     const startsWithHeader = head.length >= 4 && head[0] === 0xff && head[1] === 0xff && head[2] === 0xff && head[3] === 0xff;
     return startsWithHeader || /\.tlm$/i.test(fileName);
   },
-  parse(data, fileName): LogFile {
+  parse(data, fileName, onProgress): LogFile {
     const warnings: ParseWarning[] = [];
     const blocks = readBlocks(data);
     if (blocks.trailingBytes) warnings.push({ code: "trailing-bytes", message: `${blocks.trailingBytes} bytes at the end are not a complete block.`, offset: data.length - blocks.trailingBytes });
     if (blocks.orphanRecords) warnings.push({ code: "orphan-records", message: `${blocks.orphanRecords} records before the first header block.` });
     if (blocks.falseHeaders) warnings.push({ code: "damaged-records", message: `${blocks.falseHeaders} damaged records were read as data, not as a new session.` });
     if (!blocks.sessions.some((s) => s.headers.length || s.ticks.length)) throw new Error("The file contains no telemetry records.");
-    const sessions = blocks.sessions.map((rs) => parseSession(data, rs, warnings));
+    // Progress by records: splitting the file into blocks is quick, decoding the records takes the time.
+    const total = blocks.sessions.reduce((s, rs) => s + rs.ticks.length, 0) || 1;
+    let done = 0;
+    onProgress?.(0.05);
+    const sessions = blocks.sessions.map((rs) => {
+      const s = parseSession(data, rs, warnings);
+      done += rs.ticks.length;
+      onProgress?.(0.05 + 0.95 * (done / total));
+      return s;
+    });
     return { fileName, sizeBytes: data.length, adapterId: "spektrum-tlm", sessions, warnings };
   },
 };

@@ -18,10 +18,10 @@ export function findAdapter(data: Uint8Array, fileName: string): LogAdapter | un
 }
 
 /** Parses a log file with the first adapter that accepts it. */
-export function parseLog(data: Uint8Array, fileName: string): LogFile {
+export function parseLog(data: Uint8Array, fileName: string, onProgress?: (share: number) => void): LogFile {
   const adapter = findAdapter(data, fileName);
   if (!adapter) throw new UnsupportedFormatError(fileName);
-  const log = adapter.parse(data, fileName);
+  const log = adapter.parse(data, fileName, onProgress);
   // Sessions without a model name in the log take it from the file name.
   const fromFileName = modelNameFromFileName(fileName);
   for (const s of log.sessions) {

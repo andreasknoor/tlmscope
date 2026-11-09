@@ -42,7 +42,14 @@ function readSettings(): Settings {
   }
 }
 
-export interface LoadMessage { kind: "loading" | "error" | "info"; text: string; values: Record<string, string> }
+export interface LoadMessage {
+  kind: "loading" | "error" | "info";
+  text: string;
+  values: Record<string, string>;
+  /** Loading only: share done (0…1), file position in the batch and file size. */
+  progress?: number;
+  file?: { n: number; total: number; bytes?: number };
+}
 
 export function App() {
   const [files, setFiles] = useState<LogFile[]>([]);
@@ -174,14 +181,16 @@ export function App() {
       setMessages((m) => [...m.filter((x) => x.kind !== "loading"), { kind: "error", text, values }]);
       track({ name: "file-error", kind: text === "app.tooLarge" ? "too-large" : text === "app.unsupported" ? "unsupported" : "read-error" });
     };
-    for (const item of items) {
+    for (const [k, item] of items.entries()) {
       if (item.size !== undefined && item.size > MAX_FILE_BYTES) {
         error("app.tooLarge", { name: item.name, max: String(MAX_FILE_BYTES / 1024 / 1024) });
         continue;
       }
-      setMessages((m) => [...m.filter((x) => x.kind !== "loading"), { kind: "loading", text: "app.loading", values: { name: item.name } }]);
+      const file = { n: k + 1, total: items.length, bytes: item.size };
+      setMessages((m) => [...m.filter((x) => x.kind !== "loading"), { kind: "loading", text: "app.loading", values: { name: item.name }, progress: 0, file }]);
+      const onProgress = (share: number) => setMessages((m) => m.map((x) => (x.kind === "loading" ? { ...x, progress: share } : x)));
       try {
-        const r = await loadBuffer(await item.buffer(), item.name);
+        const r = await loadBuffer(await item.buffer(), item.name, onProgress);
         setMessages((m) => m.filter((x) => x.kind !== "loading"));
         if (r.ok) {
           // The same name usually is a newer copy of the same log (Spektrum names files after the model).

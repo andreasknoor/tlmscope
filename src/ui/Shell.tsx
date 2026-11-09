@@ -226,15 +226,40 @@ function Footer() {
   );
 }
 
+/** Files larger than this get the "takes a few seconds" note. */
+const LARGE_FILE_BYTES = 5e6;
+
+/** Progress while a file is read: name, bar and, for big files, a note that it takes a moment. */
+function LoadCard({ m }: { m: LoadMessage }) {
+  const t = useTranslations();
+  const pct = Math.round((m.progress ?? 0) * 100);
+  return (
+    <div className="loadcard">
+      <div className="lc-head">
+        <span className="spinner" aria-hidden="true" />
+        <b>{t(m.text, m.values)}</b>
+        <span className="num lc-pct">{pct} %</span>
+      </div>
+      <div className="lc-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={t(m.text, m.values)}>
+        <i style={{ width: `${Math.max(2, pct)}%` }} />
+      </div>
+      <span className="hint">
+        {m.file && m.file.total > 1 ? `${t("app.loadingFile", { n: m.file.n, total: m.file.total })} · ` : ""}
+        {m.file?.bytes !== undefined && m.file.bytes > LARGE_FILE_BYTES ? t("app.loadingLarge") : t("app.loadingLocal")}
+      </span>
+    </div>
+  );
+}
+
 export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
   const t = useTranslations();
   const { files, view, selected, tab } = useStore();
   const notices = messages.length > 0 && (
     <div className="stack" role="status">
-      {messages.map((m, i) => (
-        <div key={i} className={m.kind === "loading" ? "loading" : m.kind === "error" ? "errorbox" : "infobox"} style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
+      {messages.map((m, i) => m.kind === "loading" ? <LoadCard key={i} m={m} /> : (
+        <div key={i} className={m.kind === "error" ? "errorbox" : "infobox"} style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
           <span>{t(m.text, m.values)}</span>
-          {m.kind !== "loading" && <button className="btn" onClick={() => dismiss(i)}>{t("app.close")}</button>}
+          <button className="btn" onClick={() => dismiss(i)}>{t("app.close")}</button>
         </div>
       ))}
     </div>
