@@ -63,3 +63,6 @@ export function jumpTo(key: string, i: number): void {
   const first = [...(groups.get(key) ?? [])][0];
   first?.root.scrollIntoView({ behavior: "smooth", block: "center" });
 }
+
+/** Fired on window when the stork lands in its nest during the replay; the replay answers with a clatter. */
+export const ADEBAR_LANDED = "tlmscope:adebar-landed";

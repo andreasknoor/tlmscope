@@ -45,6 +45,14 @@ export function fin(outline: [number, number][], thick: number): Part {
   return { corners: p.corners.map(([x, z, y]): V => [x, y, z]), faces: p.faces };
 }
 
+/** Move a part (for building a model from parts made around their own pivot). */
+export const shift = (p: Part, d: V): Part => ({ ...p, corners: p.corners.map(([x, y, z]): V => [x + d[0], y + d[1], z + d[2]]) });
+/** Turn a part about the x axis by `deg` (positive lifts +y towards +z). */
+export const turnX = (p: Part, deg: number): Part => {
+  const c = Math.cos((deg * Math.PI) / 180), s = Math.sin((deg * Math.PI) / 180);
+  return { ...p, corners: p.corners.map(([x, y, z]): V => [x, y * c - z * s, y * s + z * c]) };
+};
+
 /** Mirror a part to the other side (y → −y). */
 export const mirror = (p: Part): Part => ({ ...p, corners: p.corners.map(([x, y, z]): V => [x, -y, z]) });
 export const paint = (p: Part, color: V): Part => ({ ...p, color });
@@ -90,35 +98,71 @@ const WHITE: V = [0.97, 0.97, 0.95];
 const BLACK: V = [0.1, 0.1, 0.12];
 const RED: V = [0.86, 0.22, 0.14];
 
-/** Where the stork's wings join the body (left side; the right one is mirrored). */
+/** Where the stork's wings join the body (left side; the right one is mirrored), and where the beak hinges. */
 export const STORK_SHOULDER: V = [0.03, 0.05, 0.03];
+export const STORK_BEAK_HINGE: V = [0.37, 0, 0.008];
 
 /**
  * White stork, in three meshes so the wings can flap: body (with neck, red beak and legs
  * trailing behind) and the two wings, each with its shoulder at the origin.
  * Inner wing white, outer wing (flight feathers) black.
  */
-export function storkMeshes(): { body: Mesh; left: Mesh; right: Mesh } {
-  const wing: Part[] = [
-    paint(plate([[0.07, 0], [0.07, 0.24], [-0.07, 0.24], [-0.06, 0]], 0, 0.014), WHITE),
-    paint(plate([[0.07, 0.24], [0.04, 0.47], [-0.02, 0.5], [-0.09, 0.44], [-0.07, 0.24]], 0, 0.012), BLACK),
+const STORK_WING: Part[] = [
+  paint(plate([[0.07, 0], [0.07, 0.24], [-0.07, 0.24], [-0.06, 0]], 0, 0.014), WHITE),
+  paint(plate([[0.07, 0.24], [0.04, 0.47], [-0.02, 0.5], [-0.09, 0.44], [-0.07, 0.24]], 0, 0.012), BLACK),
+];
+/** Beak halves, made around the hinge so they can open (clattering). */
+const BEAK_UPPER = paint(box(0, 0.16, -0.012, 0.012, 0, 0.012, 1, 0.25), RED);
+const BEAK_LOWER = paint(box(0, 0.15, -0.011, 0.011, -0.012, 0, 1, 0.25), RED);
+
+export function storkMeshes(): { body: Mesh; left: Mesh; right: Mesh; beakUpper: Mesh; beakLower: Mesh; glide: Mesh; nest: Mesh } {
+  const body = storkBody();
+  // A whole stork with its wings spread for gliding, for the storks circling in thermals.
+  const glide = [
+    ...body,
+    shift(paint(BEAK_UPPER, RED), STORK_BEAK_HINGE),
+    shift(paint(BEAK_LOWER, RED), STORK_BEAK_HINGE),
+    ...STORK_WING.map((p) => shift(turnX(p, 5), STORK_SHOULDER)),
+    ...STORK_WING.map((p) => shift(turnX(mirror(p), -5), [STORK_SHOULDER[0], -STORK_SHOULDER[1], STORK_SHOULDER[2]])),
   ];
   return {
-    body: buildMesh([
-      paint(box(-0.13, 0.12, -0.06, 0.06, -0.05, 0.055, 0.55, 0.8), WHITE),
-      paint(plate([[-0.12, 0], [-0.2, 0.05], [-0.23, 0], [-0.2, -0.05]], 0.01, 0.012), WHITE),
-      paint(box(0.11, 0.31, -0.022, 0.022, -0.012, 0.03, 1, 0.85), WHITE),
-      paint(box(0.29, 0.37, -0.035, 0.035, -0.015, 0.045), WHITE),
-      paint(box(0.37, 0.53, -0.012, 0.012, -0.004, 0.02, 1, 0.25), RED),
-      // Eyes, a little larger than life so they show at map scale: a white ring with a black pupil on each side.
-      ...[1, -1].flatMap((side) => [
-        paint(box(0.312, 0.352, side * 0.034, side * 0.039, 0.004, 0.04), WHITE),
-        paint(box(0.322, 0.346, side * 0.038, side * 0.043, 0.011, 0.033), BLACK),
-      ]),
-      paint(box(-0.45, -0.1, 0.017, 0.031, -0.04, -0.028, 0.7, 1), RED),
-      paint(box(-0.45, -0.1, -0.031, -0.017, -0.04, -0.028, 0.7, 1), RED),
-    ]),
-    left: buildMesh(wing),
-    right: buildMesh(wing.map(mirror)),
+    body: buildMesh(body),
+    left: buildMesh(STORK_WING),
+    right: buildMesh(STORK_WING.map(mirror)),
+    beakUpper: buildMesh([BEAK_UPPER]),
+    beakLower: buildMesh([BEAK_LOWER]),
+    glide: buildMesh(glide),
+    nest: nestMesh(),
   };
+}
+
+/** Nest of twigs: a ring of brown sticks around a darker bowl, top at z = NEST_TOP. */
+export const NEST_TOP = 0.07;
+function nestMesh(): Mesh {
+  const browns: V[] = [[0.45, 0.31, 0.17], [0.55, 0.39, 0.22], [0.38, 0.26, 0.14]];
+  const parts: Part[] = [paint(plate([...Array(10).keys()].map((k): [number, number] => [0.2 * Math.cos((k / 10) * 2 * Math.PI), 0.2 * Math.sin((k / 10) * 2 * Math.PI)]), 0.02, 0.04), [0.3, 0.21, 0.12])];
+  for (let k = 0; k < 14; k++) {
+    const a = (k / 14) * 2 * Math.PI;
+    const stick = box(-0.09, 0.09, -0.014, 0.014, 0, 0.03 + (k % 3) * 0.01);
+    // Each stick lies along the ring, turned to its place and tilted a little.
+    const c = Math.cos(a + Math.PI / 2), s = Math.sin(a + Math.PI / 2);
+    parts.push(paint({ ...stick, corners: stick.corners.map(([x, y, z]): V => [0.2 * Math.cos(a) + x * c - y * s, 0.2 * Math.sin(a) + x * s + y * c, z + (k % 2) * 0.012]) }, browns[k % 3]));
+  }
+  return buildMesh(parts);
+}
+
+function storkBody(): Part[] {
+  return [
+    paint(box(-0.13, 0.12, -0.06, 0.06, -0.05, 0.055, 0.55, 0.8), WHITE),
+    paint(plate([[-0.12, 0], [-0.2, 0.05], [-0.23, 0], [-0.2, -0.05]], 0.01, 0.012), WHITE),
+    paint(box(0.11, 0.31, -0.022, 0.022, -0.012, 0.03, 1, 0.85), WHITE),
+    paint(box(0.29, 0.37, -0.035, 0.035, -0.015, 0.045), WHITE),
+    // Eyes, a little larger than life so they show at map scale: a white ring with a black pupil on each side.
+    ...[1, -1].flatMap((side) => [
+      paint(box(0.312, 0.352, side * 0.034, side * 0.039, 0.004, 0.04), WHITE),
+      paint(box(0.322, 0.346, side * 0.038, side * 0.043, 0.011, 0.033), BLACK),
+    ]),
+    paint(box(-0.45, -0.1, 0.017, 0.031, -0.04, -0.028, 0.7, 1), RED),
+    paint(box(-0.45, -0.1, -0.031, -0.017, -0.04, -0.028, 0.7, 1), RED),
+  ];
 }

@@ -7,7 +7,8 @@ import type { Layer } from "@deck.gl/core";
 import { attitudeFromPath, type Track } from "@/core/analysis";
 import { maxOf, minOf } from "@/core/analysis/grid";
 import { cssVar } from "../format";
-import { planeMesh, storkMeshes, STORK_SHOULDER, type Mesh, type V } from "./plane-mesh";
+import { ADEBAR_LANDED } from "./sync";
+import { NEST_TOP, planeMesh, storkMeshes, STORK_BEAK_HINGE, STORK_SHOULDER, type Mesh, type V } from "./plane-mesh";
 
 /** Free vector tiles without an API key (decision D3: MapLibre). */
 export const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
@@ -36,6 +37,8 @@ interface Props {
   shadow: boolean;
   /** Seconds in which the stork flaps its wings (motor climbs); otherwise it glides. */
   flapping?: boolean[];
+  /** First and last airborne second: before and after, the stork sits in its nest at the start point. */
+  air?: { start: number | null; end: number | null };
   /** Thermal centres to mark: strength in m/s, `own` for this flight. */
   spots?: { lat: number; lon: number; climb: number; own: boolean }[];
   /** Shown when the map cannot be loaded. */
@@ -75,6 +78,29 @@ const GLIDE_DIHEDRAL = 5;
 const FLAP_BLEND_RATE = 2.5;
 /** A cursor jump of more than this many seconds moves the model at once instead of gliding there. */
 const MAX_GLIDE_JUMP = 5;
+/** Stork after landing (real time, ms): hop into the nest, then clatter the beak. */
+const HOP_MS = 1600;
+const CLAP_MS = 1500;
+const CLAP_HZ = 7;
+const CLAP_DEG = 24;
+/** Wings folded along the body while sitting (degrees swept back), and how fast they fold (share per second). */
+const FOLD_DEG = 80;
+const FOLD_RATE = 2.5;
+/** Storks circling in thermals: airspeed (m/s), lowest height and spacing (m). */
+const THERMAL_STORK_SPEED = 9;
+const THERMAL_STORK_BASE = 40;
+const THERMAL_STORK_STEP = 22;
+
+type Pose = "nest" | "fly" | "hop" | "launch";
+/**
+ * Where the stork is at second `t`: in its nest before take-off and after landing; hopping out of it
+ * right after take-off (`launchAt`) and into it right after landing (`landAt`), both in real time (ms).
+ */
+function storkPose(t: number, air: Props["air"], launchAt: number, landAt: number, now: number): Pose {
+  if (air?.start != null && t < air.start) return "nest";
+  if (air?.end != null && t > air.end) return landAt && now - landAt < HOP_MS ? "hop" : "nest";
+  return launchAt && now - launchAt < HOP_MS ? "launch" : "fly";
+}
 const planePx = (zoom: number, fitZoom: number) =>
   Math.min(PLANE_PX_MAX, Math.max(PLANE_PX_MIN, PLANE_FIT_PX * 2 ** ((zoom - fitZoom) * PLANE_GROWTH)));
 /** Ground metres per screen pixel at the map centre (MapLibre uses 512 px tiles). */
@@ -91,6 +117,16 @@ function rotation(pitch: number, yaw: number, roll: number): M3 {
   return [[cw * cp, sw * cp, -sp], [-sw * cr + cw * sp * sr, cw * cr + sw * sp * sr, cp * sr], [sw * sr + cw * sp * cr, -cw * sr + sw * sp * cr, cp * cr]];
 }
 const apply = (m: M3, v: V): V => [0, 1, 2].map((k) => m[0][k] * v[0] + m[1][k] * v[1] + m[2][k] * v[2]) as V;
+/** m · (rotation about the z axis by `a` degrees; positive sweeps +y backwards). */
+function timesRotZ(m: M3, a: number): M3 {
+  const c = Math.cos(a * rad), s = Math.sin(a * rad);
+  return [apply(m, [c, s, 0]), apply(m, [-s, c, 0]), m[2]];
+}
+/** m · (rotation about the y axis by `a` degrees; positive tips the nose down). */
+function timesRotY(m: M3, a: number): M3 {
+  const c = Math.cos(a * rad), s = Math.sin(a * rad);
+  return [apply(m, [c, 0, -s]), m[1], apply(m, [s, 0, c])];
+}
 /** m · (rotation about the x axis by `a` degrees). */
 function timesRotX(m: M3, a: number): M3 {
   const c = Math.cos(a * rad), s = Math.sin(a * rad);
@@ -108,7 +144,7 @@ const toRgb = (c: string): [number, number, number] => {
 };
 
 /** Map with the flight path in 3D. Libraries load only in the browser. */
-export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, markerStyle, shadow: showShadow, flapping, spots = [], failedText }: Props) {
+export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, markerStyle, shadow: showShadow, flapping, air, spots = [], failedText }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
@@ -119,11 +155,11 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
   /** Layers that do not move with the replay; the model layers are added on every frame. */
   const staticRef = useRef<Layer[]>([]);
   /** Shown position (fractional second), its glide towards the cursor, and the stork's wing beat. */
-  const anim = useRef({ shown: null as number | null, from: 0, to: 0, start: 0, dur: 0, lastChange: 0, blend: 0, phase: 0, prevT: 0, frame: 0 });
+  const anim = useRef({ shown: null as number | null, from: 0, to: 0, start: 0, dur: 0, lastChange: 0, blend: 0, phase: 0, prevT: 0, frame: 0, fold: 0, launchAt: 0, landAt: 0, prevShown: null as number | null });
   const drawRef = useRef<() => void>(() => {});
   // The animation loop reads the latest props through refs, so it keeps running across renders.
-  const live = useRef({ markerStyle, flapping });
-  useEffect(() => { live.current = { markerStyle, flapping }; }, [markerStyle, flapping]);
+  const live = useRef({ markerStyle, flapping, air });
+  useEffect(() => { live.current = { markerStyle, flapping, air }; }, [markerStyle, flapping, air]);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -248,39 +284,97 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
     const draw = () => {
       const overlay = overlayRef.current, layers = layersRef.current, meshLayers = meshRef.current, map = mapRef.current;
       if (!ready || !overlay || !layers || !meshLayers || !map) return;
-      const t = anim.current.shown;
+      const st = anim.current, now = performance.now();
+      // Without a cursor the stork waits in its nest (a second before take-off).
+      const t = st.shown ?? (markerStyle === "stork" ? Math.max(0, (air?.start ?? 1) - 1) : null);
+      const zoom = map.getZoom();
+      const sizeAt = (lat: number) => Math.max(PLANE_MIN_M, planePx(zoom, fitZoomRef.current ?? zoom) * metresPerPixel(lat, zoom));
+      const material = { ambient: 0.45, diffuse: 0.75, shininess: 24, specularColor: [80, 80, 80] as V };
       const model: Layer[] = [];
+      const home: V = [track.home.lon, track.home.lat, 0];
+      const isStork = markerStyle === "stork";
+      const s = sizeAt(home[1]) * 1.2;
+      const mesh3 = (id: string, m: Mesh, at: V, matrix: number[], scale = s) =>
+        new meshLayers.SimpleMeshLayer({ id, data: [at], mesh: m, getPosition: (d: V) => d, getTransformMatrix: matrix, sizeScale: scale, getColor: [255, 255, 255], material });
+      if (isStork) {
+        model.push(mesh3("nest", stork.nest, home, mat4(rotation(0, 0, 0), [0, 0, 0])));
+        // Storks circling in the thermals: gliding, banked into the turn, a few per thermal by its strength.
+        const circling: { at: V; o: V }[] = [];
+        spots.forEach((sp, n) => {
+          const r = 12 + Math.max(0, sp.climb) * 14;
+          const w = THERMAL_STORK_SPEED / r;
+          const count = Math.max(1, Math.min(3, Math.round(sp.climb)));
+          for (let j = 0; j < count; j++) {
+            const th = (w * now) / 1000 + (j * 2 * Math.PI) / count + n;
+            const east = r * Math.cos(th), north = r * Math.sin(th);
+            const z = THERMAL_STORK_BASE + j * THERMAL_STORK_STEP + 4 * Math.sin(now / 3000 + j + n);
+            const heading = (Math.atan2(-Math.sin(th), Math.cos(th)) * 180) / Math.PI;
+            const bank = -(Math.atan((THERMAL_STORK_SPEED * THERMAL_STORK_SPEED) / (r * 9.81)) * 180) / Math.PI;
+            circling.push({ at: [sp.lon + east / (111_320 * Math.cos(sp.lat * rad)), sp.lat + north / 111_320, z], o: [0, 90 - heading, bank] });
+          }
+        });
+        if (circling.length) {
+          model.push(new meshLayers.SimpleMeshLayer({ id: "thermal-storks", data: circling, mesh: stork.glide, getPosition: (d: { at: V }) => d.at, getOrientation: (d: { o: V }) => d.o, sizeScale: s * 0.8, getColor: [255, 255, 255], material }));
+        }
+      }
       if (t !== null) {
         // Position and attitude between two seconds, so the model moves smoothly.
-        const i0 = Math.floor(t), i1 = Math.min(track.lat.length - 1, i0 + 1), f = t - i0;
-        const ok = (i: number) => track.lat[i] !== null && track.lon[i] !== null;
+        const i0 = Math.max(0, Math.floor(t)), i1 = Math.min(track.lat.length - 1, i0 + 1), f = t - i0;
+        const ok = (i: number) => track.lat[i] != null && track.lon[i] != null;
         const a = ok(i0) ? i0 : i1, b = ok(i1) ? i1 : a, k = a === b ? 0 : f;
-        if (ok(a)) {
+        // The stork is drawn even without a fix here: it may be sitting in its nest.
+        if (ok(a) || markerStyle === "stork") {
           const lerp = (x: number, y: number) => x + (y - x) * k;
-          const at: [number, number, number] = [lerp(track.lon[a]!, track.lon[b]!), lerp(track.lat[a]!, track.lat[b]!), lerp(Math.max(0, height[a] ?? 0), Math.max(0, height[b] ?? 0))];
+          let at: V = ok(a) ? [lerp(track.lon[a]!, track.lon[b]!), lerp(track.lat[a]!, track.lat[b]!), lerp(Math.max(0, height[a] ?? 0), Math.max(0, height[b] ?? 0))] : home;
           const turn = ((attitude.heading[b] - attitude.heading[a] + 540) % 360) - 180;
           const heading = attitude.heading[a] + turn * k, climb = lerp(attitude.climb[a], attitude.climb[b]), bank = lerp(attitude.bank[a], attitude.bank[b]);
           // deck.gl takes [pitch (nose down), yaw (from east, anticlockwise), roll (right wing down)].
-          const orientation: V = [-climb, 90 - heading, bank];
-          const zoom = map.getZoom();
-          const size = Math.max(PLANE_MIN_M, planePx(zoom, fitZoomRef.current ?? zoom) * metresPerPixel(at[1], zoom));
-          const material = { ambient: 0.45, diffuse: 0.75, shininess: 24, specularColor: [80, 80, 80] as V };
+          let orientation: V = [-climb, 90 - heading, bank];
+          const size = sizeAt(at[1]);
           if (markerStyle === "dot") {
             // The dot faces the camera and is drawn on top of the path, so a flat view or the path never hides it.
             model.push(new layers.ScatterplotLayer({ id: "marker", data: [at], getPosition: (d: V) => d, getFillColor: [255, 255, 255], getLineColor: toRgb(cssVar("--ink")), stroked: true, lineWidthUnits: "pixels", getLineWidth: 3, getRadius: 9, radiusUnits: "pixels", billboard: true, parameters: { depthCompare: "always" } }));
           } else if (markerStyle === "plane") {
             model.push(new meshLayers.SimpleMeshLayer({ id: "plane", data: [at], mesh, getPosition: (d: V) => d, getOrientation: orientation, sizeScale: size, getColor: planeColor(toRgb(cssVar("--ink"))), material }));
           } else {
-            // Stork: the body follows the path; each wing turns about its shoulder by the wing-beat angle.
+            const pose = storkPose(t, air, st.launchAt, st.landAt, now);
+            const inNest: V = [home[0], home[1], (NEST_TOP + 0.03) * s];
+            const bearing = (from: V, to: V) => (Math.atan2((to[0] - from[0]) * Math.cos(from[1] * rad), to[1] - from[1]) * 180) / Math.PI;
+            if (pose === "nest") {
+              // Facing the way it will take off (or came in).
+              const h = air?.start != null && t < air.start ? attitude.heading[air.start] : attitude.heading[air?.end ?? a];
+              at = inNest; orientation = [0, 90 - h, 0];
+            } else if (pose === "hop") {
+              // From the landing spot into the nest along a small arc.
+              const e = air!.end!;
+              const from: V = ok(e) ? [track.lon[e]!, track.lat[e]!, Math.max(0, height[e] ?? 0)] : inNest;
+              const u = Math.min(1, (now - st.landAt) / HOP_MS);
+              const arc = 4 * Math.max(4, 3 * s) * u * (1 - u);
+              at = [from[0] + (inNest[0] - from[0]) * u, from[1] + (inNest[1] - from[1]) * u, from[2] + (inNest[2] - from[2]) * u + arc];
+              orientation = [0, 90 - bearing(from, inNest), 0];
+            } else if (pose === "launch") {
+              // Out of the nest along a small arc, catching up with the model on the path.
+              const u = Math.min(1, (now - st.launchAt) / HOP_MS);
+              const arc = 4 * Math.max(4, 3 * s) * u * (1 - u);
+              const to = at;
+              at = [inNest[0] + (to[0] - inNest[0]) * u, inNest[1] + (to[1] - inNest[1]) * u, inNest[2] + (to[2] - inNest[2]) * u + arc];
+              if (u < 0.85) orientation = [0, 90 - bearing(inNest, to), 0];
+            }
+            // Body follows the path; each wing turns about its shoulder (wing beat, or folded back while sitting);
+            // the beak halves open about their hinge while clattering.
             const r = rotation(...orientation);
-            const wingUp = GLIDE_DIHEDRAL + anim.current.blend * FLAP_AMP * Math.sin(anim.current.phase);
-            const s = size * 1.2;
-            const shoulder = (side: 1 | -1): V => apply(r, [STORK_SHOULDER[0] * s, side * STORK_SHOULDER[1] * s, STORK_SHOULDER[2] * s]);
-            const part = (id: string, m: Mesh, matrix: number[]) => new meshLayers.SimpleMeshLayer({ id, data: [at], mesh: m, getPosition: (d: V) => d, getTransformMatrix: matrix, sizeScale: s, getColor: [255, 255, 255], material });
+            const wingUp = (GLIDE_DIHEDRAL + st.blend * FLAP_AMP * Math.sin(st.phase)) * (1 - st.fold) - 8 * st.fold;
+            const sinceLand = st.landAt ? now - st.landAt - HOP_MS : -1;
+            const clatter = pose === "nest" && sinceLand >= 0 && sinceLand < CLAP_MS;
+            const open = clatter ? CLAP_DEG * (0.5 + 0.5 * Math.sin((2 * Math.PI * CLAP_HZ * sinceLand) / 1000)) : 0;
+            const off = (v: V): V => apply(r, [v[0] * s, v[1] * s, v[2] * s]);
+            const wing = (side: 1 | -1) => mat4(timesRotX(timesRotZ(r, side * FOLD_DEG * st.fold), side * wingUp), off([STORK_SHOULDER[0], side * STORK_SHOULDER[1], STORK_SHOULDER[2]]));
             model.push(
-              part("stork-body", stork.body, mat4(r, [0, 0, 0])),
-              part("stork-left", stork.left, mat4(timesRotX(r, wingUp), shoulder(1))),
-              part("stork-right", stork.right, mat4(timesRotX(r, -wingUp), shoulder(-1))),
+              mesh3("stork-body", stork.body, at, mat4(r, [0, 0, 0])),
+              mesh3("stork-left", stork.left, at, wing(1)),
+              mesh3("stork-right", stork.right, at, wing(-1)),
+              mesh3("stork-beak-upper", stork.beakUpper, at, mat4(timesRotY(r, -open), off(STORK_BEAK_HINGE))),
+              mesh3("stork-beak-lower", stork.beakLower, at, mat4(timesRotY(r, open * 0.5), off(STORK_BEAK_HINGE))),
             );
           }
         }
@@ -289,7 +383,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
     };
     drawRef.current = draw;
     draw();
-  }, [ready, track, height, attitude, mesh, stork, markerStyle]);
+  }, [ready, track, height, attitude, mesh, stork, markerStyle, spots, air]);
 
   // Replay cursor: glide from the shown second to the new one over about the time between two updates.
   useEffect(() => {
@@ -305,24 +399,42 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
     const tick = (time: number) => {
       const dt = st.prevT ? Math.min(0.1, (time - st.prevT) / 1000) : 0;
       st.prevT = time;
-      if (st.shown !== null && st.dur > 0) {
+      const gliding = st.dur > 0;
+      if (st.shown !== null && gliding) {
         const k = Math.min(1, (time - st.start) / st.dur);
         st.shown = st.from + (st.to - st.from) * k;
         if (k >= 1) st.dur = 0;
       }
-      const stork = live.current.markerStyle === "stork" && st.shown !== null;
+      const { markerStyle: style, flapping: flaps, air: airNow } = live.current;
+      const stork = style === "stork";
       if (stork) {
-        const flap = live.current.flapping?.[Math.round(st.shown!)] ? 1 : 0;
+        // Landing: the replay moved smoothly past the last airborne second.
+        const end = airNow?.end;
+        if (end != null && st.shown !== null && st.prevShown !== null && st.prevShown <= end && st.shown > end && gliding) {
+          st.landAt = time;
+          window.dispatchEvent(new Event(ADEBAR_LANDED));
+        }
+        if (end == null || st.shown === null || st.shown <= end) st.landAt = 0;
+        // Take-off: the replay moved smoothly past the first airborne second.
+        const begin = airNow?.start;
+        if (begin != null && st.shown !== null && st.prevShown !== null && st.prevShown < begin && st.shown >= begin && gliding) st.launchAt = time;
+        if (begin == null || st.shown === null || st.shown < begin) st.launchAt = 0;
+        const at = st.shown ?? Math.max(0, (airNow?.start ?? 1) - 1);
+        const pose = storkPose(at, airNow, st.launchAt, st.landAt, time);
+        const flap = pose === "hop" || pose === "launch" || (pose === "fly" && flaps?.[Math.round(at)]) ? 1 : 0;
         st.blend += Math.max(-FLAP_BLEND_RATE * dt, Math.min(FLAP_BLEND_RATE * dt, flap - st.blend));
+        const fold = pose === "nest" ? 1 : 0;
+        st.fold += Math.max(-FOLD_RATE * dt, Math.min(FOLD_RATE * dt, fold - st.fold));
         st.phase = (st.phase + dt * 2 * Math.PI * FLAP_HZ) % (2 * Math.PI);
       }
+      st.prevShown = st.shown;
       drawRef.current();
-      // Keep running while gliding to the cursor or while the stork is shown (its wings move even when paused).
+      // Keep running while gliding to the cursor or while the stork is chosen (wings, nest and thermal storks move).
       st.frame = st.dur > 0 || stork ? requestAnimationFrame(tick) : 0;
       if (!st.frame) st.prevT = 0;
     };
     if (!st.frame) st.frame = requestAnimationFrame(tick);
-  }, [marker, markerStyle, flapping]);
+  }, [marker, markerStyle, flapping, air]);
 
   if (failed) return <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>{failedText}</div>;
   return <div ref={el} style={{ position: "absolute", inset: 0 }} />;

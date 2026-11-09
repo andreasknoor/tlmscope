@@ -64,6 +64,7 @@ function GpsView() {
   const hasHeight = p?.basis === "height";
   // The stork flaps its wings in motor climbs and glides otherwise.
   const flapping = useMemo(() => p?.phaseAt.map((k) => k === "motor") ?? [], [p]);
+  const air = useMemo(() => ({ start: p?.airStart ?? null, end: p?.airEnd ?? null }), [p]);
   const thrId = g.has("throttle_output") ? "throttle_output" : "throttle_command";
   // The chart to follow the model: height, or the throttle when there is no usable height.
   const followSeries = useMemo(() => hasHeight
@@ -106,7 +107,7 @@ function GpsView() {
             <div className="seg"><button aria-pressed={shadow} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
           </div>
           <div className="mapwrap">
-            <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} markerStyle={markerStyle} shadow={shadow} flapping={flapping} spots={spots} failedText={t("path.mapFailed")} />
+            <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} failedText={t("path.mapFailed")} />
           </div>
         </div>
         {colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />
@@ -114,7 +115,7 @@ function GpsView() {
           : <Legend items={[[cssVar("--good"), word("signal", 4)], [withAlpha(cssVar("--good"), 0.45), word("signal", 3)], [cssVar("--warn"), word("signal", 2)], [cssVar("--crit"), word("signal", 1)]]} />}
       </div>
       {spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
-      <Replay a={a} syncKey={e!.key} />
+      <Replay a={a} syncKey={e!.key} clatter={markerStyle === "stork"} />
       </div>
       <LineChart syncKey={e!.key} title={t(hasHeight ? "path.follow" : "path.followThrottle")} series={followSeries} phases={p?.phases} height={150}
         yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? "m" : "%"}`}

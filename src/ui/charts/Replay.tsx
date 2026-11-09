@@ -7,22 +7,57 @@ import type { SessionAnalysis } from "@/core/analysis";
 import { clock, cssVar, num, withAlpha } from "../format";
 import { useStore } from "../store";
 import { PHASE_COLOR } from "./LineChart";
-import { moveAll, onCursorMove } from "./sync";
+import { ADEBAR_LANDED, moveAll, onCursorMove } from "./sync";
 import { useThemeVersion } from "./useTheme";
 
 const SPEEDS = [1, 10, 30, 60] as const;
 
-/** Vario tone: beeps that rise in pitch and rate with the climb, silent below +0.2 m/s. */
+/**
+ * Vario tone: beeps that rise in pitch and rate with the climb, silent below +0.2 m/s.
+ * With the stork ("clatter"), a stork's beak clatter instead, faster the stronger the climb.
+ */
 class VarioTone {
   private ctx = new AudioContext();
   private osc = this.ctx.createOscillator();
   private gain = this.ctx.createGain();
   private timer: ReturnType<typeof setInterval> | null = null;
-  private last: number | null = null;
+  private last: number | null | undefined = undefined;
+  private clatter = false;
+  /** A few milliseconds of noise; each clack is this, band-passed like wood on wood. */
+  private noise: AudioBuffer;
   constructor() {
     this.gain.gain.value = 0;
     this.osc.connect(this.gain).connect(this.ctx.destination);
     this.osc.start();
+    const len = Math.round(this.ctx.sampleRate * 0.03);
+    this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = this.noise.getChannelData(0);
+    for (let k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * (1 - k / len) ** 2;
+  }
+  setClatter(on: boolean) {
+    if (on === this.clatter) return;
+    this.clatter = on;
+    const climb = this.last;
+    this.last = undefined;
+    this.set(climb ?? null);
+  }
+  private clack() {
+    const now = this.ctx.currentTime;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.noise;
+    const band = this.ctx.createBiquadFilter();
+    band.type = "bandpass";
+    band.frequency.value = 1300 + Math.random() * 700;
+    band.Q.value = 3;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.5, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+    src.connect(band).connect(g).connect(this.ctx.destination);
+    src.start(now);
+  }
+  /** A burst of clacks, e.g. when the stork lands in its nest. */
+  burst(ms: number, every = 70) {
+    for (let at = 0; at < ms; at += every) setTimeout(() => { if (this.ctx.state !== "closed") this.clack(); }, at);
   }
   set(climb: number | null) {
     const step = climb === null || climb < 0.2 ? null : Math.round(climb * 5) / 5;
@@ -31,7 +66,12 @@ class VarioTone {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
     const now = this.ctx.currentTime;
-    if (step === null) { this.gain.gain.setTargetAtTime(0, now, 0.02); return; }
+    this.gain.gain.setTargetAtTime(0, now, 0.02);
+    if (step === null) return;
+    if (this.clatter) {
+      this.timer = setInterval(() => this.clack(), Math.max(70, 320 - step * 60));
+      return;
+    }
     this.osc.frequency.setTargetAtTime(500 + step * 160, now, 0.05);
     let on = false;
     this.timer = setInterval(() => { on = !on; this.gain.gain.setTargetAtTime(on ? 0.08 : 0, this.ctx.currentTime, 0.01); }, Math.max(120, 600 - step * 110) / 2);
@@ -48,7 +88,7 @@ class VarioTone {
  * Plays a session back. It moves the cursor of every chart in the session (and with it the map marker);
  * when paused, moving a chart cursor moves the replay position.
  */
-export function Replay({ a, syncKey }: { a: SessionAnalysis; syncKey: string }) {
+export function Replay({ a, syncKey, clatter = false }: { a: SessionAnalysis; syncKey: string; clatter?: boolean }) {
   const t = useTranslations();
   const { settings } = useStore();
   const loc = settings.locale;
@@ -94,6 +134,14 @@ export function Replay({ a, syncKey }: { a: SessionAnalysis; syncKey: string }) 
   const climb = p?.smoothedClimb[i] ?? null;
   useEffect(() => { vario?.set(playing ? climb : null); }, [vario, climb, playing]);
   useEffect(() => () => vario?.close(), [vario]);
+  useEffect(() => { vario?.setClatter(clatter); }, [vario, clatter]);
+  // The stork landing in its nest on the map clatters, if the tone is on.
+  useEffect(() => {
+    if (!vario || !clatter) return;
+    const onLand = () => vario.burst(1500);
+    window.addEventListener(ADEBAR_LANDED, onLand);
+    return () => window.removeEventListener(ADEBAR_LANDED, onLand);
+  }, [vario, clatter]);
 
   const toggle = useCallback(() => {
     if (!playing && posRef.current >= n - 1) { posRef.current = 0; setPos(0); }
