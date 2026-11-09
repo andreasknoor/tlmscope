@@ -120,12 +120,12 @@ export function DataCard({ a }: { a: SessionAnalysis }) {
 export function EfficiencyCard({ a }: { a: SessionAnalysis }) {
   const t = useTranslations("rating");
   const word = useLevelWord();
-  const { analysis, settings } = useStore();
+  const { settings } = useStore();
   const p = v(a.profile);
   const e = a.efficiency;
   return (
     <RatingCard name={t("efficiency")} level={e?.level ?? null} word={word("efficiency", e?.level ?? null)} hint={e ? t("efficiencyHint") : ""}
-      rows={e && p ? [[t("thisFlight"), t("mPer100", { v: num(settings.locale, p.mPer100mAh, 0) })], [t("yourUsual"), t("mPer100", { v: num(settings.locale, analysis?.efficiencyBaseline, 0) })]] : null} />
+      rows={e && p ? [[t("thisFlight"), t("mPer100", { v: num(settings.locale, p.mPer100mAh, 0) })], [t("yourUsual"), t("mPer100", { v: num(settings.locale, a.baseline?.efficiency, 0) })]] : null} />
   );
 }
 

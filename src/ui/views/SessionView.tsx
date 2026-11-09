@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Alert } from "../bits";
 import { clock, dayLabel, duration, timeLabel } from "../format";
-import { KIND_COLOR } from "../Shell";
+import { KIND_COLOR, ModelBadge, ModelSelect, useModelName } from "../Shell";
 import { useStore, type Tab } from "../store";
 import { AircraftTab } from "../tabs/Aircraft";
 import { BatteryTab } from "../tabs/Battery";
@@ -18,8 +18,12 @@ const TABS: Tab[] = ["overview", "height", "path", "energy", "battery", "link", 
 
 export function SessionView() {
   const t = useTranslations();
-  const { selected: e, visible, step, select, tab, setTab, settings, demo } = useStore();
+  const { selected: e, visible, entries, models, modelFilter, setModelFilter, step, select, tab, setTab, settings, demo } = useStore();
+  const modelName = useModelName();
   if (!e) return null;
+  const multi = models.length > 1;
+  const ownFlights = entries.filter((x) => x.model === e.model && x.a.kind === "flight");
+  const nth = ownFlights.indexOf(e) + 1;
   const loc = settings.locale;
   const s = e.a.session;
   const p = e.a.profile.available ? e.a.profile.value : null;
@@ -30,27 +34,35 @@ export function SessionView() {
   return (
     <>
       <div className="mpicker">
-        <button className="btn" onClick={() => step(-1)} aria-label={t("app.prevSession")}>‹</button>
-        <select value={e.key} aria-label={t("app.session")} onChange={(ev) => select(ev.target.value)}>
-          {visible.map((x) => (
-            <option key={x.key} value={x.key}>
-              {x.startMs !== null ? `${dayLabel(loc, x.startMs)} ${timeLabel(loc, x.startMs)}` : "?"} · {t(`kind.${x.a.kind}`)}
-            </option>
-          ))}
-        </select>
-        <button className="btn" onClick={() => step(1)} aria-label={t("app.nextSession")}>›</button>
+        {multi && <ModelSelect id="model-filter-phone" />}
+        <div className="row">
+          <button className="btn" onClick={() => step(-1)} aria-label={t("app.prevSession")}>‹</button>
+          <select value={e.key} aria-label={t("app.session")} onChange={(ev) => select(ev.target.value)}>
+            {visible.map((x) => (
+              <option key={x.key} value={x.key}>
+                {x.startMs !== null ? `${dayLabel(loc, x.startMs)} ${timeLabel(loc, x.startMs)}` : "?"} · {multi && modelFilter === null ? `${modelName(x.model)} · ` : ""}{t(`kind.${x.a.kind}`)}
+              </option>
+            ))}
+          </select>
+          <button className="btn" onClick={() => step(1)} aria-label={t("app.nextSession")}>›</button>
+        </div>
       </div>
       <div className="shead">
         <div>
-          <h1>{t(`kind.${e.a.kind}`)}{e.startMs !== null ? ` · ${dayLabel(loc, e.startMs)}, ${timeLabel(loc, e.startMs)}` : ""}</h1>
+          <div className="eyebrow">
+            <span className="kdot" style={{ background: KIND_COLOR[e.a.kind] }} />
+            {t(`kind.${e.a.kind}`)}{nth > 0 && ownFlights.length > 1 ? ` · ${t("app.nthOfModel", { n: nth, total: ownFlights.length })}` : ""}
+          </div>
+          <h1><ModelBadge model={e.model} large />{modelName(e.model)}</h1>
+          {e.startMs !== null && <div className="when">{dayLabel(loc, e.startMs)}, {timeLabel(loc, e.startMs)}</div>}
           <div className="sub">
-            <span className="pill"><span className="kdot" style={{ background: KIND_COLOR[e.a.kind] }} />
+            <span className="pill">
               {e.a.kind === "flight" && p ? t("app.airtime", { time: clock(p.airtimeS) }) : t("app.sessionDuration", { time: duration(loc, s.durationS) })}
             </span>
-            <span>{s.modelName ?? t("app.unknownModel")}</span>
             {e.batteryLetter ? <span className="pill">{t("battery.name", { letter: e.batteryLetter })} · {t("app.cycles", { n: s.battery?.chargeCycles ?? "?" })}</span>
               : e.a.kind !== "transmitter-only" ? <span className="pill">{t("app.batteryNotIdentified")}</span> : null}
-            <span className="lv-more mono">{e.file.fileName} · #{s.index} · {t("app.records", { n: Number(s.meta.records ?? 0) })}</span>
+            {multi && modelFilter !== e.model.key && <button className="linkbtn" onClick={() => setModelFilter(e.model.key)}>{t("app.onlyModel", { name: modelName(e.model) })}</button>}
+            <span className="lv-more mono">{e.file.fileName} · #{s.index} · {t("app.records", { n: Number(s.meta.records ?? 0) })}{s.meta.modelNameSource ? ` · ${t("app.nameFromFile")}` : ""}</span>
           </div>
         </div>
         <div className="navbtns">

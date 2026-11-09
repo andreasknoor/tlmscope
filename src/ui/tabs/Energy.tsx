@@ -31,7 +31,7 @@ function Gauge({ pct }: { pct: number }) {
 export function EnergyTab() {
   const t = useTranslations();
   const word = useLevelWord();
-  const { selected: e, settings, analysis } = useStore();
+  const { selected: e, settings } = useStore();
   const a = e!.a;
   const loc = settings.locale;
   const g = a.grid;
@@ -72,7 +72,7 @@ export function EnergyTab() {
             <thead><tr><th>{t("height.start")}</th><th className="r">{t("height.duration")}</th><th className="r">{t("energy.gained")}</th><th className="r">{t("energy.chargeUsed")}</th><th>{t("energy.efficiency")}</th><th className="r lv-more">m / 100 mAh</th></tr></thead>
             <tbody>
               {p.climbs.map((c) => {
-                const lvl = c.mPer100mAh !== null && analysis?.efficiencyBaseline ? rate(c.mPer100mAh / analysis.efficiencyBaseline, THRESHOLDS.efficiencyRatio) : null;
+                const lvl = c.mPer100mAh !== null && a.baseline?.efficiency ? rate(c.mPer100mAh / a.baseline.efficiency, THRESHOLDS.efficiencyRatio) : null;
                 return (
                   <tr key={c.start} className="clickable" onClick={() => jumpTo(e!.key, c.start)}>
                     <td className="num">{clock(c.start)}</td>

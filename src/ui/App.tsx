@@ -3,6 +3,7 @@
 import { NextIntlClientProvider } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { analyseLogs } from "@/core/analysis";
+import { modelKey } from "@/core/model/model-name";
 import type { LogFile } from "@/core/model/types";
 import de from "@/i18n/de.json";
 import en from "@/i18n/en.json";
@@ -11,7 +12,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { batteryLetter } from "./format";
 import { loadBuffer } from "./loader";
 import { Shell } from "./Shell";
-import { StoreContext, type Entry, type Settings, type Store, type Tab, type View } from "./store";
+import { StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
 const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights" };
@@ -21,6 +22,8 @@ const ASSUMED_CAPACITY = 2200;
 export const DEMO_FILE = "demo-flight.TLM";
 /** Larger files are refused: real logs are a few MB, and parsing needs several times the file size in memory. */
 export const MAX_FILE_BYTES = 256 * 1024 * 1024;
+/** Badge colours of the models, in order of first session (repeats after six). */
+const MODEL_COLORS = ["--m1", "--m2", "--m3", "--m4", "--m5", "--m6"];
 
 /** Saved settings, each value checked: storage can hold anything, e.g. from an older version. */
 function readSettings(): Settings {
@@ -45,6 +48,7 @@ export function App() {
   const [files, setFiles] = useState<LogFile[]>([]);
   const [settings, setSettingsState] = useState<Settings>(DEFAULTS);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [modelChoice, setModelChoice] = useState<string | null>(null);
   const [view, setView] = useState<View>("sessions");
   const [tab, setTabState] = useState<Tab>("overview");
   /** Tab chosen by the user (counted); `select` sets tabs without counting. */
@@ -70,14 +74,14 @@ export function App() {
 
   const analysis = useMemo(() => (files.length ? analyseLogs(files, { assumedCapacityMah: ASSUMED_CAPACITY }) : null), [files]);
 
-  const entries = useMemo<Entry[]>(() => {
-    if (!analysis) return [];
+  const { entries, models } = useMemo<{ entries: Entry[]; models: Model[] }>(() => {
+    if (!analysis) return { entries: [], models: [] };
     const out: Entry[] = [];
     let k = 0;
     files.forEach((file, fileIndex) => {
       for (const s of file.sessions) {
         const a = analysis.sessions[k++];
-        out.push({ key: `${fileIndex}-${s.index}`, fileIndex, file, a, startMs: s.start.utcMs, batteryLetter: null });
+        out.push({ key: `${fileIndex}-${s.index}`, fileIndex, file, a, startMs: s.start.utcMs, batteryLetter: null, model: null! }); // model: set below
       }
     });
     out.sort((x, y) => (x.startMs ?? 0) - (y.startMs ?? 0) || x.fileIndex - y.fileIndex);
@@ -88,11 +92,28 @@ export function App() {
       if (!letters.has(id)) letters.set(id, batteryLetter(letters.size));
       e.batteryLetter = letters.get(id)!;
     }
-    return out;
+    // Models by first session; a session without a name forms its own group.
+    const byKey = new Map<string, Model>();
+    for (const e of out) {
+      const name = e.a.session.modelName;
+      const key = modelKey(name);
+      let m = byKey.get(key);
+      if (!m) {
+        const color = key ? `var(${MODEL_COLORS[[...byKey.keys()].filter(Boolean).length % MODEL_COLORS.length]})` : "var(--ink-3)";
+        m = { key, name: name?.trim() || null, color, sessions: 0 };
+        byKey.set(key, m);
+      }
+      m.sessions++;
+      e.model = m;
+    }
+    return { entries: out, models: [...byKey.values()] };
   }, [analysis, files]);
 
+  // A filter for a model that is no longer loaded shows all models.
+  const modelFilter = modelChoice !== null && models.some((m) => m.key === modelChoice) ? modelChoice : null;
   const hasFlights = entries.some((e) => e.a.kind === "flight");
-  const visible = useMemo(() => entries.filter((e) => settings.filter === "all" || !hasFlights || e.a.kind === "flight"), [entries, settings.filter, hasFlights]);
+  const visible = useMemo(() => entries.filter((e) => (settings.filter === "all" || !hasFlights || e.a.kind === "flight") && (modelFilter === null || e.model.key === modelFilter)),
+    [entries, settings.filter, hasFlights, modelFilter]);
   // Without an explicit choice: the latest flight, else the latest session.
   const selected = entries.find((e) => e.key === selectedKey) ?? (hasFlights ? entries.filter((e) => e.a.kind === "flight").at(-1) : entries.at(-1)) ?? null;
 
@@ -115,8 +136,21 @@ export function App() {
     setView("sessions");
     const entry = entries.find((e) => e.key === key);
     if (entry && entry.a.kind !== "flight") setSettings({ filter: "all" });
+    if (entry && modelFilter !== null && entry.model.key !== modelFilter) setModelChoice(null);
     history.replaceState(null, "", `#s-${key}`);
-  }, [entries, setSettings]);
+  }, [entries, setSettings, modelFilter]);
+
+  /** Limits the list to one model; keeps the session if it fits, else shows the model's latest flight. */
+  const setModelFilter = useCallback((key: string | null) => {
+    setModelChoice(key);
+    if (key === null || selected?.model.key === key) return;
+    const own = entries.filter((e) => e.model.key === key);
+    const next = own.filter((e) => e.a.kind === "flight").at(-1) ?? own.at(-1);
+    if (!next) return;
+    setSelectedKey(next.key);
+    if (next.a.kind !== "flight") setSettings({ filter: "all" });
+    history.replaceState(null, "", `#s-${next.key}`);
+  }, [entries, selected, setSettings]);
 
   const go = useCallback((v: View) => {
     setView(v);
@@ -211,7 +245,7 @@ export function App() {
   }, [view, step]);
 
   const store: Store = {
-    files, analysis, entries, selected, view, tab, settings, visible,
+    files, analysis, entries, selected, view, tab, settings, visible, models, modelFilter, setModelFilter,
     demo: files.some((f) => f.fileName === DEMO_FILE),
     setTab, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll,
     openHelp: () => helpRef.current?.showModal(),

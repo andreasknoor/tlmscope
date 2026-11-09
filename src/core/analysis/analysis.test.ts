@@ -32,8 +32,9 @@ describe.skipIf(!hasSamples)("flight profile (same results as the prototype)", (
     expect(FLIGHTS.map((i) => value(flight(i).profile).airtimeS)).toEqual([381, 723, 258, 326, 148]);
   });
 
-  it("compares climb efficiency with the pilot's own median", () => {
-    expect(logs().efficiencyBaseline).toBeCloseTo(49.8, 1);
+  it("compares climb efficiency with the median of the same model", () => {
+    expect(logs().baselines.get("easy glider 4")!.efficiency).toBeCloseTo(49.8, 1);
+    expect(flight(15).baseline!.efficiency).toBeCloseTo(49.8, 1);
     expect(flight(15).efficiency!.level).toBe(4); // 62 m per 100 mAh: better than usual
     expect(flight(29).efficiency!.level).toBe(2); // 40 m per 100 mAh: below usual
   });

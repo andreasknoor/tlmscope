@@ -1,3 +1,4 @@
+import { modelNameFromFileName } from "../model/model-name.ts";
 import type { LogAdapter, LogFile } from "../model/types.ts";
 import { spektrumTlm } from "./spektrum-tlm/index.ts";
 
@@ -20,5 +21,13 @@ export function findAdapter(data: Uint8Array, fileName: string): LogAdapter | un
 export function parseLog(data: Uint8Array, fileName: string): LogFile {
   const adapter = findAdapter(data, fileName);
   if (!adapter) throw new UnsupportedFormatError(fileName);
-  return adapter.parse(data, fileName);
+  const log = adapter.parse(data, fileName);
+  // Sessions without a model name in the log take it from the file name.
+  const fromFileName = modelNameFromFileName(fileName);
+  for (const s of log.sessions) {
+    if (s.modelName || !fromFileName) continue;
+    s.modelName = fromFileName;
+    s.meta.modelNameSource = "file name";
+  }
+  return log;
 }

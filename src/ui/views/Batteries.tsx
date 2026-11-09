@@ -6,12 +6,14 @@ import { batteryAgeing, rate, THRESHOLDS, type AgeingPoint } from "@/core/analys
 import { AgeingChart } from "../charts/AgeingChart";
 import { Meter, RatingCard, Tile, useLevelWord } from "../bits";
 import { dateShort, num, timeLabel } from "../format";
+import { ModelBadge, useModelName } from "../Shell";
 import { useStore, type Entry } from "../store";
 
 export function Batteries() {
   const t = useTranslations();
   const word = useLevelWord();
-  const { entries, settings, select } = useStore();
+  const { entries, settings, select, models } = useStore();
+  const modelName = useModelName();
   const loc = settings.locale;
   const groups = new Map<string, Entry[]>();
   for (const e of entries) {
@@ -78,7 +80,7 @@ export function Batteries() {
                 return (
                   <tr key={e.key} className="clickable" onClick={() => select(e.key, "battery")}>
                     <td className="num">{when(e)}</td>
-                    <td>{t(`kind.${e.a.kind}`)}{e.a.issues.some((i) => i.kind === "frozen") && <b style={{ color: "var(--crit)" }}> · {t("batteries.dataStuck")}</b>}</td>
+                    <td>{models.length > 1 && <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><ModelBadge model={e.model} />{modelName(e.model)} · </span>}{t(`kind.${e.a.kind}`)}{e.a.issues.some((i) => i.kind === "frozen") && <b style={{ color: "var(--crit)" }}> · {t("batteries.dataStuck")}</b>}</td>
                     <td className="r num">{e.a.session.battery?.chargeCycles}</td>
                     <td className="r num">{used(e)}</td>
                     <td className="r num lv-more">{num(loc, ch?.startCellV, 2)} → {num(loc, ch?.endCellV, 2)} V</td>

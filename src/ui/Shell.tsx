@@ -9,13 +9,38 @@ import { Batteries } from "./views/Batteries";
 import { Inventory } from "./views/Inventory";
 import { SessionView } from "./views/SessionView";
 import { Welcome } from "./views/Welcome";
-import { useStore, type Entry } from "./store";
+import { useStore, type Entry, type Model } from "./store";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
 import { PHASE_COLOR } from "./charts/LineChart";
 
 export const KIND_COLOR: Record<string, string> = { flight: "var(--s-alt)", "ground-test": "var(--s-motor)", "powered-on": "var(--s-glide)", "transmitter-only": "var(--s-ground)" };
+
+/** Coloured square of a model; the name is always shown next to it. */
+export function ModelBadge({ model, large = false }: { model: Model; large?: boolean }) {
+  return <span className={`mbadge${large ? " lg" : ""}`} style={{ background: model.color }} aria-hidden="true" />;
+}
+
+/** Model name, or "Unknown model" for sessions without one. */
+export function useModelName() {
+  const t = useTranslations();
+  return (m: Model) => m.name ?? t("app.unknownModel");
+}
+
+/** Dropdown that limits the session list to one model. Option values carry a prefix, because a session without a name has the key "". */
+export function ModelSelect({ id, count }: { id: string; count?: (key: string | null) => number }) {
+  const t = useTranslations();
+  const { models, modelFilter, setModelFilter } = useStore();
+  const modelName = useModelName();
+  const n = (k: string | null) => (count ? ` (${count(k)})` : "");
+  return (
+    <select id={id} aria-label={t("app.model")} value={modelFilter === null ? "*" : `m:${modelFilter}`} onChange={(ev) => setModelFilter(ev.target.value === "*" ? null : ev.target.value.slice(2))}>
+      <option value="*">{t("app.allModels")}{n(null)}</option>
+      {models.map((m) => <option key={m.key} value={`m:${m.key}`}>{modelName(m)}{n(m.key)}</option>)}
+    </select>
+  );
+}
 
 /** major.minor, injected at build time from package.json. */
 export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
@@ -102,7 +127,13 @@ function Spark({ e }: { e: Entry }) {
 
 function Sidebar() {
   const t = useTranslations();
-  const { entries, visible, selected, select, settings, setSettings, addFiles, files, closeFile, closeAll } = useStore();
+  const { entries, visible, selected, select, settings, setSettings, addFiles, files, closeFile, closeAll, models, modelFilter } = useStore();
+  const modelName = useModelName();
+  const multi = models.length > 1;
+  // With several models in the list, each row names its model instead of the session kind.
+  const showModel = multi && modelFilter === null;
+  const kindEntries = modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter);
+  const count = (m: string | null) => entries.filter((e) => (m === null || e.model.key === m) && (settings.filter === "all" || e.a.kind === "flight")).length;
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const loc = settings.locale;
@@ -117,13 +148,19 @@ function Sidebar() {
         onDragLeave={() => setOver(false)}
         onDrop={(e) => { e.preventDefault(); setOver(false); addFiles([...e.dataTransfer.files]); }}
       >
-        {files.map((f) => (
-          <div className="file" key={f.fileName}>
-            <span title={f.fileName}>{f.fileName}</span>
-            <span className="num size">{num(loc, f.sizeBytes / 1e6, 1)} MB</span>
-            <button className="x" aria-label={t("app.closeFile", { name: f.fileName })} title={t("app.closeFile", { name: f.fileName })} onClick={() => closeFile(f.fileName)}>×</button>
-          </div>
-        ))}
+        {files.map((f) => {
+          const fm = models.filter((m) => entries.some((e) => e.file === f && e.model === m));
+          return (
+            <div key={f.fileName} style={{ display: "contents" }}>
+              <div className="file">
+                <span title={f.fileName}>{f.fileName}</span>
+                <span className="num size">{num(loc, f.sizeBytes / 1e6, 1)} MB</span>
+                <button className="x" aria-label={t("app.closeFile", { name: f.fileName })} title={t("app.closeFile", { name: f.fileName })} onClick={() => closeFile(f.fileName)}>×</button>
+              </div>
+              {fm.length > 0 && <div className="fmodels">{fm.map((m) => <span key={m.key}><ModelBadge model={m} />{modelName(m)}</span>)}</div>}
+            </div>
+          );
+        })}
         <small>{t("app.dropMore")}</small>
         <div className="dropacts">
           <button className="btn" onClick={() => input.current?.click()}>{t("app.addFiles")}</button>
@@ -134,10 +171,16 @@ function Sidebar() {
       <div className="sidehead">
         <h2>{t("app.sessions")}</h2>
         <div className="seg" role="group" aria-label={t("app.sessions")}>
-          <button aria-pressed={settings.filter === "flights"} onClick={() => setSettings({ filter: "flights" })}>{t("app.flights", { n: entries.filter((e) => e.a.kind === "flight").length })}</button>
-          <button aria-pressed={settings.filter === "all"} onClick={() => setSettings({ filter: "all" })}>{t("app.all", { n: entries.length })}</button>
+          <button aria-pressed={settings.filter === "flights"} onClick={() => setSettings({ filter: "flights" })}>{t("app.flights", { n: kindEntries.filter((e) => e.a.kind === "flight").length })}</button>
+          <button aria-pressed={settings.filter === "all"} onClick={() => setSettings({ filter: "all" })}>{t("app.all", { n: kindEntries.length })}</button>
         </div>
       </div>
+      {multi && (
+        <div className="mfilter">
+          <label htmlFor="model-filter">{t("app.model")}</label>
+          <ModelSelect id="model-filter" count={count} />
+        </div>
+      )}
       <div className="slist">
         {visible.map((e, k) => {
           const d = dayOf(e);
@@ -150,8 +193,14 @@ function Sidebar() {
               <button className={`sitem ${e.a.kind === "flight" ? "" : "dim"}`} aria-current={selected?.key === e.key} onClick={() => select(e.key)}>
                 <span className="t num">{e.startMs !== null ? timeLabel(loc, e.startMs) : "–"}</span>
                 <span className="k">
-                  <span className="kdot" style={{ background: KIND_COLOR[e.a.kind] }} />
-                  {t(`kind.${e.a.kind}`)}
+                  {showModel ? <>
+                    <ModelBadge model={e.model} />
+                    <span className="mn">{modelName(e.model)}</span>
+                    {e.a.kind !== "flight" && <span>· {t(`kind.${e.a.kind}`)}</span>}
+                  </> : <>
+                    <span className="kdot" style={{ background: KIND_COLOR[e.a.kind] }} />
+                    {t(`kind.${e.a.kind}`)}
+                  </>}
                   {e.a.issues.some((i) => i.level === 1) && <span title={t("issue.frozen")} style={{ color: "var(--crit)", fontWeight: 700 }}>!</span>}
                 </span>
                 <span className="m num">{meta}</span>
