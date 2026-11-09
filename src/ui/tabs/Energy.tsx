@@ -10,7 +10,7 @@ import { axisNum, clock, num } from "../format";
 import { useStore } from "../store";
 import { rate, THRESHOLDS } from "@/core/analysis";
 import { PhaseLegend } from "./Overview";
-import { EfficiencyCard } from "./ratings";
+import { ConsumptionCard, EfficiencyCard } from "./ratings";
 
 function Gauge({ pct }: { pct: number }) {
   const level = rate(pct, THRESHOLDS.batteryUsedPct)!;
@@ -45,7 +45,7 @@ export function EnergyTab() {
 
   return (
     <>
-      <div className="grid g3">
+      <div className="grid g4">
         {u && u.usedPct !== null ? (
           <div className="card rating">
             <div className="top3"><span className="lbl">{t("rating.used")}</span><Meter level={u.level!} /></div>
@@ -54,7 +54,8 @@ export function EnergyTab() {
             <div className="hint">{t("energy.usedText", { used: num(loc, u.usedMah, 0), capacity: u.capacityMah! })}{u.capacityAssumed ? t("rating.assumed") : ""}</div>
           </div>
         ) : <Tile label={t("rating.used")} value={u ? num(loc, u.usedMah, 0) : "–"} unit={u ? " mAh" : ""} />}
-        {flight && a.efficiency ? <EfficiencyCard a={a} /> : <Tile label={t("rating.efficiency")} value="–" sub={t("energy.onlyFlights")} />}
+        {flight && a.consumption ? <ConsumptionCard a={a} /> : <Tile label={t("rating.consumption")} value={p?.mahPerMin != null ? num(loc, p.mahPerMin, 0) : "–"} unit={p?.mahPerMin != null ? " mAh/min" : ""} sub={flight ? undefined : t("energy.onlyFlights")} />}
+        {flight && a.efficiency ? <EfficiencyCard a={a} /> : <Tile label={t("rating.efficiency")} value="–" sub={flight && p.basis !== "height" ? t("energy.needsHeight") : t("energy.onlyFlights")} />}
         <Tile label={t("overview.motorTime")} value={clock(p?.motorSecs ?? 0)} unit=" min" sub={`max ${num(loc, maxA, 1)} A`} />
       </div>
       {thr[0].data.some((x) => x !== null) && (

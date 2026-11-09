@@ -8,7 +8,7 @@ import { axisNum, clock, cssVar, withAlpha } from "../format";
 import { notifyCursor, register } from "./sync";
 import { useThemeVersion } from "./useTheme";
 
-export const PHASE_COLOR: Record<string, string> = { ground: "--s-ground", motor: "--s-motor", glide: "--s-glide", lift: "--s-lift" };
+export const PHASE_COLOR: Record<string, string> = { ground: "--s-ground", motor: "--s-motor", powered: "--s-powered", glide: "--s-glide", unpowered: "--s-glide", lift: "--s-lift" };
 
 export interface ChartSeries {
   data: (number | null)[];
@@ -110,7 +110,7 @@ export function LineChart(props: Props) {
               const { top, height, left, width } = uu.bbox;
               const cur = propsRef.current;
               for (const ph of cur.phases ?? []) {
-                if (ph.kind === "glide") continue;
+                if (ph.kind === "glide" || ph.kind === "unpowered") continue;
                 const x0 = uu.valToPos(ph.start - 0.5, "x", true);
                 const x1 = uu.valToPos(ph.end + 0.5, "x", true);
                 ctx.fillStyle = withAlpha(cssVar(PHASE_COLOR[ph.kind]), ph.kind === "ground" ? 0.35 : 0.16);

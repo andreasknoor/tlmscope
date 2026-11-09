@@ -3,7 +3,8 @@
 import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
-import { Legend, Tile, useLevelWord, useRich } from "../bits";
+import type { FlightProfile } from "@/core/analysis/flight";
+import { Legend, Tile, useAirtime, useLevelWord, useRich } from "../bits";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { jumpTo } from "../charts/sync";
 import { axisNum, clock, duration, num } from "../format";
@@ -14,13 +15,17 @@ import { MinMaxCard } from "./MinMax";
 /** Colour of each phase; `glide` overrides the glide colour (the map draws glides in a stronger colour than the charts). */
 export function PhaseLegend({ kinds, glide }: { kinds: string[]; glide?: string }) {
   const t = useTranslations("phase");
-  return <Legend items={kinds.map((k) => [k === "glide" && glide ? `var(${glide})` : `var(${PHASE_COLOR[k]})`, t(k)] as [string, string])} />;
+  return <Legend items={kinds.map((k) => [(k === "glide" || k === "unpowered") && glide ? `var(${glide})` : `var(${PHASE_COLOR[k]})`, t(k)] as [string, string])} />;
 }
+
+/** Motor runs in the air when there are no climbs (no height): runs of "motor on". */
+const runsOf = (p: FlightProfile) => p.phases.filter((x) => x.kind === "powered" || x.kind === "motor").length;
 
 export function OverviewTab() {
   const t = useTranslations();
   const rich = useRich();
   const word = useLevelWord();
+  const airtime = useAirtime();
   const { selected: e, settings } = useStore();
   const a = e!.a;
   const loc = settings.locale;
@@ -34,11 +39,14 @@ export function OverviewTab() {
   if (a.kind === "flight" && p) {
     const link = a.link.available ? a.link.value.overall : null;
     const used = a.batteryUse.available ? a.batteryUse.value.usedPct : null;
+    const height = p.basis === "height";
+    const minutes = num(loc, p.airtimeS / 60, 1);
     summary = (
       <>
-        {rich("overview.flightAir", { minutes: num(loc, p.airtimeS / 60, 1), height: num(loc, p.maxAltitudeM, 0) })}{" "}
-        {rich("overview.flightMotor", { count: p.climbs.length, time: clock(p.motorSecs) })}{" "}
-        {p.lifts.length ? rich("overview.flightLift", { count: p.lifts.length, gain: num(loc, p.liftGainM, 0) }) : t("overview.flightNoLift")}{" "}
+        {height ? rich("overview.flightAir", { minutes, height: num(loc, p.maxAltitudeM, 0) })
+          : rich(p.basis === "motion" ? "overview.flightAirApprox" : "overview.flightAirNoHeight", { minutes })}{" "}
+        {rich("overview.flightMotor", { count: height ? p.climbs.length : runsOf(p), time: clock(p.motorSecs) })}{" "}
+        {!height ? null : p.lifts.length ? rich("overview.flightLift", { count: p.lifts.length, gain: num(loc, p.liftGainM, 0) }) : t("overview.flightNoLift")}{" "}
         {link && rich("overview.flightLink", { link: word("link", link.level).toLowerCase() })}{" "}
         {used !== null && rich("overview.flightBattery", { pct: num(loc, used, 0) })}
       </>
@@ -64,11 +72,26 @@ export function OverviewTab() {
   return (
     <>
       <p className="summary">{summary}</p>
+      {a.kind === "flight" && p && p.basis !== "height" && <p className="note">{t("overview.noHeight")}</p>}
       <IssueAlerts a={a} />
-      {a.kind === "flight" && p ? (
+      {a.kind === "flight" && p && p.basis !== "height" ? (
         <>
           <div className="grid g4">
-            <Tile label={t("overview.airtime")} value={clock(p.airtimeS)} unit=" min" />
+            <Tile label={t("overview.airtime")} value={airtime(p)} unit=" min" />
+            <Tile label={t("overview.highest")} value="–" sub={t("overview.noHeightShort")} />
+            <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit=" min" sub={t("overview.climbs", { n: runsOf(p) })} />
+            <Tile label={t("overview.lift")} value="–" sub={t("overview.noHeightShort")} />
+          </div>
+          {thrSeries[0].data.some((x) => x !== null) && (
+            <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thrSeries} phases={p.phases} yMax={100} yFormat={(x) => `${axisNum(loc, x)} %`}
+              extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />}
+              readout={(i) => `${num(loc, thrSeries[0].data[i], 0)} % · ${p.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} />
+          )}
+        </>
+      ) : a.kind === "flight" && p ? (
+        <>
+          <div className="grid g4">
+            <Tile label={t("overview.airtime")} value={airtime(p)} unit=" min" />
             <Tile label={t("overview.highest")} value={num(loc, p.maxAltitudeM, 0)} unit=" m" />
             <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit=" min" sub={t("overview.climbs", { n: p.climbs.length })} />
             <Tile label={t("overview.lift")} value={p.lifts.length ? `+${num(loc, p.liftGainM, 0)}` : "0"} unit={p.lifts.length ? " m" : ""}

@@ -102,10 +102,54 @@ export function flagFrozen(session: Session): string[] {
   return flagged;
 }
 
+/** Seconds over which a derived climb rate is measured (like the vario's 1 s field). */
+const CLIMB_WINDOW_S = 1;
+
+/** Climb rate in m/s from the altitude channel: height change over about one second. */
+export function deriveClimbRate(altitude: Channel): Channel {
+  const n = altitude.t.length;
+  const v = new Float64Array(n).fill(NaN);
+  const q = new Uint8Array(n).fill(Q.DERIVED | Q.NO_DATA);
+  let j = 0;
+  for (let i = 0; i < n; i++) {
+    if (Number.isNaN(altitude.v[i])) continue;
+    // j: the latest sample at least one window before i
+    while (j + 1 < i && altitude.t[i] - altitude.t[j + 1] >= CLIMB_WINDOW_S) j++;
+    const dt = altitude.t[i] - altitude.t[j];
+    if (j < i && dt >= CLIMB_WINDOW_S && !Number.isNaN(altitude.v[j])) {
+      v[i] = (altitude.v[i] - altitude.v[j]) / dt;
+      q[i] = Q.DERIVED;
+    }
+  }
+  return {
+    id: "climb_rate",
+    unit: "m/s",
+    kind: "numeric",
+    t: altitude.t,
+    v,
+    q,
+    nominalRateHz: altitude.nominalRateHz,
+    origin: "derived",
+    source: { sensor: altitude.source.sensor, field: "altitude change per second" },
+  };
+}
+
+/** True if the channel is missing or only ever reports 0 (some varios leave the 1 s field empty). */
+function emptyOrZero(ch: Channel | undefined): boolean {
+  if (!ch) return true;
+  for (const x of ch.v) if (!Number.isNaN(x) && x !== 0) return false;
+  return true;
+}
+
 /** Format-neutral steps run on every session after the adapter. */
 export function normaliseSession(session: Session): void {
   const current = session.channels.get("motor_current");
   if (current && !session.channels.has("consumed_mah")) session.channels.set("consumed_mah", integrateMah(current));
+  const altitude = session.channels.get("altitude");
+  if (altitude && emptyOrZero(session.channels.get("climb_rate")) && rangeBetween(altitude, -Infinity, Infinity) > 2) {
+    session.channels.set("climb_rate", deriveClimbRate(altitude));
+    session.meta.derivedClimbRate = true;
+  }
   const frozen = flagFrozen(session);
   if (frozen.length) session.meta.frozenChannels = frozen;
 }

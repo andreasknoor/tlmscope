@@ -39,6 +39,7 @@
     "batteryNotIdentified": "Battery not identified",
     "cycles": "{n} cycles",
     "airtime": "Airtime {time} min",
+    "approx": "about {time}",
     "sessionDuration": "Session {time}",
     "transmitterOnly": "Transmitter only",
     "transmitterOnlyText": "The transmitter was switched on with this model selected, but no receiver data arrived. Usually this means the model was not powered.",
@@ -66,6 +67,8 @@
   "phase": {
     "ground": "On ground",
     "motor": "Motor climb",
+    "powered": "Motor on",
+    "unpowered": "Motor off",
     "glide": "Gliding",
     "lift": "Lift (thermal)"
   },
@@ -106,6 +109,12 @@
       "Fine",
       "Plenty left"
     ],
+    "consumption": [
+      "Much higher",
+      "Higher than usual",
+      "Typical",
+      "Lower than usual"
+    ],
     "efficiency": [
       "Much lower",
       "Below usual",
@@ -139,6 +148,10 @@
     "groundSummary": "Ground test of <b>{time}</b>. The motor ran for <b>{secs} s</b> and drew up to <b>{amps} A</b>.",
     "poweredSummary": "The model was switched on for <b>{time}</b> without running the motor.",
     "flightAir": "<b>{minutes} minutes</b> in the air, up to <b>{height} m</b>.",
+    "flightAirNoHeight": "<b>{minutes} minutes</b> in the air.",
+    "flightAirApprox": "About <b>{minutes} minutes</b> in the air.",
+    "noHeight": "No height sensor data in this session: height, climbs and lift are not available. The time in the air comes from the GPS speed or from the model's movement.",
+    "noHeightShort": "no height data",
     "flightMotor": "The motor ran <b>{count, plural, one {once} other {# times}}</b> for <b>{time} min</b> in total.",
     "flightLift": "You found lift <b>{count, plural, one {once} other {# times}}</b> and gained <b>{gain} m</b> without motor.",
     "flightNoLift": "No lift was found.",
@@ -147,7 +160,7 @@
     "airtime": "Airtime",
     "highest": "Highest",
     "motorTime": "Motor time",
-    "climbs": "{n, plural, one {# climb} other {# climbs}}",
+    "climbs": "{n, plural, one {# motor run} other {# motor runs}}",
     "lift": "Lift found",
     "noThermals": "no thermals",
     "height": "Height",
@@ -224,6 +237,9 @@
     "thisFlight": "This flight",
     "yourUsual": "Usual for this model",
     "mPer100": "{v} m per 100 mAh",
+    "consumption": "Use per minute",
+    "consumptionHint": "Charge used per minute in the air, compared with your other flights of this model in the loaded files.",
+    "mahPerMin": "{v} mAh per minute",
     "balance": "Cell balance",
     "balanceHint": "Largest difference between cells: {mv} mV.",
     "balanceFrozen": "Not judged: battery data stuck."
@@ -234,7 +250,9 @@
     "battery-not-reporting": "Battery not reporting",
     "battery-not-reportingText": "No smart-battery data in this session. Battery charge is estimated from the motor controller instead.",
     "no-cell-voltages": "No cell voltages",
-    "no-cell-voltagesText": "The battery identified itself but never sent individual cell voltages."
+    "no-cell-voltagesText": "The battery identified itself but never sent individual cell voltages.",
+    "height-flat": "Height sensor without values",
+    "height-flatText": "The height sensor sent the same value for the whole flight. Height, climbs and lift are not available; the time in the air comes from GPS or from the model's movement."
   },
   "height": {
     "title": "What happened in the air",
@@ -242,7 +260,7 @@
     "phases": "Phases",
     "climbRate": "Climb rate (9 s average)",
     "climbHint": "Above +0.2 m/s with the motor off counts as lift.",
-    "motorClimbs": "Motor climbs",
+    "motorClimbs": "Motor runs",
     "withMotor": "+{gain} m with motor",
     "lift": "Lift",
     "noneFound": "none found",
@@ -285,11 +303,14 @@
     "map": "Map and 3D path",
     "view3d": "3D",
     "viewTop": "Map view",
+    "full": "Full screen",
+    "closeFull": "Close",
     "colour": "Colour",
     "byPhase": "Phase",
     "byHeight": "Height",
     "bySignal": "Signal",
     "follow": "Height · move here to follow the model",
+    "followThrottle": "Throttle · move here to follow the model",
     "distFromStart": "Distance from start",
     "away": "{d} m away",
     "mapFailed": "The map could not be loaded. It needs an internet connection and a browser with WebGL.",
@@ -299,13 +320,14 @@
     "motorCurrent": "Motor current",
     "rpm": "Motor speed (electrical rpm)",
     "rpmHint": "Divide by half the motor's pole count for shaft rpm.",
-    "eachClimb": "Each motor climb",
+    "eachClimb": "Each motor run",
     "gained": "Height gained",
     "chargeUsed": "Charge used",
     "efficiency": "Efficiency",
     "tooShort": "too short",
     "note": "A climb that ends in a turn or a dive shows lower efficiency even with the same motor and propeller.",
     "onlyFlights": "Only for flights.",
+    "needsHeight": "Needs height data.",
     "usedText": "{used} of {capacity} mAh used by the motor."
   },
   "battery": {

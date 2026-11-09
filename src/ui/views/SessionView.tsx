@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Alert } from "../bits";
-import { clock, dayLabel, duration, timeLabel } from "../format";
+import { Alert, useAirtime } from "../bits";
+import { dayLabel, duration, timeLabel } from "../format";
 import { KIND_COLOR, ModelBadge, ModelSelect, useModelName } from "../Shell";
 import { useStore, type Tab } from "../store";
 import { AircraftTab } from "../tabs/Aircraft";
@@ -20,6 +20,7 @@ export function SessionView() {
   const t = useTranslations();
   const { selected: e, visible, entries, models, modelFilter, setModelFilter, step, select, tab, setTab, settings, demo } = useStore();
   const modelName = useModelName();
+  const airtime = useAirtime();
   if (!e) return null;
   const multi = models.length > 1;
   const ownFlights = entries.filter((x) => x.model === e.model && x.a.kind === "flight");
@@ -57,7 +58,7 @@ export function SessionView() {
           {e.startMs !== null && <div className="when">{dayLabel(loc, e.startMs)}, {timeLabel(loc, e.startMs)}</div>}
           <div className="sub">
             <span className="pill">
-              {e.a.kind === "flight" && p ? t("app.airtime", { time: clock(p.airtimeS) }) : t("app.sessionDuration", { time: duration(loc, s.durationS) })}
+              {e.a.kind === "flight" && p ? t("app.airtime", { time: airtime(p) }) : t("app.sessionDuration", { time: duration(loc, s.durationS) })}
             </span>
             {e.batteryLetter ? <span className="pill">{t("battery.name", { letter: e.batteryLetter })} · {t("app.cycles", { n: s.battery?.chargeCycles ?? "?" })}</span>
               : e.a.kind !== "transmitter-only" ? <span className="pill">{t("app.batteryNotIdentified")}</span> : null}

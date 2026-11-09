@@ -1,7 +1,7 @@
 import { modelKey } from "../model/model-name.ts";
 import type { LogFile, Session } from "../model/types.ts";
 import { batteryCondition, batteryUse, cellBalance, chargeEstimate, type BatteryCondition, type BatteryUse, type CellBalance, type ChargeEstimate } from "./battery.ts";
-import { circling, classify, flightProfile, type Circling, type FlightProfile, type SessionKind } from "./flight.ts";
+import { altitudeFlat, circling, classify, flightProfile, type Circling, type FlightProfile, type SessionKind } from "./flight.ts";
 import { track, type Track } from "./gps.ts";
 import { thermals, type Thermals } from "./thermals.ts";
 import { Grid, medianOf } from "./grid.ts";
@@ -34,6 +34,8 @@ export interface SessionAnalysis {
   baseline: Baseline | null;
   /** Compared with the other flights of the same model (set by `analyseLogs`). */
   efficiency: { ratio: number; level: Level | null } | null;
+  /** Charge per minute in the air compared with the same model (ratio = usual / this flight). */
+  consumption: { ratio: number; level: Level | null } | null;
   sinkComparison: { ratio: number } | null;
 }
 
@@ -69,10 +71,11 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
     temperatures: temperatures(session, grid),
     receiverPower: receiverPower(session, val(link), grid),
     loads: ld,
-    issues: dataIssues(session, kind, opts.batteryExpected ?? false),
+    issues: dataIssues(session, kind, opts.batteryExpected ?? false, altitudeFlat(session, grid)),
     moments: p && kind === "flight" ? moments(p, grid, { circling: val(circ), loads: val(ld), signal: val(signal), link: val(link) }) : [],
     baseline: null,
     efficiency: null,
+    consumption: null,
     sinkComparison: null,
   };
 }
@@ -83,6 +86,8 @@ export interface Baseline {
   efficiency: number | null;
   /** Median glide sink rate. */
   sink: number | null;
+  /** Median charge per minute in the air (mAh/min). */
+  mahPerMin: number | null;
   /** Number of flights of this model. */
   flights: number;
 }
@@ -112,6 +117,7 @@ export function analyseLogs(logs: LogFile[], opts: Omit<AnalysisOptions, "batter
     const b: Baseline = {
       efficiency: medianOf(flights.map((a) => val(a.profile)?.mPer100mAh ?? null)),
       sink: medianOf(flights.map((a) => val(a.profile)?.glideSinkRate ?? null)),
+      mahPerMin: medianOf(flights.map((a) => val(a.profile)?.mahPerMin ?? null)),
       flights: flights.length,
     };
     baselines.set(k, b);
@@ -121,6 +127,10 @@ export function analyseLogs(logs: LogFile[], opts: Omit<AnalysisOptions, "batter
       if (p?.mPer100mAh != null && b.efficiency) {
         const ratio = p.mPer100mAh / b.efficiency;
         a.efficiency = { ratio, level: rate(ratio, THRESHOLDS.efficiencyRatio) };
+      }
+      if (p?.mahPerMin != null && b.mahPerMin) {
+        const ratio = b.mahPerMin / p.mahPerMin;
+        a.consumption = { ratio, level: rate(ratio, THRESHOLDS.consumptionRatio) };
       }
       if (p?.glideSinkRate != null && b.sink) a.sinkComparison = { ratio: p.glideSinkRate / b.sink };
       // A flight without motor climbs prices its thermals at the model's usual mAh per metre.

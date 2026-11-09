@@ -124,7 +124,7 @@ describe("missing channels", () => {
   it("says what is missing instead of failing", () => {
     const a = analyseSession(empty([["rx_voltage", [5.9, 5.8]]]));
     expect(a.kind).toBe("powered-on");
-    expect(a.profile).toEqual({ available: false, missing: ["altitude", ["throttle_output", "motor_current", "throttle_command"]] });
+    expect(a.profile).toEqual({ available: false, missing: [["throttle_output", "motor_current", "throttle_command"], ["altitude", "ground_speed", "rotation_rate.roll", "rotation_rate.pitch", "rotation_rate.yaw"]] });
     expect(a.link).toEqual({ available: false, missing: [["frame_losses", "link_quality"]] });
     expect(a.signal.available).toBe(false);
     expect(value(a.receiverPower).rxMinV).toBe(5.8);

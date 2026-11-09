@@ -30,13 +30,14 @@ describe("model block in the header", () => {
   });
 });
 
-describe.skipIf(!hasSupra)("Supra Fly log (real GPS)", () => {
+// The first test parses the 36 MB file.
+describe.skipIf(!hasSupra)("Supra Fly log (real GPS)", { timeout: 120_000 }, () => {
   it("reads the model name from the log, not from the file name", () => {
     expect(new Set(supra().sessions.map((s) => s.modelName))).toEqual(new Set(["Supra Fly"]));
     expect(supra().sessions[0].meta).toMatchObject({ modelSlot: 9 });
   });
 
-  it("does not warn about the clock record", { timeout: 60_000 }, () => {
+  it("does not warn about the clock record", () => {
     expect(supra().warnings).toEqual([]);
   });
 

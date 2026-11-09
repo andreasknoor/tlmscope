@@ -24,6 +24,20 @@ interface Props {
   failedText: string;
 }
 
+/** Space around the track (px); in 3D a third of the height stays free at the top, where the path rises. */
+const FIT_PADDING = 30;
+const PITCH_TOP_SHARE = 0.33;
+/** A tilted view shows the ground foreshortened; zooming in this much lets the track fill the frame again. */
+const PITCH_ZOOM = 0.4;
+
+/** Moves the camera so the track fills the map. */
+function fitTrack(map: MlMap, bounds: [[number, number], [number, number]], pitch: number) {
+  const top = pitch > 0 ? Math.round(map.getContainer().clientHeight * PITCH_TOP_SHARE) : FIT_PADDING;
+  const cam = map.cameraForBounds(bounds, { padding: { top, bottom: FIT_PADDING, left: FIT_PADDING, right: FIT_PADDING } });
+  if (!cam?.center || cam.zoom === undefined) return;
+  map.jumpTo({ center: cam.center, zoom: cam.zoom + (pitch > 0 ? PITCH_ZOOM : 0), pitch });
+}
+
 const toRgb = (c: string): [number, number, number] => {
   const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);
   if (m) return [+m[1], +m[2], +m[3]];
@@ -44,20 +58,31 @@ export function FlightMap({ track, height, colorAt, marker, pitch, spots = [], f
   useEffect(() => {
     let cancelled = false;
     let map: MlMap | null = null;
+    let resize: ResizeObserver | null = null;
     Promise.all([import("maplibre-gl"), import("@deck.gl/mapbox"), import("@deck.gl/layers")]).then(([ml, dm, layers]) => {
       if (cancelled || !el.current) return;
       ml.setWorkerUrl(new URL("maplibre/maplibre-gl-worker.mjs", window.location.href).href);
       const pts = track.lat.map((la, i) => (la === null || track.lon[i] === null ? null : [track.lon[i]!, la] as [number, number])).filter(Boolean) as [number, number][];
       const lons = pts.map((p) => p[0]), lats = pts.map((p) => p[1]);
       if (!pts.length) { setFailed(true); return; }
+      const bounds: [[number, number], [number, number]] = [[minOf(lons)!, minOf(lats)!], [maxOf(lons)!, maxOf(lats)!]];
       map = new ml.Map({
         container: el.current,
         style: MAP_STYLE,
-        bounds: [[minOf(lons)!, minOf(lats)!], [maxOf(lons)!, maxOf(lats)!]],
-        fitBoundsOptions: { padding: 60 },
+        bounds,
         pitch,
         attributionControl: { compact: true },
       });
+      const m = map;
+      fitTrack(m, bounds, pitch);
+      // The container changes size (full screen, window): resize the map and fit the track again.
+      let first = true;
+      resize = new ResizeObserver(() => {
+        if (first) { first = false; return; }
+        m.resize();
+        fitTrack(m, bounds, m.getPitch());
+      });
+      resize.observe(el.current);
       map.addControl(new ml.NavigationControl({ visualizePitch: true }), "top-right");
       const overlay = new dm.MapboxOverlay({ interleaved: false, layers: [] });
       map.addControl(overlay);
@@ -72,6 +97,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, spots = [], f
     });
     return () => {
       cancelled = true;
+      resize?.disconnect();
       map?.remove();
       mapRef.current = null;
       overlayRef.current = null;

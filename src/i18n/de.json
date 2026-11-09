@@ -39,6 +39,7 @@
     "batteryNotIdentified": "Akku nicht erkannt",
     "cycles": "{n} Zyklen",
     "airtime": "Flugzeit {time} min",
+    "approx": "ca. {time}",
     "sessionDuration": "Sitzung {time}",
     "transmitterOnly": "Nur Sender",
     "transmitterOnlyText": "Der Sender war mit diesem Modell eingeschaltet, aber es kamen keine Empfängerdaten an. Meist war das Modell nicht eingeschaltet.",
@@ -66,6 +67,8 @@
   "phase": {
     "ground": "Am Boden",
     "motor": "Motorsteigflug",
+    "powered": "Motor an",
+    "unpowered": "Motor aus",
     "glide": "Gleitflug",
     "lift": "Aufwind (Thermik)"
   },
@@ -106,6 +109,12 @@
       "Gut",
       "Viel übrig"
     ],
+    "consumption": [
+      "Deutlich höher",
+      "Höher als sonst",
+      "Wie üblich",
+      "Niedriger als sonst"
+    ],
     "efficiency": [
       "Deutlich schwächer",
       "Schwächer als sonst",
@@ -139,6 +148,10 @@
     "groundSummary": "Bodentest über <b>{time}</b>. Der Motor lief <b>{secs} s</b> und zog bis zu <b>{amps} A</b>.",
     "poweredSummary": "Das Modell war <b>{time}</b> eingeschaltet, ohne dass der Motor lief.",
     "flightAir": "<b>{minutes} Minuten</b> in der Luft, bis <b>{height} m</b> hoch.",
+    "flightAirNoHeight": "<b>{minutes} Minuten</b> in der Luft.",
+    "flightAirApprox": "Etwa <b>{minutes} Minuten</b> in der Luft.",
+    "noHeight": "Keine Höhendaten in dieser Sitzung: Höhe, Steigflüge und Aufwind sind nicht verfügbar. Die Zeit in der Luft stammt von der GPS-Geschwindigkeit oder aus den Bewegungen des Modells.",
+    "noHeightShort": "keine Höhendaten",
     "flightMotor": "Der Motor lief <b>{count, plural, one {einmal} other {#-mal}}</b>, insgesamt <b>{time} min</b>.",
     "flightLift": "Du hast <b>{count, plural, one {einmal} other {#-mal}}</b> Aufwind gefunden und ohne Motor <b>{gain} m</b> gewonnen.",
     "flightNoLift": "Kein Aufwind gefunden.",
@@ -147,7 +160,7 @@
     "airtime": "Flugzeit",
     "highest": "Höchster Punkt",
     "motorTime": "Motorlaufzeit",
-    "climbs": "{n, plural, one {# Steigflug} other {# Steigflüge}}",
+    "climbs": "{n, plural, one {# Motorlauf} other {# Motorläufe}}",
     "lift": "Aufwind",
     "noThermals": "keine Thermik",
     "height": "Höhe",
@@ -224,6 +237,9 @@
     "thisFlight": "Dieser Flug",
     "yourUsual": "Üblich bei diesem Modell",
     "mPer100": "{v} m pro 100 mAh",
+    "consumption": "Verbrauch pro Minute",
+    "consumptionHint": "Verbrauchte Ladung pro Minute in der Luft, verglichen mit deinen anderen Flügen mit diesem Modell in den geladenen Dateien.",
+    "mahPerMin": "{v} mAh pro Minute",
     "balance": "Zellbalance",
     "balanceHint": "Größter Unterschied zwischen den Zellen: {mv} mV.",
     "balanceFrozen": "Nicht bewertet: Akkudaten eingefroren."
@@ -234,7 +250,9 @@
     "battery-not-reporting": "Akku sendet nicht",
     "battery-not-reportingText": "Keine Smart-Akku-Daten in dieser Sitzung. Der Ladezustand wird stattdessen aus den Reglerdaten geschätzt.",
     "no-cell-voltages": "Keine Zellspannungen",
-    "no-cell-voltagesText": "Der Akku hat sich zwar identifiziert, aber nie einzelne Zellspannungen gesendet."
+    "no-cell-voltagesText": "Der Akku hat sich zwar identifiziert, aber nie einzelne Zellspannungen gesendet.",
+    "height-flat": "Höhensensor ohne Werte",
+    "height-flatText": "Der Höhensensor hat den ganzen Flug über denselben Wert gesendet. Höhe, Steigflüge und Aufwind sind nicht verfügbar; die Zeit in der Luft stammt vom GPS oder aus den Bewegungen des Modells."
   },
   "height": {
     "title": "Was in der Luft passiert ist",
@@ -242,7 +260,7 @@
     "phases": "Phasen",
     "climbRate": "Steigrate (9-s-Mittel)",
     "climbHint": "Über +0,2 m/s bei ausgeschaltetem Motor zählt als Aufwind.",
-    "motorClimbs": "Motorsteigflüge",
+    "motorClimbs": "Motorläufe",
     "withMotor": "+{gain} m mit Motor",
     "lift": "Aufwind",
     "noneFound": "keiner gefunden",
@@ -285,11 +303,14 @@
     "map": "Karte und 3D-Flugweg",
     "view3d": "3D",
     "viewTop": "Kartenansicht",
+    "full": "Vollbild",
+    "closeFull": "Schließen",
     "colour": "Farbe",
     "byPhase": "Phase",
     "byHeight": "Höhe",
     "bySignal": "Signal",
     "follow": "Höhe · hier fahren, um dem Modell zu folgen",
+    "followThrottle": "Gas · hier fahren, um dem Modell zu folgen",
     "distFromStart": "Entfernung vom Start",
     "away": "{d} m entfernt",
     "mapFailed": "Die Karte konnte nicht geladen werden. Sie braucht eine Internetverbindung und einen Browser mit WebGL.",
@@ -299,13 +320,14 @@
     "motorCurrent": "Motorstrom",
     "rpm": "Motordrehzahl (elektrisch)",
     "rpmHint": "Für die Wellendrehzahl durch die halbe Polzahl des Motors teilen.",
-    "eachClimb": "Jeder Motorsteigflug",
+    "eachClimb": "Jeder Motorlauf",
     "gained": "Höhengewinn",
     "chargeUsed": "Verbrauch",
     "efficiency": "Effizienz",
     "tooShort": "zu kurz",
     "note": "Ein Steigflug, der in einer Kurve oder einem Sturzflug endet, zeigt auch bei gleichem Motor und Propeller eine geringere Effizienz.",
     "onlyFlights": "Nur bei Flügen.",
+    "needsHeight": "Braucht Höhendaten.",
     "usedText": "{used} von {capacity} mAh vom Motor verbraucht."
   },
   "battery": {

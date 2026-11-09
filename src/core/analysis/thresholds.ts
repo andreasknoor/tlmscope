@@ -31,7 +31,9 @@ export const THRESHOLDS = {
   /** Largest difference between cells in mV. */
   cellSpreadMv: { steps: [10, 20, 40], basis: "Not researched yet." },
   /** Climb efficiency relative to the pilot's own median. */
-  efficiencyRatio: { steps: [1.1, 0.9, 0.7], basis: "Comparison with the other flights in the loaded files." },
+  efficiencyRatio: { steps: [1.1, 0.9, 0.7], basis: "Comparison with the other flights of the same model in the loaded files." },
+  /** Usual charge per minute in the air divided by this flight's (above 1 = used less than usual). */
+  consumptionRatio: { steps: [1.1, 0.9, 0.7], basis: "Comparison with the other flights of the same model in the loaded files." },
 } satisfies Record<string, Scale>;
 
 /** Level of a value on a scale. */

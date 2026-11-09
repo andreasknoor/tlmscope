@@ -15,6 +15,7 @@
   --crit: #d03b3b;
   --s-alt: #2a78d6;
   --s-motor: #eb6834;
+  --s-powered: #c9975f;
   --s-lift: #1baf7a;
   --s-glide: #a9b6bd;
   --s-ground: #d6dee2;
@@ -34,7 +35,7 @@
   :root {
     --bg: #0e1418; --surface: #151f25; --sunken: #111a1f; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e;
     --line: #25333b; --grid: #1e2a31; --accent: #52b6d2; --accent-soft: #17323b;
-    --s-alt: #3987e5; --s-motor: #d95926; --s-lift: #199e70; --s-glide: #5b6a72; --s-ground: #2b383f; --s-4: #d55181; --s-5: #9085e9;
+    --s-alt: #3987e5; --s-motor: #d95926; --s-powered: #a8804f; --s-lift: #199e70; --s-glide: #5b6a72; --s-ground: #2b383f; --s-4: #d55181; --s-5: #9085e9;
     --h-low: #184f95; --h-high: #cde2fb; --scrim: rgba(0, 0, 0, .6);
     --m1: #3fa9c7; --m2: #9085e9; --m3: #e0709d; --m4: #d9a43a; --m5: #4cc28a; --m6: #93a4b0;
     color-scheme: dark;
@@ -209,6 +210,13 @@ details.more[open] summary::before { content: "− "; }
 .mapwrap { position: relative; height: 440px; border-radius: 8px; overflow: hidden; background: var(--sunken); }
 .mapwrap .tools { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 2; pointer-events: none; }
 .mapwrap .tools > * { pointer-events: auto; }
+/* Map and replay; in full screen they fill the browser window. */
+.mapgroup { display: contents; }
+.mapgroup.full { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: flex; flex-direction: column; gap: 10px;
+  padding: max(10px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+.mapgroup.full > .chart:first-child { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.mapgroup.full .mapwrap { flex: 1; height: auto; min-height: 200px; }
+.mapgroup .ch .btn { padding: 3px 10px; font-size: 13px; }
 .simbanner { display: flex; gap: 10px; align-items: center; border: 1.5px dashed var(--s-5); background: var(--sunken); border-radius: var(--radius); padding: 10px 14px; flex-wrap: wrap; }
 .simbanner b { color: var(--s-5); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; }
 

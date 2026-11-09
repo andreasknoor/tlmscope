@@ -112,6 +112,16 @@ export function Replay({ a, syncKey }: { a: SessionAnalysis; syncKey: string }) 
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle]);
 
+  // Redraw the timeline when its width changes (e.g. full screen).
+  const [scrubW, setScrubW] = useState(0);
+  useEffect(() => {
+    const cv = scrubRef.current;
+    if (!cv) return;
+    const ro = new ResizeObserver(() => setScrubW(cv.clientWidth));
+    ro.observe(cv);
+    return () => ro.disconnect();
+  }, []);
+
   // Timeline: phase colours, height profile and the position.
   useEffect(() => {
     const cv = scrubRef.current;
@@ -123,10 +133,11 @@ export function Replay({ a, syncKey }: { a: SessionAnalysis; syncKey: string }) 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
     for (const ph of p?.phases ?? []) {
-      ctx.fillStyle = withAlpha(cssVar(PHASE_COLOR[ph.kind]), ph.kind === "glide" ? 0.35 : 0.45);
+      ctx.fillStyle = withAlpha(cssVar(PHASE_COLOR[ph.kind]), ph.kind === "glide" || ph.kind === "unpowered" ? 0.35 : 0.45);
       ctx.fillRect((ph.start / n) * W, 0, ((ph.end - ph.start + 1) / n) * W, H);
     }
-    const alt = g.get("altitude");
+    // Height profile only when the height is usable.
+    const alt = p?.basis === "height" ? g.get("altitude") : [];
     const top = Math.max(1, maxOf(alt) ?? 0);
     ctx.strokeStyle = cssVar("--ink-2"); ctx.lineWidth = 1.2; ctx.beginPath();
     let started = false;
@@ -138,7 +149,7 @@ export function Replay({ a, syncKey }: { a: SessionAnalysis; syncKey: string }) 
     ctx.stroke();
     ctx.fillStyle = cssVar("--ink");
     ctx.fillRect((pos / Math.max(1, n - 1)) * W - 1, 0, 2.5, H);
-  }, [pos, p, g, n, theme]);
+  }, [pos, p, g, n, theme, scrubW]);
 
   const seek = (ev: React.PointerEvent<HTMLCanvasElement>) => {
     const r = ev.currentTarget.getBoundingClientRect();
@@ -150,9 +161,9 @@ export function Replay({ a, syncKey }: { a: SessionAnalysis; syncKey: string }) 
 
   const val = (v: number | null | undefined, d: number, unit: string) => (v === null || v === undefined ? "–" : `${num(loc, v, d)} ${unit}`);
   const ph = p?.phaseAt[i];
+  const hasHeight = p?.basis === "height";
   const hud: [string, string][] = [
-    [t("overview.height"), val(g.get("altitude")[i], 0, "m")],
-    [t("replay.vario"), val(climb, 1, "m/s")],
+    ...(hasHeight ? [[t("overview.height"), val(g.get("altitude")[i], 0, "m")], [t("replay.vario"), val(climb, 1, "m/s")]] as [string, string][] : []),
     ...(tr ? [[t("replay.speed"), val(tr.speed[i] !== null ? tr.speed[i]! * 3.6 : null, 0, "km/h")] as [string, string]] : []),
     ...(g.has("motor_current") ? [[t("replay.motor"), val(g.get("motor_current", "max")[i] ?? 0, 0, "A")] as [string, string]] : []),
     ...(g.has("signal_dbm") ? [[t("replay.signal"), val(g.get("signal_dbm", "min")[i], 0, "dBm")] as [string, string]] : []),

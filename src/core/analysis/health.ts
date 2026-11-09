@@ -73,13 +73,15 @@ export function loads(session: Session, g = new Grid(session)): Result<Loads> {
 export type DataIssue =
   | { kind: "frozen"; level: 1; channels: string[]; values: Record<string, number> }
   | { kind: "battery-not-reporting"; level: 2 }
-  | { kind: "no-cell-voltages"; level: 2 };
+  | { kind: "no-cell-voltages"; level: 2 }
+  | { kind: "height-flat"; level: 2 };
 
 /**
  * Problems with the data itself. `batteryExpected` is true when other sessions of the
- * same files had a reporting battery, so a missing one is worth mentioning.
+ * same files had a reporting battery, so a missing one is worth mentioning. `heightFlat`:
+ * the session has a height channel that never changed.
  */
-export function dataIssues(session: Session, kind: string, batteryExpected: boolean): DataIssue[] {
+export function dataIssues(session: Session, kind: string, batteryExpected: boolean, heightFlat = false): DataIssue[] {
   const issues: DataIssue[] = [];
   const frozen = [...session.channels.values()].filter((c) => c.q.some((q) => (q & Q.FROZEN) !== 0));
   if (frozen.length) {
@@ -91,6 +93,7 @@ export function dataIssues(session: Session, kind: string, batteryExpected: bool
     issues.push({ kind: "frozen", level: 1, channels: frozen.map((c) => c.id), values });
   }
   if (kind === "flight") {
+    if (heightFlat) issues.push({ kind: "height-flat", level: 2 });
     if (!session.battery && batteryExpected) issues.push({ kind: "battery-not-reporting", level: 2 });
     if (session.battery && !session.channels.has("cell_voltage.1")) issues.push({ kind: "no-cell-voltages", level: 2 });
   }

@@ -10,6 +10,7 @@ import { Inventory } from "./views/Inventory";
 import { SessionView } from "./views/SessionView";
 import { Welcome } from "./views/Welcome";
 import { useStore, type Entry, type Model } from "./store";
+import { useAirtime } from "./bits";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
@@ -100,17 +101,20 @@ function Spark({ e }: { e: Entry }) {
   useEffect(() => {
     const cv = ref.current;
     const p = e.a.profile.available ? e.a.profile.value : null;
-    if (!cv || !p || p.maxAltitudeM === null) return;
-    const alt = e.a.grid.get("altitude");
+    if (!cv || !p) return;
     const ctx = cv.getContext("2d")!;
-    const W = cv.width, H = cv.height, n = alt.length, top = p.maxAltitudeM;
+    const W = cv.width, H = cv.height, n = p.n;
     ctx.clearRect(0, 0, W, H);
     for (const ph of p.phases) {
       ctx.fillStyle = cssVar(PHASE_COLOR[ph.kind]);
-      ctx.globalAlpha = ph.kind === "glide" || ph.kind === "ground" ? 0.25 : 0.55;
+      ctx.globalAlpha = ph.kind === "glide" || ph.kind === "unpowered" || ph.kind === "ground" ? 0.25 : 0.55;
       ctx.fillRect((ph.start / n) * W, H - 5, ((ph.end - ph.start + 1) / n) * W, 5);
     }
     ctx.globalAlpha = 1;
+    // Without height only the phase strip is drawn.
+    if (p.maxAltitudeM === null) return;
+    const alt = e.a.grid.get("altitude");
+    const top = p.maxAltitudeM;
     ctx.strokeStyle = cssVar("--s-alt");
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -129,6 +133,7 @@ function Sidebar() {
   const t = useTranslations();
   const { entries, visible, selected, select, settings, setSettings, addFiles, files, closeFile, closeAll, models, modelFilter } = useStore();
   const modelName = useModelName();
+  const airtime = useAirtime();
   const multi = models.length > 1;
   const kindEntries = modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter);
   const count = (m: string | null) => entries.filter((e) => (m === null || e.model.key === m) && (settings.filter === "all" || e.a.kind === "flight")).length;
@@ -184,7 +189,7 @@ function Sidebar() {
           const d = dayOf(e);
           const head = k === 0 || dayOf(visible[k - 1]) !== d ? <div className="sday">{d}</div> : null;
           const p = e.a.profile.available ? e.a.profile.value : null;
-          const meta = e.a.kind === "flight" && p ? `${num(loc, p.maxAltitudeM, 0)} m · ${clock(p.airtimeS)}` : e.a.kind === "transmitter-only" ? "" : clock(e.a.session.durationS);
+          const meta = e.a.kind === "flight" && p ? (p.maxAltitudeM !== null ? `${num(loc, p.maxAltitudeM, 0)} m · ${airtime(p)}` : airtime(p)) : e.a.kind === "transmitter-only" ? "" : clock(e.a.session.durationS);
           return (
             <div key={e.key} style={{ display: "contents" }}>
               {head}

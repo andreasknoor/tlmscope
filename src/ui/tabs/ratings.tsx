@@ -129,6 +129,18 @@ export function EfficiencyCard({ a }: { a: SessionAnalysis }) {
   );
 }
 
+export function ConsumptionCard({ a }: { a: SessionAnalysis }) {
+  const t = useTranslations("rating");
+  const word = useLevelWord();
+  const { settings } = useStore();
+  const p = v(a.profile);
+  const c = a.consumption;
+  return (
+    <RatingCard name={t("consumption")} level={c?.level ?? null} word={word("consumption", c?.level ?? null)} hint={c ? t("consumptionHint") : ""}
+      rows={c && p ? [[t("thisFlight"), t("mahPerMin", { v: num(settings.locale, p.mahPerMin, 0) })], [t("yourUsual"), t("mahPerMin", { v: num(settings.locale, a.baseline?.mahPerMin, 0) })]] : null} />
+  );
+}
+
 export function IssueAlerts({ a }: { a: SessionAnalysis }) {
   const t = useTranslations();
   const loc = useStore().settings.locale;

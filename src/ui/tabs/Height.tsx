@@ -27,6 +27,7 @@ export function HeightTab() {
 
   if (!a.profile.available) return <Missing missing={a.profile.missing} />;
   if (a.kind !== "flight" || !p) return <div className="card empty">{t("height.noFlight")}</div>;
+  if (p.basis !== "height") return <div className="card empty">{t("overview.noHeight")}</div>;
 
   const cmp = (() => {
     const c = a.sinkComparison;

@@ -2,7 +2,7 @@
 
 import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Legend, Tile, useLevelWord } from "../bits";
 import { FlightMap } from "../charts/FlightMap";
 import { Replay } from "../charts/Replay";
@@ -39,6 +39,16 @@ function GpsView() {
   const [colourBy, setColourBy] = useState<ColourBy>("phase");
   const [pitch, setPitch] = useState(55);
   const [marker, setMarker] = useState<number | null>(null);
+  // Full screen: map and replay fill the browser window. Esc closes; the page behind does not scroll.
+  const [full, setFull] = useState(false);
+  useEffect(() => {
+    if (!full) return;
+    const onKey = (ev: KeyboardEvent) => { if (ev.key === "Escape") setFull(false); };
+    window.addEventListener("keydown", onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = overflow; };
+  }, [full]);
   const alt = g.get("altitude");
   const top = Math.max(1, maxOf(alt) ?? 0);
   // On the map, glides are blue: the chart grey would vanish next to the grey ground shadow.
@@ -46,9 +56,14 @@ function GpsView() {
     if (colourBy === "height") return mix(cssVar("--h-low"), cssVar("--h-high"), Math.max(0, alt[i] ?? 0) / top);
     if (colourBy === "signal") return levelColor(sig?.levels[i] ?? null) ?? cssVar("--ink-3");
     const k = p?.phaseAt[i];
-    return cssVar(k === "glide" || !k ? MAP_GLIDE : PHASE_COLOR[k]);
+    return cssVar(k === "glide" || k === "unpowered" || !k ? MAP_GLIDE : PHASE_COLOR[k]);
   }, [colourBy, alt, top, sig, p]);
-  const altSeries = useMemo(() => [{ data: alt, color: "--s-alt", unit: "m", fill: 0.12 }], [alt]);
+  const hasHeight = p?.basis === "height";
+  const thrId = g.has("throttle_output") ? "throttle_output" : "throttle_command";
+  // The chart to follow the model: height, or the throttle when there is no usable height.
+  const followSeries = useMemo(() => hasHeight
+    ? [{ data: alt, color: "--s-alt", unit: "m", fill: 0.12 }]
+    : [{ data: g.get(thrId), color: "--s-motor", unit: "%", fill: 0.15 }], [hasHeight, alt, g, thrId]);
   const distSeries = useMemo(() => [{ data: tr?.distance ?? [], color: "--s-5", unit: "m", digits: 0, fill: 0.1 }], [tr]);
   if (!tr) return null;
 
@@ -60,8 +75,11 @@ function GpsView() {
         <Tile label={t("path.typicalSpeed")} value={num(loc, (tr.medianSpeed ?? 0) * 3.6, 0)} unit=" km/h" sub={t("path.overGround")} />
         <Tile label={t("path.topSpeed")} value={num(loc, (tr.maxSpeed ?? 0) * 3.6, 0)} unit=" km/h" sub={t("path.overGround")} />
       </div>
+      <div className={`mapgroup${full ? " full" : ""}`} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("path.map") : undefined}>
       <div className="chart">
-        <div className="ch"><b>{t("path.map")}</b><span className="ro"> </span></div>
+        <div className="ch"><b>{t("path.map")}</b>
+          <button className="btn" onClick={() => setFull(!full)} aria-pressed={full}>{full ? `✕ ${t("path.closeFull")}` : `⤢ ${t("path.full")}`}</button>
+        </div>
         <div className="mapwrap">
           <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} spots={spots} failedText={t("path.mapFailed")} />
           <div className="tools">
@@ -82,8 +100,10 @@ function GpsView() {
       </div>
       {spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
       <Replay a={a} syncKey={e!.key} />
-      <LineChart syncKey={e!.key} title={t("path.follow")} series={altSeries} phases={p?.phases} height={150} yFormat={(x) => `${axisNum(loc, x)} m`}
-        readout={(i) => `${num(loc, alt[i], 0)} m · ${t("path.away", { d: num(loc, tr.distance[i], 0) })}`} onCursor={setMarker} />
+      </div>
+      <LineChart syncKey={e!.key} title={t(hasHeight ? "path.follow" : "path.followThrottle")} series={followSeries} phases={p?.phases} height={150}
+        yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? "m" : "%"}`}
+        readout={(i) => `${num(loc, followSeries[0].data[i], 0)} ${hasHeight ? "m" : "%"} · ${t("path.away", { d: num(loc, tr.distance[i], 0) })}`} onCursor={setMarker} />
       <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)} m`} onCursor={setMarker} /></div>
     </>
   );
@@ -96,7 +116,11 @@ function NoGpsView() {
   const loc = settings.locale;
   const p = a.profile.available ? a.profile.value : null;
   const c = a.circling.available ? a.circling.value : null;
-  const altSeries = useMemo(() => [{ data: a.grid.get("altitude"), color: "--s-alt", unit: "m", fill: 0.12 }], [a]);
+  const hasHeight = p?.basis === "height";
+  // Height, or the throttle when there is no usable height.
+  const series = useMemo(() => hasHeight
+    ? [{ data: a.grid.get("altitude"), color: "--s-alt", unit: "m", fill: 0.12 }]
+    : [{ data: a.grid.get(a.grid.has("throttle_output") ? "throttle_output" : "throttle_command"), color: "--s-motor", unit: "%", fill: 0.15 }], [a, hasHeight]);
   const circleColor = useCallback((i: number) => {
     if (!c) return null;
     const period = c.periods.find((x) => i >= x.start && i <= x.end);
@@ -119,7 +143,8 @@ function NoGpsView() {
           <Strip syncKey={e!.key} label={t("path.circling")} n={a.grid.n} colorAt={circleColor}
             right={<Legend style={{ padding: 0 }} items={[["var(--s-alt)", t("path.oneWay")], ["var(--s-4)", t("path.otherWay")], [withAlpha(cssVar("--s-glide"), 0.7), t("path.partialTurn")]]} />} />
           <Replay a={a} syncKey={e!.key} />
-          <LineChart syncKey={e!.key} title={t("overview.height")} series={altSeries} phases={p.phases} height={170} yFormat={(x) => `${axisNum(loc, x)} m`}
+          <LineChart syncKey={e!.key} title={t(hasHeight ? "overview.height" : "overview.throttle")} series={series} phases={p.phases} height={170}
+            yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? "m" : "%"}`}
             extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} />
           <p className="note">{t("path.circlingNote")}</p>
         </>

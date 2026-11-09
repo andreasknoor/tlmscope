@@ -19,5 +19,5 @@ describe("channel catalogue", () => {
     for (const name of sampleNames())
       for (const s of loadSample(name).sessions)
         for (const id of s.channels.keys()) expect(isKnownChannelId(id), id).toBe(true);
-  });
+  }, 60_000); // parses every sample, including the 36 MB Supra log
 });

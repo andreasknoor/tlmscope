@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 import type { Level } from "@/core/analysis";
 import type { Need } from "@/core/analysis/requirements";
 import { catalogue } from "@/core/model/catalogue";
+import type { FlightProfile } from "@/core/analysis/flight";
+import { clock } from "./format";
 import { useStore } from "./store";
 
 export const LEVEL_COLOR: Record<Level, string> = { 4: "var(--good)", 3: "var(--good)", 2: "var(--warn)", 1: "var(--crit)" };
@@ -28,6 +30,12 @@ export function useRich() {
 }
 
 /** Word for a level on one of the scales in the messages ("levels.link" etc.). */
+/** Airtime as m:ss; marked as approximate when it comes from the model's movement only. */
+export function useAirtime() {
+  const t = useTranslations();
+  return (p: FlightProfile) => (p.basis === "motion" ? t("app.approx", { time: clock(p.airtimeS) }) : clock(p.airtimeS));
+}
+
 export function useLevelWord() {
   const t = useTranslations();
   return (scale: string, level: Level | null) => (level ? (t.raw(`levels.${scale}`) as string[])[level - 1] : "");
