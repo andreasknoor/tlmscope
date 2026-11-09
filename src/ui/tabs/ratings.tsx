@@ -1,5 +1,6 @@
 "use client";
 
+import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import type { SessionAnalysis } from "@/core/analysis";
 import { catalogue } from "@/core/model/catalogue";
@@ -131,7 +132,7 @@ export function EfficiencyCard({ a }: { a: SessionAnalysis }) {
 export function IssueAlerts({ a }: { a: SessionAnalysis }) {
   const t = useTranslations();
   const loc = useStore().settings.locale;
-  const maxA = a.grid.has("motor_current") ? Math.max(...a.grid.get("motor_current", "max").map((x) => x ?? 0)) : 0;
+  const maxA = a.grid.has("motor_current") ? Math.max(0, maxOf(a.grid.get("motor_current", "max")) ?? 0) : 0;
   return (
     <>
       {a.issues.map((i) => (

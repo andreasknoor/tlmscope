@@ -23,10 +23,16 @@ function getWorker(): Worker | null {
       pending.delete(r.id);
       done?.(r.ok ? { ok: true, log: r.log } : { ok: false, unsupported: r.unsupported, message: r.message });
     };
-    worker.onerror = () => {
-      // Fall back to the main thread for everything still waiting.
+    // A crashed worker (e.g. out of memory) answers nothing more: fail everything still waiting
+    // and start a fresh worker for the next file. Parsing on the main thread would only crash the page.
+    const fail = (message: string) => {
+      worker?.terminate();
       worker = null;
+      for (const done of pending.values()) done({ ok: false, unsupported: false, message });
+      pending.clear();
     };
+    worker.onerror = (e) => { e.preventDefault(); fail(e.message || "The file reader stopped unexpectedly."); };
+    worker.onmessageerror = () => fail("The file reader sent an unreadable result.");
     return worker;
   } catch {
     return null;

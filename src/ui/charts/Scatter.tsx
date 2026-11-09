@@ -1,5 +1,6 @@
 "use client";
 
+import { maxOf, minOf } from "@/core/analysis/grid";
 import { useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { cssVar, num, withAlpha } from "../format";
@@ -36,7 +37,7 @@ export function Scatter({ title, note, points, xLabel, yLabel, color, slope }: P
       ctx.clearRect(0, 0, W, H);
       const xs = points.map((p) => p[0]);
       const ys = points.map((p) => p[1]);
-      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+      const x0 = minOf(xs) ?? 0, x1 = maxOf(xs) ?? 1, y0 = minOf(ys) ?? 0, y1 = maxOf(ys) ?? 1;
       const L = 50, R = 10, T = 8, B = 34;
       const X = (v: number) => L + ((v - x0) / (x1 - x0 || 1)) * (W - L - R);
       const Y = (v: number) => H - B - ((v - y0) / (y1 - y0 || 1)) * (H - T - B);

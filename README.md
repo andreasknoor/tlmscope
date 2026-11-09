@@ -4,7 +4,7 @@
 
 TLMscope shows what happened during your RC flights. It reads the telemetry logs your transmitter saves and turns them into flight summaries, charts and simple ratings, with the exact values one click away.
 
-Files are read in your browser. Nothing is uploaded.
+Files are read in your browser and never uploaded. Only the map for GPS logs loads map tiles from [OpenFreeMap](https://openfreemap.org), which sees roughly where the flight was.
 
 **Open the app: [tlmscope.andreasknoor.com](https://tlmscope.andreasknoor.com)**, or try it with the built-in demo flight.
 

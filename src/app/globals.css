@@ -224,6 +224,7 @@ dialog.helpdlg::backdrop { background: var(--scrim); }
 .welcome .bigdrop b { font: 600 22px var(--display); }
 .errorbox { border: 1px solid var(--crit); border-radius: var(--radius); padding: 10px 14px; background: var(--surface); color: var(--ink); }
 .loading { color: var(--ink-2); }
+.infobox { border: 1px solid var(--accent); border-radius: var(--radius); padding: 10px 14px; background: var(--surface); color: var(--ink); }
 
 .note { font-size: 13px; color: var(--ink-3); border-left: 3px solid var(--line); padding-left: 10px; max-width: 75ch; }
 .empty { padding: 30px; text-align: center; color: var(--ink-2); align-items: center; }

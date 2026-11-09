@@ -275,12 +275,12 @@ export const KNOWN_UNDECODED: Record<string, string> = {
 /** GPS flags, byte 15 of 0x16. */
 export const GPS_FLAG = { NORTH: 1, EAST: 2, LON_OVER_99: 4, FIX_VALID: 8, DATA_RECEIVED: 16, FIX_3D: 32, NEGATIVE_ALT: 128 } as const;
 
-/** BCD "DDMM.MMMM" (8 digits) to decimal degrees. */
+/** BCD "DDMM.MMMM" (8 digits) to decimal degrees; null for minutes of 60 or more (damaged data). */
 function bcdDegrees(v: number | null): number | null {
   if (v === null) return null;
   const deg = Math.floor(v / 1_000_000);
   const minutes = (v % 1_000_000) / 10_000;
-  return deg + minutes / 60;
+  return minutes >= 60 ? null : deg + minutes / 60;
 }
 
 export function decodeGpsLoc(p: Uint8Array): Field[] {
@@ -288,12 +288,15 @@ export function decodeGpsLoc(p: Uint8Array): Field[] {
   const altLow = bcdLe(p, 2, 2);
   let lat = bcdDegrees(bcdLe(p, 4, 4));
   let lon = bcdDegrees(bcdLe(p, 8, 4));
-  const fix = (flags & GPS_FLAG.FIX_VALID) !== 0;
   if (lat !== null && !(flags & GPS_FLAG.NORTH)) lat = -lat;
   if (lon !== null) {
     if (flags & GPS_FLAG.LON_OVER_99) lon += 100;
     if (!(flags & GPS_FLAG.EAST)) lon = -lon;
   }
+  // A position off the globe is damaged data; it would also break the map.
+  const onGlobe = lat !== null && lon !== null && Math.abs(lat) <= 90 && Math.abs(lon) <= 180;
+  if (!onGlobe) lat = lon = null;
+  const fix = (flags & GPS_FLAG.FIX_VALID) !== 0 && onGlobe;
   const course = bcdLe(p, 12, 2);
   const hdop = bcdLe(p, 14, 1);
   return [

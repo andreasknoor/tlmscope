@@ -1,5 +1,6 @@
 "use client";
 
+import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { Legend, Tile, useLevelWord, useRich } from "../bits";
@@ -42,7 +43,7 @@ export function OverviewTab() {
       </>
     );
   } else if (a.kind === "ground-test" && p) {
-    const amps = Math.max(0, ...g.get("motor_current", "max").map((x) => x ?? 0));
+    const amps = Math.max(0, maxOf(g.get("motor_current", "max")) ?? 0);
     summary = rich("overview.groundSummary", { time: duration(loc, a.session.durationS), secs: p.motorSecs, amps: num(loc, amps, 1) });
   } else {
     summary = rich("overview.poweredSummary", { time: duration(loc, a.session.durationS) });

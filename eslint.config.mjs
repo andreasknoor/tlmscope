@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated or not part of the app: the copied MapLibre worker, the HTML prototype, the Python reference.
+    "public/maplibre/**",
+    "prototype/**",
+    "reference/**",
   ]),
 ]);
 

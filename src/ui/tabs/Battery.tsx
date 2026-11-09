@@ -1,5 +1,6 @@
 "use client";
 
+import { maxOf, minOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { DetailRows, Legend, RatingCard, useLevelWord, useRich } from "../bits";
@@ -66,7 +67,7 @@ export function BatteryTab() {
       )}
       {cellSeries.length > 0 && (
         <div className="lv-more">
-          <LineChart syncKey={e!.key} title={t("battery.cells")} series={cellSeries} height={160} yMin={Math.min(...allCells) - 0.02} yMax={Math.max(...allCells) + 0.02}
+          <LineChart syncKey={e!.key} title={t("battery.cells")} series={cellSeries} height={160} yMin={(minOf(allCells) ?? 3.3) - 0.02} yMax={(maxOf(allCells) ?? 4.2) + 0.02}
             yFormat={(x) => num(loc, x, 2)} extra={<Legend items={cellSeries.map((s, i) => [`var(${s.color})`, t("battery.cell", { n: i + 1 }), true])} />} />
         </div>
       )}

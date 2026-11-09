@@ -91,7 +91,10 @@ export function batteryCondition(session: Session, g = new Grid(session)): Resul
     const my = idx.reduce((s, i) => s + volts[i]!, 0) / idx.length;
     let num = 0, den = 0;
     for (const i of idx) { num += (amps[i]! - mx) * (volts[i]! - my); den += (amps[i]! - mx) ** 2; }
+    // Without a spread in current there is no slope; a voltage that rises with load is a data problem, not a battery value.
+    if (!(den > 0)) return null;
     const packOhm = -num / den;
+    if (!Number.isFinite(packOhm) || packOhm <= 0) return null;
     const cells = cellCount(session, g) ?? 1;
     const perCell = (packOhm * 1000) / cells;
     return { cells, resistancePerCellMilliOhm: perCell, level: rate(perCell, THRESHOLDS.resistancePerCellMilliOhm), dropAt20A: packOhm * 20, lowestLoadedV: minOf(volts) };

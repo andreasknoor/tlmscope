@@ -50,7 +50,7 @@ export function SessionView() {
             <span>{s.modelName ?? t("app.unknownModel")}</span>
             {e.batteryLetter ? <span className="pill">{t("battery.name", { letter: e.batteryLetter })} · {t("app.cycles", { n: s.battery?.chargeCycles ?? "?" })}</span>
               : e.a.kind !== "transmitter-only" ? <span className="pill">{t("app.batteryNotIdentified")}</span> : null}
-            <span className="lv-more mono">{e.file.fileName} · #{s.index} · {String(s.meta.records)} records</span>
+            <span className="lv-more mono">{e.file.fileName} · #{s.index} · {t("app.records", { n: Number(s.meta.records ?? 0) })}</span>
           </div>
         </div>
         <div className="navbtns">

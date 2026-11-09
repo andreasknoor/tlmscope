@@ -3,6 +3,9 @@ import type { Session } from "../model/types.ts";
 export type Series = (number | null)[];
 export type Aggregate = "mean" | "min" | "max" | "last" | "increase";
 
+/** Longest session the grid covers (24 h). */
+export const MAX_GRID_S = 24 * 3600;
+
 /**
  * Resamples channels onto a 1-second grid (bin k = samples with k ≤ t < k + 1).
  * Analyses work on this grid, so they behave the same for every input format,
@@ -17,7 +20,8 @@ export class Grid {
     this.session = session;
     let end = session.durationS;
     for (const ch of session.channels.values()) if (ch.t.length) end = Math.max(end, ch.t[ch.t.length - 1]);
-    this.n = Math.floor(end) + 1;
+    // Adapters drop implausible timestamps; the cap keeps a damaged file from allocating gigabytes anyway.
+    this.n = Math.min(Math.max(0, Math.floor(end)), MAX_GRID_S) + 1;
   }
 
   has(id: string): boolean {
@@ -100,8 +104,17 @@ export class Grid {
 }
 
 export const valid = (a: Series): number[] => a.filter((v): v is number => v !== null);
-export const maxOf = (a: Series): number | null => { const v = valid(a); return v.length ? Math.max(...v) : null; };
-export const minOf = (a: Series): number | null => { const v = valid(a); return v.length ? Math.min(...v) : null; };
+// Loops, not Math.max(...a): spreading a long session's series overflows the call stack.
+export const maxOf = (a: readonly (number | null)[]): number | null => {
+  let m: number | null = null;
+  for (const v of a) if (v !== null && !Number.isNaN(v) && (m === null || v > m)) m = v;
+  return m;
+};
+export const minOf = (a: readonly (number | null)[]): number | null => {
+  let m: number | null = null;
+  for (const v of a) if (v !== null && !Number.isNaN(v) && (m === null || v < m)) m = v;
+  return m;
+};
 export const sumOf = (a: Series): number => a.reduce<number>((s, v) => s + (v ?? 0), 0);
 export const medianOf = (a: Series): number | null => {
   const v = valid(a).sort((x, y) => x - y);

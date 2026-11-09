@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MlMap } from "maplibre-gl";
 import type { MapboxOverlay } from "@deck.gl/mapbox";
 import type { Track } from "@/core/analysis";
+import { maxOf, minOf } from "@/core/analysis/grid";
 import { cssVar } from "../format";
 
 /** Free vector tiles without an API key (decision D3: MapLibre). */
@@ -19,6 +20,8 @@ interface Props {
   pitch: number;
   /** Thermal centres to mark: strength in m/s, `own` for this flight. */
   spots?: { lat: number; lon: number; climb: number; own: boolean }[];
+  /** Shown when the map cannot be loaded. */
+  failedText: string;
 }
 
 const toRgb = (c: string): [number, number, number] => {
@@ -30,12 +33,13 @@ const toRgb = (c: string): [number, number, number] => {
 };
 
 /** Map with the flight path in 3D. Libraries load only in the browser. */
-export function FlightMap({ track, height, colorAt, marker, pitch, spots = [] }: Props) {
+export function FlightMap({ track, height, colorAt, marker, pitch, spots = [], failedText }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
   const layersRef = useRef<typeof import("@deck.gl/layers") | null>(null);
   const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,10 +49,11 @@ export function FlightMap({ track, height, colorAt, marker, pitch, spots = [] }:
       ml.setWorkerUrl(new URL("maplibre/maplibre-gl-worker.mjs", window.location.href).href);
       const pts = track.lat.map((la, i) => (la === null || track.lon[i] === null ? null : [track.lon[i]!, la] as [number, number])).filter(Boolean) as [number, number][];
       const lons = pts.map((p) => p[0]), lats = pts.map((p) => p[1]);
+      if (!pts.length) { setFailed(true); return; }
       map = new ml.Map({
         container: el.current,
         style: MAP_STYLE,
-        bounds: [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+        bounds: [[minOf(lons)!, minOf(lats)!], [maxOf(lons)!, maxOf(lats)!]],
         fitBoundsOptions: { padding: 60 },
         pitch,
         attributionControl: { compact: true },
@@ -60,6 +65,10 @@ export function FlightMap({ track, height, colorAt, marker, pitch, spots = [] }:
       overlayRef.current = overlay;
       layersRef.current = layers;
       setReady(true);
+    }).catch((err: unknown) => {
+      // Offline, blocked or no WebGL: show a note instead of breaking the page.
+      console.error("Map could not be shown", err);
+      if (!cancelled) setFailed(true);
     });
     return () => {
       cancelled = true;
@@ -111,5 +120,6 @@ export function FlightMap({ track, height, colorAt, marker, pitch, spots = [] }:
     });
   }, [ready, track, height, pathData, marker, spots]);
 
+  if (failed) return <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>{failedText}</div>;
   return <div ref={el} style={{ position: "absolute", inset: 0 }} />;
 }

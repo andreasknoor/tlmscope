@@ -1,5 +1,6 @@
 "use client";
 
+import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Legend, Tile, useLevelWord } from "../bits";
@@ -36,7 +37,7 @@ function GpsView() {
   const [pitch, setPitch] = useState(55);
   const [marker, setMarker] = useState<number | null>(null);
   const alt = g.get("altitude");
-  const top = Math.max(1, ...alt.map((x) => x ?? 0));
+  const top = Math.max(1, maxOf(alt) ?? 0);
   const colorAt = useCallback((i: number) => {
     if (colourBy === "height") return mix(cssVar("--h-low"), cssVar("--h-high"), Math.max(0, alt[i] ?? 0) / top);
     if (colourBy === "signal") return levelColor(sig?.levels[i] ?? null) ?? cssVar("--ink-3");
@@ -58,7 +59,7 @@ function GpsView() {
       <div className="chart">
         <div className="ch"><b>{t("path.map")}</b><span className="ro"> </span></div>
         <div className="mapwrap">
-          <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} spots={spots} />
+          <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} spots={spots} failedText={t("path.mapFailed")} />
           <div className="tools">
             <div className="seg" role="group">
               <button aria-pressed={pitch > 0} onClick={() => setPitch(55)}>{t("path.view3d")}</button>

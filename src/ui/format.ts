@@ -52,3 +52,10 @@ export function mix(a: string, b: string, t: number): string {
   const x = p(a), y = p(b);
   return `rgb(${x.map((v, k) => Math.round(v + (y[k] - v) * t)).join(",")})`;
 }
+
+/** Battery names by order of first use: A, B, …, Z, then AA, AB, … */
+export function batteryLetter(k: number): string {
+  let s = "";
+  for (let n = k + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
+  return s;
+}

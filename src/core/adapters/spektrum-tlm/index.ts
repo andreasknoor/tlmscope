@@ -39,12 +39,13 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
   const n = rs.ticks.length;
 
   // Time base: the first record that is not the wall-clock record.
+  // The end is the latest record, not the last one: records can step back in time.
   let firstTick: number | null = null;
   let lastTick: number | null = null;
   for (let i = 0; i < n; i++) {
     if (data[rs.packetOffsets[i]] === 0x7c) continue;
     if (firstTick === null) firstTick = rs.ticks[i];
-    lastTick = rs.ticks[i];
+    lastTick = Math.max(lastTick ?? -Infinity, rs.ticks[i]);
   }
   const base = firstTick ?? (n ? rs.ticks[0] : 0);
 
@@ -107,7 +108,8 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
     // special packets
     switch (key) {
       case "0x7c":
-        if (!clock) clock = { unix: fields[0].value!, tick };
+        // Only dates between 2000 and 2100 count; anything else is a damaged clock record.
+        if (!clock && fields[0].value! > 946_684_800 && fields[0].value! < 4_102_444_800) clock = { unix: fields[0].value!, tick };
         break;
       case "0x0c":
         text[p[2]] = ascii(p.subarray(3)).trimEnd();
@@ -137,6 +139,7 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
       }
     }
   }
+  if (rs.droppedRecords) warnings.push({ code: "implausible-time", message: `${rs.droppedRecords} records with impossible timestamps were skipped.`, session: rs.index });
   if (backwards) warnings.push({ code: "time-backwards", message: `${backwards} records go back in time.`, session: rs.index });
 
   // build channels
@@ -197,7 +200,7 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
   const session: Session = {
     index: rs.index,
     start: { utcMs: startMs, zone: "utc" },
-    durationS: firstTick !== null && lastTick !== null ? (lastTick - firstTick) / 100 : 0,
+    durationS: firstTick !== null && lastTick !== null ? Math.max(0, lastTick - firstTick) / 100 : 0,
     modelName,
     source: { format: FORMAT },
     channels,
@@ -227,6 +230,8 @@ export const spektrumTlm: LogAdapter = {
     const blocks = readBlocks(data);
     if (blocks.trailingBytes) warnings.push({ code: "trailing-bytes", message: `${blocks.trailingBytes} bytes at the end are not a complete block.`, offset: data.length - blocks.trailingBytes });
     if (blocks.orphanRecords) warnings.push({ code: "orphan-records", message: `${blocks.orphanRecords} records before the first header block.` });
+    if (blocks.falseHeaders) warnings.push({ code: "damaged-records", message: `${blocks.falseHeaders} damaged records were read as data, not as a new session.` });
+    if (!blocks.sessions.some((s) => s.headers.length || s.ticks.length)) throw new Error("The file contains no telemetry records.");
     const sessions = blocks.sessions.map((rs) => parseSession(data, rs, warnings));
     return { fileName, sizeBytes: data.length, adapterId: "spektrum-tlm", sessions, warnings };
   },

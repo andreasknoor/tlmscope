@@ -10,6 +10,7 @@ import { Inventory } from "./views/Inventory";
 import { SessionView } from "./views/SessionView";
 import { Welcome } from "./views/Welcome";
 import { useStore, type Entry } from "./store";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { PHASE_COLOR } from "./charts/LineChart";
 
 export const KIND_COLOR: Record<string, string> = { flight: "var(--s-alt)", "ground-test": "var(--s-motor)", "powered-on": "var(--s-glide)", "transmitter-only": "var(--s-ground)" };
@@ -165,13 +166,13 @@ function Sidebar() {
 
 export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
   const t = useTranslations();
-  const { files, view, selected } = useStore();
+  const { files, view, selected, tab } = useStore();
   const notices = messages.length > 0 && (
     <div className="stack" role="status">
       {messages.map((m, i) => (
-        <div key={i} className={m.kind === "error" ? "errorbox" : "loading"} style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
+        <div key={i} className={m.kind === "loading" ? "loading" : m.kind === "error" ? "errorbox" : "infobox"} style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
           <span>{t(m.text, m.values)}</span>
-          {m.kind === "error" && <button className="btn" onClick={() => dismiss(i)}>{t("app.close")}</button>}
+          {m.kind !== "loading" && <button className="btn" onClick={() => dismiss(i)}>{t("app.close")}</button>}
         </div>
       ))}
     </div>
@@ -186,7 +187,15 @@ export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLD
           <Sidebar />
           <main className="main">
             {notices}
-            {view === "batteries" ? <Batteries /> : view === "inventory" ? <Inventory /> : selected ? <SessionView key={selected.key} /> : null}
+            <ErrorBoundary resetKey={`${view}|${selected?.key}|${tab}`} fallback={(reset) => (
+              <div className="errorbox stack">
+                <b>{t("app.viewError")}</b>
+                <span>{t("app.viewErrorText")}</span>
+                <div><button className="btn" onClick={reset}>{t("app.tryAgain")}</button></div>
+              </div>
+            )}>
+              {view === "batteries" ? <Batteries /> : view === "inventory" ? <Inventory /> : selected ? <SessionView key={selected.key} /> : null}
+            </ErrorBoundary>
           </main>
         </div>
       )}

@@ -6,6 +6,8 @@ import { analyseLogs } from "@/core/analysis";
 import type { LogFile } from "@/core/model/types";
 import de from "@/i18n/de.json";
 import en from "@/i18n/en.json";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { batteryLetter } from "./format";
 import { loadBuffer } from "./loader";
 import { Shell } from "./Shell";
 import { StoreContext, type Entry, type Settings, type Store, type Tab, type View } from "./store";
@@ -16,20 +18,27 @@ const SETTINGS_KEY = "tlmscope.settings";
 /** Capacity assumed for batteries that do not report one (the most common Spektrum Smart 3S size). */
 const ASSUMED_CAPACITY = 2200;
 export const DEMO_FILE = "demo-flight.TLM";
+/** Larger files are refused: real logs are a few MB, and parsing needs several times the file size in memory. */
+export const MAX_FILE_BYTES = 256 * 1024 * 1024;
 
+/** Saved settings, each value checked: storage can hold anything, e.g. from an older version. */
 function readSettings(): Settings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     if (!raw) return DEFAULTS;
+    const saved = JSON.parse(raw) as Record<string, unknown> | null;
+    if (!saved || typeof saved !== "object") return DEFAULTS;
     // Older versions stored a detail level next to the details toggle; it is now part of the toggle.
-    const { level, ...saved } = JSON.parse(raw) as Partial<Settings> & { level?: string };
-    return { ...DEFAULTS, ...saved, details: saved.details ?? (level !== undefined && level !== "simple") };
+    const details = typeof saved.details === "boolean" ? saved.details : typeof saved.level === "string" ? saved.level !== "simple" : DEFAULTS.details;
+    const locale = saved.locale === "en" || saved.locale === "de" ? saved.locale : DEFAULTS.locale;
+    const filter = saved.filter === "flights" || saved.filter === "all" ? saved.filter : DEFAULTS.filter;
+    return { details, locale, filter };
   } catch {
     return DEFAULTS;
   }
 }
 
-export interface LoadMessage { kind: "loading" | "error"; text: string; values: Record<string, string> }
+export interface LoadMessage { kind: "loading" | "error" | "info"; text: string; values: Record<string, string> }
 
 export function App() {
   const [files, setFiles] = useState<LogFile[]>([]);
@@ -73,7 +82,7 @@ export function App() {
     for (const e of out) {
       const id = e.a.session.battery?.id;
       if (!id) continue;
-      if (!letters.has(id)) letters.set(id, String.fromCharCode(65 + letters.size));
+      if (!letters.has(id)) letters.set(id, batteryLetter(letters.size));
       e.batteryLetter = letters.get(id)!;
     }
     return out;
@@ -119,25 +128,49 @@ export function App() {
     if (next) select(next.key);
   }, [visible, selected, select]);
 
-  const addLogs = useCallback(async (items: { name: string; buffer: Promise<ArrayBuffer> }[]) => {
+  // Names of the loaded files, for the "replaced" notice; read inside the async loader.
+  const loadedNames = useRef<Set<string>>(new Set());
+  useEffect(() => { loadedNames.current = new Set(files.map((f) => f.fileName)); }, [files]);
+
+  const addLogs = useCallback(async (items: { name: string; size?: number; buffer: () => Promise<ArrayBuffer> }[]) => {
+    const error = (text: string, values: Record<string, string>) => setMessages((m) => [...m.filter((x) => x.kind !== "loading"), { kind: "error", text, values }]);
     for (const item of items) {
-      setMessages((m) => [...m.filter((x) => x.kind !== "loading"), { kind: "loading", text: "app.loading", values: { name: item.name } }]);
-      const r = await loadBuffer(await item.buffer, item.name);
-      setMessages((m) => m.filter((x) => x.kind !== "loading"));
-      if (r.ok) {
-        setFiles((f) => [...f.filter((x) => x.fileName !== r.log.fileName), r.log]);
-        applyHash();
+      if (item.size !== undefined && item.size > MAX_FILE_BYTES) {
+        error("app.tooLarge", { name: item.name, max: String(MAX_FILE_BYTES / 1024 / 1024) });
+        continue;
       }
-      else setMessages((m) => [...m, { kind: "error", text: r.unsupported ? "app.unsupported" : "app.readError", values: { name: item.name, message: r.message } }]);
+      setMessages((m) => [...m.filter((x) => x.kind !== "loading"), { kind: "loading", text: "app.loading", values: { name: item.name } }]);
+      try {
+        const r = await loadBuffer(await item.buffer(), item.name);
+        setMessages((m) => m.filter((x) => x.kind !== "loading"));
+        if (r.ok) {
+          // The same name usually is a newer copy of the same log (Spektrum names files after the model).
+          if (loadedNames.current.has(r.log.fileName)) setMessages((m) => [...m, { kind: "info", text: "app.replaced", values: { name: r.log.fileName } }]);
+          loadedNames.current.add(r.log.fileName);
+          setFiles((f) => [...f.filter((x) => x.fileName !== r.log.fileName), r.log]);
+          applyHash();
+        }
+        else error(r.unsupported ? "app.unsupported" : "app.readError", { name: item.name, message: r.message });
+      } catch (err) {
+        // Reading the file or downloading the demo failed (file moved, offline, …).
+        error("app.readError", { name: item.name, message: err instanceof Error ? err.message : String(err) });
+      }
     }
   }, [applyHash]);
 
   const addFiles = useCallback((list: File[]) => {
-    void addLogs(list.map((f) => ({ name: f.name, buffer: f.arrayBuffer() })));
+    void addLogs(list.map((f) => ({ name: f.name, size: f.size, buffer: () => f.arrayBuffer() })));
   }, [addLogs]);
 
   const loadDemo = useCallback(() => {
-    void addLogs([{ name: DEMO_FILE, buffer: fetch(`demo/${DEMO_FILE}`).then((r) => r.arrayBuffer()) }]);
+    void addLogs([{
+      name: DEMO_FILE,
+      buffer: async () => {
+        const r = await fetch(`demo/${DEMO_FILE}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.arrayBuffer();
+      },
+    }]);
   }, [addLogs]);
 
   // Session keys contain the file position, so any close resets the selection to the default.
@@ -177,10 +210,25 @@ export function App() {
   };
 
   return (
-    <NextIntlClientProvider locale={settings.locale} messages={MESSAGES[settings.locale]} timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}>
-      <StoreContext.Provider value={store}>
-        <Shell helpRef={helpRef} messages={messages} dismiss={(i) => setMessages((m) => m.filter((_, k) => k !== i))} />
-      </StoreContext.Provider>
-    </NextIntlClientProvider>
+    <ErrorBoundary fallback={() => <PageError />}>
+      <NextIntlClientProvider locale={settings.locale} messages={MESSAGES[settings.locale]} timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}>
+        <StoreContext.Provider value={store}>
+          <Shell helpRef={helpRef} messages={messages} dismiss={(i) => setMessages((m) => m.filter((_, k) => k !== i))} />
+        </StoreContext.Provider>
+      </NextIntlClientProvider>
+    </ErrorBoundary>
+  );
+}
+
+/** Last resort when the page frame itself fails. Both languages, because translations may be what failed. */
+function PageError() {
+  return (
+    <div className="welcome">
+      <div className="errorbox stack">
+        <b>Something went wrong. · Etwas ist schiefgelaufen.</b>
+        <span>Reload the page and open your files again. · Lade die Seite neu und öffne deine Dateien erneut.</span>
+        <div><button className="btn" onClick={() => location.reload()}>Reload · Neu laden</button></div>
+      </div>
+    </div>
   );
 }

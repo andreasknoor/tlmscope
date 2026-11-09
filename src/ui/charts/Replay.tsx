@@ -1,5 +1,6 @@
 "use client";
 
+import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SessionAnalysis } from "@/core/analysis";
@@ -35,7 +36,12 @@ class VarioTone {
     let on = false;
     this.timer = setInterval(() => { on = !on; this.gain.gain.setTargetAtTime(on ? 0.08 : 0, this.ctx.currentTime, 0.01); }, Math.max(120, 600 - step * 110) / 2);
   }
-  close() { if (this.timer) clearInterval(this.timer); void this.ctx.close(); }
+  /** Safe to call more than once. */
+  close() {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = null;
+    if (this.ctx.state !== "closed") this.ctx.close().catch(() => { /* already closing */ });
+  }
 }
 
 /**
@@ -121,7 +127,7 @@ export function Replay({ a, syncKey }: { a: SessionAnalysis; syncKey: string }) 
       ctx.fillRect((ph.start / n) * W, 0, ((ph.end - ph.start + 1) / n) * W, H);
     }
     const alt = g.get("altitude");
-    const top = Math.max(1, ...alt.map((v) => v ?? 0));
+    const top = Math.max(1, maxOf(alt) ?? 0);
     ctx.strokeStyle = cssVar("--ink-2"); ctx.lineWidth = 1.2; ctx.beginPath();
     let started = false;
     alt.forEach((v, k) => {
@@ -154,7 +160,8 @@ export function Replay({ a, syncKey }: { a: SessionAnalysis; syncKey: string }) 
   ];
 
   const toggleVario = () => {
-    if (vario) { vario.close(); setVario(null); return; }
+    // Clearing the state closes the tone in the effect cleanup above.
+    if (vario) { setVario(null); return; }
     try { setVario(new VarioTone()); } catch { /* no audio available */ }
   };
 

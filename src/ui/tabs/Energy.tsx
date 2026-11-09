@@ -1,5 +1,6 @@
 "use client";
 
+import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { Meter, Tile, useLevelWord, LEVEL_COLOR } from "../bits";
@@ -39,7 +40,7 @@ export function EnergyTab() {
   const thr = useMemo(() => [{ data: g.get(g.has("throttle_output") ? "throttle_output" : "throttle_command"), color: "--s-motor", unit: "%", fill: 0.15 }], [g]);
   const amps = useMemo(() => [{ data: g.get("motor_current"), color: "--s-motor", unit: "A", fill: 0.1 }], [g]);
   const rpm = useMemo(() => [{ data: g.get("rpm_electrical"), color: "--s-4", unit: "1/min", digits: 0 }], [g]);
-  const maxA = Math.max(0, ...g.get("motor_current", "max").map((x) => x ?? 0));
+  const maxA = Math.max(0, maxOf(g.get("motor_current", "max")) ?? 0);
   const flight = a.kind === "flight" && p;
 
   return (
