@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MlMap } from "maplibre-gl";
 import type { MapboxOverlay } from "@deck.gl/mapbox";
 import type { Track } from "@/core/analysis";
@@ -73,25 +73,31 @@ export function FlightMap({ track, height, colorAt, marker, pitch, spots = [] }:
     mapRef.current?.easeTo({ pitch, duration: 600 });
   }, [pitch]);
 
-  useEffect(() => {
-    const overlay = overlayRef.current, layers = layersRef.current;
-    if (!ready || !overlay || !layers) return;
-    const pos = (i: number): [number, number, number] | null =>
-      track.lat[i] === null || track.lon[i] === null ? null : [track.lon[i]!, track.lat[i]!, Math.max(0, height[i] ?? 0)];
+  // Path data changes rarely; keeping it stable lets the replay move the marker without re-uploading the path.
+  const pathData = useMemo(() => {
     const segments: { path: [number, number, number][]; color: [number, number, number] }[] = [];
     const shadow: [number, number][] = [];
     let prev: [number, number, number] | null = null;
     for (let i = 0; i < track.lat.length; i++) {
-      const p = pos(i);
-      if (!p) continue;
+      if (track.lat[i] === null || track.lon[i] === null) continue;
+      const p: [number, number, number] = [track.lon[i]!, track.lat[i]!, Math.max(0, height[i] ?? 0)];
       shadow.push([p[0], p[1]]);
       if (prev) segments.push({ path: [prev, p], color: toRgb(colorAt(i)) });
       prev = p;
     }
+    return { segments, shadow: [{ path: shadow }] };
+  }, [track, height, colorAt]);
+
+  useEffect(() => {
+    const overlay = overlayRef.current, layers = layersRef.current;
+    if (!ready || !overlay || !layers) return;
+    const { segments, shadow } = pathData;
+    const pos = (i: number): [number, number, number] | null =>
+      track.lat[i] === null || track.lon[i] === null ? null : [track.lon[i]!, track.lat[i]!, Math.max(0, height[i] ?? 0)];
     const m = marker !== null ? pos(marker) : null;
     overlay.setProps({
       layers: [
-        new layers.PathLayer({ id: "shadow", data: [{ path: shadow }], getPath: (d: { path: [number, number][] }) => d.path, getColor: [60, 70, 80, 90], getWidth: 2, widthUnits: "pixels" }),
+        new layers.PathLayer({ id: "shadow", data: shadow, getPath: (d: { path: [number, number][] }) => d.path, getColor: [60, 70, 80, 90], getWidth: 2, widthUnits: "pixels" }),
         new layers.PathLayer({ id: "path", data: segments, getPath: (d: (typeof segments)[number]) => d.path, getColor: (d: (typeof segments)[number]) => d.color, getWidth: 3, widthUnits: "pixels", capRounded: true, jointRounded: true }),
         new layers.ScatterplotLayer({
           id: "thermals", data: spots, getPosition: (d: (typeof spots)[number]) => [d.lon, d.lat, 0],
@@ -103,7 +109,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, spots = [] }:
         ...(m ? [new layers.ScatterplotLayer({ id: "marker", data: [m], getPosition: (d: [number, number, number]) => d, getFillColor: [255, 255, 255], getLineColor: toRgb(cssVar("--ink")), stroked: true, lineWidthUnits: "pixels", getLineWidth: 2.5, getRadius: 7, radiusUnits: "pixels" })] : []),
       ],
     });
-  }, [ready, track, height, colorAt, marker, spots]);
+  }, [ready, track, height, pathData, marker, spots]);
 
   return <div ref={el} style={{ position: "absolute", inset: 0 }} />;
 }

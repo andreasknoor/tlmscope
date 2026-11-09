@@ -498,5 +498,21 @@
     "perCircleHint": "Die kleinen Balken zeigen den Höhengewinn je Kreis. Gleichmäßige Balken heißen: gut zentriert. Der Versatz zeigt, wohin der Wind die Thermik getragen hat.",
     "savedHint": "„Gespart“ ist die Motorzeit und Ladung, die dieselbe Höhe bei den Motorsteigflügen dieses Flugs gekostet hätte.",
     "mapLegend": "Grüne Punkte: Thermik-Zentren aller geladenen Flüge an diesem Platz. Größer heißt stärker, umrandet heißt dieser Flug."
+  },
+  "replay": {
+    "title": "Wiedergabe",
+    "hint": "Kartenmarker und alle Diagramme laufen mit. Leertaste startet und stoppt.",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "speedLabel": "Geschwindigkeit",
+    "timeline": "Zeitleiste",
+    "vario": "Vario",
+    "speed": "Tempo",
+    "motor": "Motor",
+    "signal": "Signal",
+    "varioTone": "Vario-Ton",
+    "on": "an",
+    "off": "aus",
+    "hintNoMap": "Alle Diagramme laufen mit. Leertaste startet und stoppt."
   }
 }

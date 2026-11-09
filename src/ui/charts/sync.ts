@@ -34,8 +34,23 @@ export function register(key: string, u: uPlot): () => void {
   };
 }
 
+/** Listeners for cursor moves in a group, e.g. the replay following a hovered chart. */
+const listeners = new Map<string, Set<(i: number) => void>>();
+
+export function onCursorMove(key: string, fn: (i: number) => void): () => void {
+  let l = listeners.get(key);
+  if (!l) listeners.set(key, (l = new Set()));
+  l.add(fn);
+  return () => l!.delete(fn);
+}
+
+/** Called by charts when their cursor lands on second `i`. */
+export function notifyCursor(key: string, i: number): void {
+  for (const fn of listeners.get(key) ?? []) fn(i);
+}
+
 /** Puts the cursor of every chart in the group on second `i`. */
-function moveAll(key: string, i: number): void {
+export function moveAll(key: string, i: number): void {
   for (const u of groups.get(key) ?? []) {
     if (!u.data?.[0] || u.data[0].length <= i) continue;
     u.setCursor({ left: u.valToPos(i, "x"), top: Math.max(1, u.bbox.height / devicePixelRatio / 2) });

@@ -17,7 +17,8 @@ Files are read in your browser. Nothing is uploaded.
 1. Drop one or more `.TLM` files onto the page, or click **Load demo flight** to try a synthetic flight with GPS and a thermal.
 2. Pick a session on the left (or with ← →). Each session has tabs: overview, height & lift, flight path, motor & energy, battery, radio link, aircraft.
 3. **Show details** (top right) switches between the plain view (default: summaries, ratings and the main charts) and the full view: more charts and table columns, the exact values and thresholds behind every rating, and the raw data tab.
-4. The interface is available in English and German (EN / DE, top right). **Help** explains which transmitters and sensors are supported.
+4. **Flight path** has a replay: play the flight back at up to 60× speed; the map marker and every chart follow, with an optional vario tone.
+5. The interface is available in English and German (EN / DE, top right). **Help** explains which transmitters and sensors are supported.
 
 
 ## Who can use it

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Legend, Tile, useLevelWord } from "../bits";
 import { FlightMap } from "../charts/FlightMap";
+import { Replay } from "../charts/Replay";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
 import { axisNum, clock, cssVar, mix, num, withAlpha } from "../format";
@@ -75,6 +76,7 @@ function GpsView() {
           : <Legend items={[[cssVar("--good"), word("signal", 4)], [withAlpha(cssVar("--good"), 0.45), word("signal", 3)], [cssVar("--warn"), word("signal", 2)], [cssVar("--crit"), word("signal", 1)]]} />}
       </div>
       {spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
+      <Replay a={a} syncKey={e!.key} />
       <LineChart syncKey={e!.key} title={t("path.follow")} series={altSeries} phases={p?.phases} height={150} yFormat={(x) => `${axisNum(loc, x)} m`}
         readout={(i) => `${num(loc, alt[i], 0)} m · ${t("path.away", { d: num(loc, tr.distance[i], 0) })}`} onCursor={setMarker} />
       <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)} m`} onCursor={setMarker} /></div>
@@ -112,6 +114,7 @@ function NoGpsView() {
           </div>
           <Strip syncKey={e!.key} label={t("path.circling")} n={a.grid.n} colorAt={circleColor}
             right={<Legend style={{ padding: 0 }} items={[["var(--s-alt)", t("path.oneWay")], ["var(--s-4)", t("path.otherWay")], [withAlpha(cssVar("--s-glide"), 0.7), t("path.partialTurn")]]} />} />
+          <Replay a={a} syncKey={e!.key} />
           <LineChart syncKey={e!.key} title={t("overview.height")} series={altSeries} phases={p.phases} height={170} yFormat={(x) => `${axisNum(loc, x)} m`}
             extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} />
           <p className="note">{t("path.circlingNote")}</p>

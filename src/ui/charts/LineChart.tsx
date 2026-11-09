@@ -5,7 +5,7 @@ import type uPlot from "uplot";
 import type { Phase } from "@/core/analysis/flight";
 import { useStore } from "../store";
 import { axisNum, clock, cssVar, withAlpha } from "../format";
-import { register } from "./sync";
+import { notifyCursor, register } from "./sync";
 import { useThemeVersion } from "./useTheme";
 
 export const PHASE_COLOR: Record<string, string> = { ground: "--s-ground", motor: "--s-motor", glide: "--s-glide", lift: "--s-lift" };
@@ -133,6 +133,7 @@ export function LineChart(props: Props) {
                   i == null ? rest : `${clock(i)} · ` + (cur.readout ? cur.readout(i) : cur.series.map((s) => `${s.label ? s.label + " " : ""}${s.data[i] == null ? "–" : s.data[i]!.toLocaleString(loc === "de" ? "de-DE" : "en-GB", { maximumFractionDigits: s.digits ?? 1, minimumFractionDigits: s.digits ?? 1 })} ${s.unit}`).join(" · "));
               }
               cur.onCursor?.(i ?? null);
+              if (i != null) notifyCursor(cur.syncKey, i);
             },
           ],
         },

@@ -498,5 +498,21 @@
     "perCircleHint": "The small bars show the height gained in each circle. Even bars mean the core was well centred; drift shows where the wind carried the thermal.",
     "savedHint": "“Saved” is the motor time and charge the same height would have cost at this flight's motor climbs.",
     "mapLegend": "Green dots: thermal centres of all loaded flights near this field. Bigger means stronger, outlined means this flight."
+  },
+  "replay": {
+    "title": "Replay",
+    "hint": "The map marker and every chart follow. Space starts and stops.",
+    "play": "Play",
+    "pause": "Pause",
+    "speedLabel": "Speed",
+    "timeline": "Timeline",
+    "vario": "Vario",
+    "speed": "Speed",
+    "motor": "Motor",
+    "signal": "Signal",
+    "varioTone": "Vario tone",
+    "on": "on",
+    "off": "off",
+    "hintNoMap": "Every chart follows. Space starts and stops."
   }
 }
