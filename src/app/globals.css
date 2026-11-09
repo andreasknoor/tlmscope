@@ -305,6 +305,15 @@ body:not([data-details="on"]) .lv-more { display: none !important; }
   /* Phones: the map tools stand above the map instead of covering it. */
   .mapbox > .tools { position: static; margin-bottom: 8px; pointer-events: auto; }
 }
+/* Storks flying across the screen. */
+.race { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
+.race-lane { position: absolute; left: 0; animation-name: race-across; animation-timing-function: cubic-bezier(.35,.1,.55,.9); animation-fill-mode: both; }
+.race-bob { animation: race-bob 1.3s ease-in-out infinite alternate; }
+.race-wing { transform-origin: 50px 30px; animation: race-flap .5s ease-in-out infinite alternate; }
+@keyframes race-across { from { transform: translateX(-140px); } to { transform: translateX(calc(100vw + 20px)); } }
+@keyframes race-bob { from { transform: translateY(-6px); } to { transform: translateY(6px); } }
+@keyframes race-flap { from { transform: rotate(-28deg); } to { transform: scaleY(-0.55) rotate(-10deg); } }
+@media (max-width: 760px) { .race svg { width: 84px; height: 63px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .spinner { animation-duration: 2.4s; } }
 
 /* Footer and legal page */

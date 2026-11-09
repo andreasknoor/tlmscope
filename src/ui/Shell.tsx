@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
 import { cssVar, clock, dayLabel, num, timeLabel } from "./format";
 import { Help } from "./views/Help";
@@ -15,6 +15,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
 import { PHASE_COLOR } from "./charts/LineChart";
+import { RACE_CLICK_GAP_MS, RACE_CLICKS, StorkRace } from "./StorkRace";
 
 export const KIND_COLOR: Record<string, string> = { flight: "var(--s-alt)", "ground-test": "var(--s-motor)", "powered-on": "var(--s-glide)", "transmitter-only": "var(--s-ground)" };
 
@@ -65,6 +66,16 @@ function Header() {
   const { view, go, settings, setSettings, openHelp, files } = useStore();
   // The sidebar sits right below the header; its height can change when the header wraps.
   const ref = useRef<HTMLElement>(null);
+  // Quick clicks on the logo.
+  const clicks = useRef({ n: 0, last: 0 });
+  const [race, setRace] = useState(0);
+  const endRace = useCallback(() => setRace(0), []);
+  const onLogo = () => {
+    const now = Date.now(), c = clicks.current;
+    c.n = now - c.last < RACE_CLICK_GAP_MS ? c.n + 1 : 1;
+    c.last = now;
+    if (c.n >= RACE_CLICKS) { c.n = 0; setRace(now); }
+  };
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -74,9 +85,10 @@ function Header() {
   }, []);
   return (
     <header className="top" ref={ref}>
-      <a className="brand" href="#sessions" onClick={(e) => { e.preventDefault(); go("sessions"); }}>
+      <a className="brand" href="#sessions" onClick={(e) => { e.preventDefault(); onLogo(); go("sessions"); }}>
         <Logo /><Wordmark />
       </a>
+      {race > 0 && <StorkRace key={race} seed={race} onDone={endRace} />}
       <span className="version" title={`TLMscope ${APP_VERSION}`}>v{APP_VERSION}</span>
       {files.length > 0 && (
         <nav className="nav" aria-label="Main">
