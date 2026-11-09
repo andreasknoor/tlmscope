@@ -51,3 +51,6 @@ next-env.d.ts
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Private notes, never committed
+docs/outreach.md
