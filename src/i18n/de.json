@@ -385,7 +385,16 @@
     "unknownTitle": "Flüge mit unbekanntem Akku",
     "unknownHint": "Keine Smart-Akku-Daten. Möglicherweise ein Akku, der aufgehört hat zu senden, oder ein Akku ohne Telemetrie.",
     "none": "Keine Smart-Akkus in den geladenen Dateien.",
-    "note": "Der Zustand vergleicht den Spannungseinbruch unter Last zwischen den Flügen. Ein Akku, dessen Einbruch immer größer wird, verschleißt."
+    "note": "Der Zustand vergleicht den Spannungseinbruch unter Last zwischen den Flügen. Ein Akku, dessen Einbruch immer größer wird, verschleißt.",
+    "ageingTitle": "Verschleiß über die Zeit",
+    "ageingNote": "Innenwiderstand pro Zelle, ein Punkt pro Flug",
+    "ageingNotEnough": "Für einen Trend braucht es mindestens 5 Flüge über 2 Wochen. Bisher: {points, plural, one {# Flug} other {# Flüge}} über {days, plural, one {# Tag} other {# Tage}}.",
+    "ageingRetire": "Hat die Aussortier-Grenze von 15 mΩ pro Zelle erreicht.",
+    "ageingForecast": "Erreicht die Aussortier-Grenze von 15 mΩ pro Zelle bei diesem Tempo in etwa {n} Ladezyklen.",
+    "ageingStable": "Kein nennenswerter Verschleiß: Der Widerstand steuert nicht auf die Aussortier-Grenze zu.",
+    "ageingNow": "Jetzt {now} mΩ pro Zelle, {change} mΩ pro 10 Ladezyklen (Trend der letzten 10 Flüge).",
+    "ageingCold": "Hohle Punkte sind Flüge unter 15 °C. Kalte Akkus messen zu hoch, deshalb zählen sie nicht zum Trend.",
+    "resistance": "Widerstand pro Zelle"
   },
   "inv": {
     "title": "Dateninventar",

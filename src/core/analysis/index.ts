@@ -99,4 +99,5 @@ export function analyseLogs(logs: LogFile[], opts: Omit<AnalysisOptions, "batter
 }
 
 export * from "./thresholds.ts";
+export { batteryAgeing, AGEING, type Ageing, type AgeingPoint } from "./ageing.ts";
 export type { SessionKind, FlightProfile, Circling, Track, LinkAnalysis, SignalAnalysis, BatteryUse, BatteryCondition, ChargeEstimate, CellBalance, Temperatures, ReceiverPower, Loads, DataIssue, Moment, Result };

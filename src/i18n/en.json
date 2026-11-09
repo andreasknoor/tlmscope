@@ -385,7 +385,16 @@
     "unknownTitle": "Flights with an unidentified battery",
     "unknownHint": "No smart-battery data. Possibly a pack that stopped reporting, or a battery without telemetry.",
     "none": "No smart batteries in the loaded files.",
-    "note": "Condition compares the voltage drop under load between flights. A pack whose drop keeps growing is wearing out."
+    "note": "Condition compares the voltage drop under load between flights. A pack whose drop keeps growing is wearing out.",
+    "ageingTitle": "Wear over time",
+    "ageingNote": "internal resistance per cell, one dot per flight",
+    "ageingNotEnough": "A trend needs at least 5 flights over 2 weeks. So far: {points, plural, one {# flight} other {# flights}} over {days, plural, one {# day} other {# days}}.",
+    "ageingRetire": "Has reached the retire level of 15 mΩ per cell.",
+    "ageingForecast": "Reaches the retire level of 15 mΩ per cell in about {n} charge cycles at this rate.",
+    "ageingStable": "No wear worth noting: the resistance is not heading for the retire level.",
+    "ageingNow": "Now {now} mΩ per cell, {change} mΩ per 10 charge cycles (trend over the last 10 flights).",
+    "ageingCold": "Hollow dots are flights below 15 °C. Cold packs read high, so they are left out of the trend.",
+    "resistance": "Resistance per cell"
   },
   "inv": {
     "title": "Data inventory",

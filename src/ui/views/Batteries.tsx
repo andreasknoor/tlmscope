@@ -2,7 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { medianOf } from "@/core/analysis/grid";
-import { rate, THRESHOLDS } from "@/core/analysis";
+import { batteryAgeing, rate, THRESHOLDS, type AgeingPoint } from "@/core/analysis";
+import { AgeingChart } from "../charts/AgeingChart";
 import { Meter, RatingCard, Tile, useLevelWord } from "../bits";
 import { dateShort, num, timeLabel } from "../format";
 import { useStore, type Entry } from "../store";
@@ -27,6 +28,14 @@ export function Batteries() {
     const l = rate(r, THRESHOLDS.resistancePerCellMilliOhm);
     return l ? <><Meter level={l} /> {word("condition", l)}</> : "–";
   };
+  /** One trend point per flight with a resistance estimate; the battery temperature decides whether it counts. */
+  const ageingPoint = (e: Entry): AgeingPoint | null => {
+    const r = resPerCell(e);
+    // Flights with stuck sensor data give unreliable estimates and stay out of the trend.
+    if (r === null || e.startMs === null || e.a.issues.some((i) => i.kind === "frozen")) return null;
+    const temp = e.a.grid.has("temperature.battery") ? medianOf(e.a.grid.get("temperature.battery")) : null;
+    return { timeMs: e.startMs, cycles: e.a.session.battery?.chargeCycles ?? null, resistance: r, tempC: temp };
+  };
   const used = (e: Entry) => (e.a.batteryUse.available ? `${num(loc, e.a.batteryUse.value.usedMah, 0)} mAh` : "–");
 
   return (
@@ -40,6 +49,12 @@ export function Batteries() {
         const cond = rate(medianOf(flights.map((e) => resPerCell(e))), THRESHOLDS.resistancePerCellMilliOhm);
         const stuck = list.some((e) => e.a.issues.some((i) => i.kind === "frozen"));
         const noCells = list.every((e) => !e.a.session.channels.has("cell_voltage.1"));
+        const ageing = batteryAgeing(flights.map(ageingPoint).filter((p): p is AgeingPoint => p !== null));
+        const ageingText = !ageing.enough
+          ? t("batteries.ageingNotEnough", { points: ageing.missing!.points, days: ageing.missing!.days })
+          : ageing.cyclesToRetire === 0 ? t("batteries.ageingRetire")
+          : ageing.cyclesToRetire !== null ? t("batteries.ageingForecast", { n: ageing.cyclesToRetire })
+          : t("batteries.ageingStable");
         const dq = stuck ? { l: 1 as const, w: t("batteries.stuck"), h: t("batteries.stuckHint") } : noCells ? { l: 2 as const, w: t("batteries.partial"), h: t("batteries.partialHint") } : { l: 4 as const, w: t("batteries.reliable"), h: t("batteries.reliableHint") };
         return (
           <div className="card" key={b.id}>
@@ -51,8 +66,13 @@ export function Batteries() {
               <RatingCard name={t("batteries.condition")} level={cond} word={word("condition", cond)} hint={cond ? t("batteries.medianOfFlights") : t("batteries.notEnough")} />
               <RatingCard name={t("batteries.dataQuality")} level={dq.l} word={dq.w} hint={dq.h} />
             </div>
+            <div className="ageing">
+              <p><b>{ageingText}</b>{ageing.enough && ageing.current !== null && <span className="lv-more"> {t("batteries.ageingNow", { now: num(loc, ageing.current, 1), change: ageing.perTenCycles === null ? "–" : num(loc, ageing.perTenCycles, 2) })}</span>}</p>
+              {ageing.points.length >= 2 && <AgeingChart ageing={ageing} title={t("batteries.ageingTitle")} note={t("batteries.ageingNote")} />}
+              {ageing.points.some((p) => !p.used) && <p className="hint">{t("batteries.ageingCold")}</p>}
+            </div>
             <div className="scroll"><table className="tbl">
-              <thead><tr><th>{t("batteries.date")}</th><th>{t("app.session")}</th><th className="r">{t("batteries.chargeCycles")}</th><th className="r">{t("energy.chargeUsed")}</th><th className="r lv-more">{t("battery.perCellStart")} → {t("battery.perCellEnd")}</th><th>{t("batteries.condition")}</th></tr></thead>
+              <thead><tr><th>{t("batteries.date")}</th><th>{t("app.session")}</th><th className="r">{t("batteries.chargeCycles")}</th><th className="r">{t("energy.chargeUsed")}</th><th className="r lv-more">{t("battery.perCellStart")} → {t("battery.perCellEnd")}</th><th className="r lv-more">{t("batteries.resistance")}</th><th>{t("batteries.condition")}</th></tr></thead>
               <tbody>{list.map((e) => {
                 const ch = e.a.charge.available ? e.a.charge.value : null;
                 return (
@@ -62,6 +82,7 @@ export function Batteries() {
                     <td className="r num">{e.a.session.battery?.chargeCycles}</td>
                     <td className="r num">{used(e)}</td>
                     <td className="r num lv-more">{num(loc, ch?.startCellV, 2)} → {num(loc, ch?.endCellV, 2)} V</td>
+                    <td className="r num lv-more">{resPerCell(e) === null ? "–" : `${num(loc, resPerCell(e), 1)} mΩ`}</td>
                     <td>{condCell(e)}</td>
                   </tr>
                 );

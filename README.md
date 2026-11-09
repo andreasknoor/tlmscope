@@ -148,6 +148,7 @@ Analyses work only on canonical channels, resampled to a 1-second grid, so they 
 | Signal strength | `signal_dbm` | level per second, overall level, weakest moment |
 | Battery used | `consumed_mah` | mAh and percent of capacity (reported or assumed) |
 | Battery condition | `pack_voltage`, `motor_current` | internal resistance per cell from voltage sag |
+| Battery ageing | battery condition of several flights of one smart battery; `temperature.battery` if present | resistance trend per pack and charge cycles until 15 mΩ per cell (needs 5 flights over 2 weeks; cold flights below 15 °C and flights with stuck data are left out) |
 | Charge estimate | `pack_voltage` | state of charge at start and end, from resting voltage |
 | Cell balance | `cell_voltage.1`, `cell_voltage.2` (…) | largest spread between cells |
 | Temperatures | any of `temperature.esc`, `.battery`, `.bec` | maxima and levels |
