@@ -44,6 +44,10 @@ export interface Store {
   setSettings(patch: Partial<Settings>): void;
   addFiles(files: File[]): void;
   loadDemo(): void;
+  /** Closes one file; closing the last one returns to the start screen. */
+  closeFile(fileName: string): void;
+  /** Closes all files and returns to the start screen. */
+  closeAll(): void;
   openHelp(): void;
   visible: Entry[];
 }

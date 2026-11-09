@@ -137,6 +137,23 @@ export function App() {
     void addLogs([{ name: DEMO_FILE, buffer: fetch(`demo/${DEMO_FILE}`).then((r) => r.arrayBuffer()) }]);
   }, [addLogs]);
 
+  // Session keys contain the file position, so any close resets the selection to the default.
+  const closeFile = useCallback((fileName: string) => {
+    const rest = files.filter((f) => f.fileName !== fileName);
+    setFiles(rest);
+    setSelectedKey(null);
+    if (!rest.length) { setView("sessions"); setMessages([]); }
+    history.replaceState(null, "", rest.length && view !== "sessions" ? `#${view}` : location.pathname);
+  }, [files, view]);
+
+  const closeAll = useCallback(() => {
+    setFiles([]);
+    setSelectedKey(null);
+    setView("sessions");
+    setMessages([]);
+    history.replaceState(null, "", location.pathname);
+  }, []);
+
   // keyboard: arrows step through sessions
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -152,7 +169,7 @@ export function App() {
   const store: Store = {
     files, analysis, entries, selected, view, tab, settings, visible,
     demo: files.some((f) => f.fileName === DEMO_FILE),
-    setTab, select, step, go, setSettings, addFiles, loadDemo,
+    setTab, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll,
     openHelp: () => helpRef.current?.showModal(),
   };
 

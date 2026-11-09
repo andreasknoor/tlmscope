@@ -22,6 +22,8 @@
     "keys": "vorherige / nächste Sitzung",
     "dropMore": "Weitere .TLM-Dateien hier ablegen oder klicken. Dateien werden im Browser gelesen und nie hochgeladen.",
     "addFiles": "Dateien hinzufügen",
+    "closeFile": "{name} schließen",
+    "closeAll": "Alle Dateien schließen",
     "loading": "Lese {name} …",
     "unsupported": "{name} ist keine unterstützte Log-Datei.",
     "readError": "{name} konnte nicht gelesen werden: {message}",

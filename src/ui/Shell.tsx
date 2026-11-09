@@ -102,27 +102,33 @@ function Spark({ e }: { e: Entry }) {
 
 function Sidebar() {
   const t = useTranslations();
-  const { entries, visible, selected, select, settings, setSettings, addFiles, files } = useStore();
+  const { entries, visible, selected, select, settings, setSettings, addFiles, files, closeFile, closeAll } = useStore();
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const loc = settings.locale;
   const dayOf = (e: Entry) => (e.startMs !== null ? dayLabel(loc, e.startMs) : "?");
   return (
     <aside className="side">
+      {/* The whole zone accepts drops and clicks; keyboard users get the explicit buttons inside. */}
       <div
         className={`drop ${over ? "over" : ""}`}
-        role="button"
-        tabIndex={0}
-        onClick={() => input.current?.click()}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") input.current?.click(); }}
+        onClick={(e) => { if (!(e.target as HTMLElement).closest("button")) input.current?.click(); }}
         onDragOver={(e) => { e.preventDefault(); setOver(true); }}
         onDragLeave={() => setOver(false)}
         onDrop={(e) => { e.preventDefault(); setOver(false); addFiles([...e.dataTransfer.files]); }}
       >
         {files.map((f) => (
-          <div className="file" key={f.fileName}><span>{f.fileName}</span><span className="num" style={{ color: "var(--ink-3)", fontWeight: 400 }}>{num(loc, f.sizeBytes / 1e6, 1)} MB</span></div>
+          <div className="file" key={f.fileName}>
+            <span title={f.fileName}>{f.fileName}</span>
+            <span className="num size">{num(loc, f.sizeBytes / 1e6, 1)} MB</span>
+            <button className="x" aria-label={t("app.closeFile", { name: f.fileName })} title={t("app.closeFile", { name: f.fileName })} onClick={() => closeFile(f.fileName)}>×</button>
+          </div>
         ))}
         <small>{t("app.dropMore")}</small>
+        <div className="dropacts">
+          <button className="btn" onClick={() => input.current?.click()}>{t("app.addFiles")}</button>
+          <button className="btn" onClick={closeAll}>{t("app.closeAll")}</button>
+        </div>
         <input ref={input} type="file" accept=".tlm,.TLM" multiple hidden onChange={(e) => { addFiles([...(e.target.files ?? [])]); e.target.value = ""; }} />
       </div>
       <div className="sidehead">

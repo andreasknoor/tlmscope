@@ -22,6 +22,8 @@
     "keys": "previous / next session",
     "dropMore": "Drop more .TLM files here, or click to choose. Files are read in your browser and never uploaded.",
     "addFiles": "Add files",
+    "closeFile": "Close {name}",
+    "closeAll": "Close all files",
     "loading": "Reading {name} …",
     "unsupported": "{name} is not a supported log file.",
     "readError": "{name} could not be read: {message}",

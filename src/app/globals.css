@@ -86,6 +86,10 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .drop .file { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; min-width: 0; }
 .drop .file span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .drop small { color: var(--ink-3); }
+.drop .file .size { margin-left: auto; color: var(--ink-3); font-weight: 400; }
+.drop .x { border: 0; background: none; color: var(--ink-3); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; border-radius: 6px; }
+.drop .x:hover { color: var(--crit); background: var(--surface); }
+.drop .dropacts { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .sidehead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .sidehead h2 { font-size: 16px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
 .slist { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
