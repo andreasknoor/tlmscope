@@ -7,6 +7,8 @@ interface Props {
   fallback: (reset: () => void) => ReactNode;
   /** When this changes (other session, tab or view), the boundary tries again by itself. */
   resetKey?: string;
+  /** Called once per caught error, e.g. to count it. */
+  onError?: () => void;
   children: ReactNode;
 }
 
@@ -23,6 +25,7 @@ export class ErrorBoundary extends Component<Props, { failed: boolean }> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("TLMscope view error", error, info.componentStack);
+    this.props.onError?.();
   }
 
   componentDidUpdate(prev: Props) {

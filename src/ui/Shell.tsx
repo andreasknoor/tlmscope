@@ -11,6 +11,7 @@ import { SessionView } from "./views/SessionView";
 import { Welcome } from "./views/Welcome";
 import { useStore, type Entry } from "./store";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
 import { PHASE_COLOR } from "./charts/LineChart";
 
@@ -200,7 +201,7 @@ export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLD
           <Sidebar />
           <main className="main">
             {notices}
-            <ErrorBoundary resetKey={`${view}|${selected?.key}|${tab}`} fallback={(reset) => (
+            <ErrorBoundary resetKey={`${view}|${selected?.key}|${tab}`} onError={() => track({ name: "view-error", view: view === "sessions" ? `sessions/${tab}` : view })} fallback={(reset) => (
               <div className="errorbox stack">
                 <b>{t("app.viewError")}</b>
                 <span>{t("app.viewErrorText")}</span>

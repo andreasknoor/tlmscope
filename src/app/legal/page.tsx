@@ -65,7 +65,9 @@ export default function LegalPage() {
           Um zu sehen, wie viele Menschen TLMscope nutzen, zähle ich Seitenaufrufe mit Umami Cloud, einem Dienst der Umami Software, Inc. (USA), {ext("https://umami.is/privacy")}.
           Umami setzt keine Cookies und speichert keine IP-Adressen. Erfasst werden die aufgerufene Seite (ohne die Teile hinter „#“ und „?“), die verweisende Seite,
           Browser, Betriebssystem, Gerätetyp, Bildschirmgröße, Sprache und das aus der IP-Adresse abgeleitete Land. Daraus entstehen nur zusammengefasste Statistiken;
-          einzelne Besucher lassen sich damit nicht identifizieren. Namen, Inhalte oder Werte deiner Log-Dateien werden nicht übertragen.
+          einzelne Besucher lassen sich damit nicht identifizieren. Außerdem zähle ich einige Bedienschritte ohne Bezug zum Inhalt: Demo geladen, Datei geöffnet
+          (nur Dateiformat und grobe Größenklasse), Datei konnte nicht gelesen werden (nur die Art des Fehlers), Ansicht konnte nicht angezeigt werden und welcher Tab geöffnet wurde.
+          Namen, Inhalte oder Werte deiner Log-Dateien werden nicht übertragen.
           Wenn dein Browser „Do Not Track“ sendet, wird nichts gezählt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer anonymen Nutzungsstatistik).
           Die Daten können in die USA übermittelt werden.
         </p>
@@ -133,7 +135,9 @@ export default function LegalPage() {
           To see how many people use TLMscope, I count page views with Umami Cloud, a service of Umami Software, Inc. (USA), {ext("https://umami.is/privacy")}.
           Umami sets no cookies and stores no IP addresses. It records the page visited (without the parts after “#” and “?”), the referring page,
           browser, operating system, device type, screen size, language and the country derived from the IP address. Only aggregated statistics result;
-          individual visitors cannot be identified from them. Names, contents or values of your log files are not sent.
+          individual visitors cannot be identified from them. I also count a few actions, unrelated to content: demo loaded, file opened
+          (only the file format and a rough size class), file could not be read (only the kind of error), view could not be shown, and which tab was opened.
+          Names, contents or values of your log files are not sent.
           If your browser sends “Do Not Track”, nothing is counted. Legal basis: Art. 6(1)(f) GDPR (legitimate interest in anonymous usage statistics).
           The data may be transferred to the USA.
         </p>

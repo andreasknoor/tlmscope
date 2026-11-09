@@ -6,6 +6,7 @@ import { analyseLogs } from "@/core/analysis";
 import type { LogFile } from "@/core/model/types";
 import de from "@/i18n/de.json";
 import en from "@/i18n/en.json";
+import { sizeBucket, track } from "./analytics";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { batteryLetter } from "./format";
 import { loadBuffer } from "./loader";
@@ -45,7 +46,9 @@ export function App() {
   const [settings, setSettingsState] = useState<Settings>(DEFAULTS);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [view, setView] = useState<View>("sessions");
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTabState] = useState<Tab>("overview");
+  /** Tab chosen by the user (counted); `select` sets tabs without counting. */
+  const setTab = useCallback((t: Tab) => { setTabState(t); track({ name: "tab-opened", tab: t }); }, []);
   const [messages, setMessages] = useState<LoadMessage[]>([]);
   const helpRef = useRef<HTMLDialogElement>(null);
 
@@ -107,7 +110,7 @@ export function App() {
   }, [applyHash]);
 
   const select = useCallback((key: string, t?: Tab) => {
-    if (t) setTab(t);
+    if (t) setTabState(t);
     setSelectedKey(key);
     setView("sessions");
     const entry = entries.find((e) => e.key === key);
@@ -132,8 +135,11 @@ export function App() {
   const loadedNames = useRef<Set<string>>(new Set());
   useEffect(() => { loadedNames.current = new Set(files.map((f) => f.fileName)); }, [files]);
 
-  const addLogs = useCallback(async (items: { name: string; size?: number; buffer: () => Promise<ArrayBuffer> }[]) => {
-    const error = (text: string, values: Record<string, string>) => setMessages((m) => [...m.filter((x) => x.kind !== "loading"), { kind: "error", text, values }]);
+  const addLogs = useCallback(async (items: { name: string; size?: number; demo?: boolean; buffer: () => Promise<ArrayBuffer> }[]) => {
+    const error = (text: string, values: Record<string, string>) => {
+      setMessages((m) => [...m.filter((x) => x.kind !== "loading"), { kind: "error", text, values }]);
+      track({ name: "file-error", kind: text === "app.tooLarge" ? "too-large" : text === "app.unsupported" ? "unsupported" : "read-error" });
+    };
     for (const item of items) {
       if (item.size !== undefined && item.size > MAX_FILE_BYTES) {
         error("app.tooLarge", { name: item.name, max: String(MAX_FILE_BYTES / 1024 / 1024) });
@@ -149,6 +155,7 @@ export function App() {
           loadedNames.current.add(r.log.fileName);
           setFiles((f) => [...f.filter((x) => x.fileName !== r.log.fileName), r.log]);
           applyHash();
+          track(item.demo ? { name: "demo-loaded" } : { name: "file-opened", format: r.log.adapterId, size: sizeBucket(r.log.sizeBytes) });
         }
         else error(r.unsupported ? "app.unsupported" : "app.readError", { name: item.name, message: r.message });
       } catch (err) {
@@ -165,6 +172,7 @@ export function App() {
   const loadDemo = useCallback(() => {
     void addLogs([{
       name: DEMO_FILE,
+      demo: true,
       buffer: async () => {
         const r = await fetch(`demo/${DEMO_FILE}`);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -210,7 +218,7 @@ export function App() {
   };
 
   return (
-    <ErrorBoundary fallback={() => <PageError />}>
+    <ErrorBoundary fallback={() => <PageError />} onError={() => track({ name: "view-error", view: "page" })}>
       <NextIntlClientProvider locale={settings.locale} messages={MESSAGES[settings.locale]} timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}>
         <StoreContext.Provider value={store}>
           <Shell helpRef={helpRef} messages={messages} dismiss={(i) => setMessages((m) => m.filter((_, k) => k !== i))} />
