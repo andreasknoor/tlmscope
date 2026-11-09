@@ -130,8 +130,6 @@ function Sidebar() {
   const { entries, visible, selected, select, settings, setSettings, addFiles, files, closeFile, closeAll, models, modelFilter } = useStore();
   const modelName = useModelName();
   const multi = models.length > 1;
-  // With several models in the list, each row names its model instead of the session kind.
-  const showModel = multi && modelFilter === null;
   const kindEntries = modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter);
   const count = (m: string | null) => entries.filter((e) => (m === null || e.model.key === m) && (settings.filter === "all" || e.a.kind === "flight")).length;
   const [over, setOver] = useState(false);
@@ -192,15 +190,11 @@ function Sidebar() {
               {head}
               <button className={`sitem ${e.a.kind === "flight" ? "" : "dim"}`} aria-current={selected?.key === e.key} onClick={() => select(e.key)}>
                 <span className="t num">{e.startMs !== null ? timeLabel(loc, e.startMs) : "–"}</span>
+                {/* Each row names its model; the kind is added for sessions that are not flights. */}
                 <span className="k">
-                  {showModel ? <>
-                    <ModelBadge model={e.model} />
-                    <span className="mn">{modelName(e.model)}</span>
-                    {e.a.kind !== "flight" && <span>· {t(`kind.${e.a.kind}`)}</span>}
-                  </> : <>
-                    <span className="kdot" style={{ background: KIND_COLOR[e.a.kind] }} />
-                    {t(`kind.${e.a.kind}`)}
-                  </>}
+                  <ModelBadge model={e.model} />
+                  <span className="mn">{modelName(e.model)}</span>
+                  {e.a.kind !== "flight" && <span>· {t(`kind.${e.a.kind}`)}</span>}
                   {e.a.issues.some((i) => i.level === 1) && <span title={t("issue.frozen")} style={{ color: "var(--crit)", fontWeight: 700 }}>!</span>}
                 </span>
                 <span className="m num">{meta}</span>

@@ -40,7 +40,7 @@ export function SessionView() {
           <select value={e.key} aria-label={t("app.session")} onChange={(ev) => select(ev.target.value)}>
             {visible.map((x) => (
               <option key={x.key} value={x.key}>
-                {x.startMs !== null ? `${dayLabel(loc, x.startMs)} ${timeLabel(loc, x.startMs)}` : "?"} · {multi && modelFilter === null ? `${modelName(x.model)} · ` : ""}{t(`kind.${x.a.kind}`)}
+                {x.startMs !== null ? `${dayLabel(loc, x.startMs)} ${timeLabel(loc, x.startMs)}` : "?"} · {modelName(x.model)} · {t(`kind.${x.a.kind}`)}
               </option>
             ))}
           </select>
