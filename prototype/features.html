@@ -1,0 +1,639 @@
+<title>TLMscope Feature Concepts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the TLMscope app shell (sticky bar, tabbed views) reused for four feature prototypes; each view opens with its concept card, then the working prototype. */
+:root {
+  --bg: #eef2f3; --surface: #ffffff; --sunken: #f5f8f9;
+  --ink: #13212a; --ink-2: #4f606a; --ink-3: #7b8b94;
+  --line: #d8e1e5; --grid: #e7edf0;
+  --accent: #0d6a83; --accent-soft: #dcedf2;
+  --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --crit: #d03b3b;
+  --s-alt: #2a78d6; --s-motor: #eb6834; --s-lift: #1baf7a; --s-glide: #a9b6bd; --s-ground: #d6dee2; --s-4: #e87ba4; --s-5: #6250d6;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1418; --surface: #151f25; --sunken: #111a1f; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e;
+    --line: #25333b; --grid: #1e2a31; --accent: #52b6d2; --accent-soft: #17323b;
+    --s-alt: #3987e5; --s-motor: #d95926; --s-lift: #199e70; --s-glide: #5b6a72; --s-ground: #2b383f; --s-4: #d55181; --s-5: #9085e9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1418; --surface: #151f25; --sunken: #111a1f; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e;
+  --line: #25333b; --grid: #1e2a31; --accent: #52b6d2; --accent-soft: #17323b;
+  --s-alt: #3987e5; --s-motor: #d95926; --s-lift: #199e70; --s-glide: #5b6a72; --s-ground: #2b383f; --s-4: #d55181; --s-5: #9085e9;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--font-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+button, select { font: inherit; color: inherit; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px;
+  display: flex; align-items: center; gap: 10px 18px; flex-wrap: wrap; }
+.brand { display: inline-flex; align-items: center; gap: 10px; }
+.brand svg { width: 28px; height: 28px; flex: none; }
+.wordmark { font: 600 22px/1 var(--font-display); letter-spacing: .01em; }
+.wordmark b { color: var(--accent); font-weight: 700; }
+.tag { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em; }
+.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav a { text-decoration: none; color: var(--ink-2); padding: 6px 10px; border-radius: 6px; font-weight: 600; }
+.nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+
+main { max-width: 1180px; margin: 0 auto; padding-block: 22px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 18px; }
+.view { display: flex; flex-direction: column; gap: 16px; }
+.vh { display: flex; flex-direction: column; gap: 6px; }
+.vh h1 { font-size: 30px; }
+.vh p { color: var(--ink-2); max-width: 70ch; }
+.demo { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-2); border: 1px dashed var(--s-5); border-radius: 8px; padding: 6px 10px; align-self: flex-start; }
+.demo b { color: var(--s-5); font-size: 11px; letter-spacing: .1em; }
+
+.concept { background: var(--sunken); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 20px; }
+.concept h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-family: var(--font-body); font-weight: 700; margin-bottom: 4px; }
+.concept div { min-width: 0; font-size: 14px; color: var(--ink-2); }
+.concept ul { margin: 0; padding-left: 18px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card h2 { font-size: 18px; }
+.sub { font-size: 13px; color: var(--ink-3); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.big { font: 700 34px/1 var(--font-display); }
+.big small { font: 600 15px var(--font-body); color: var(--ink-2); margin-left: 4px; }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 700; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; }
+.pill.high { color: var(--good); } .pill.mid { color: var(--warn); } .pill.low { color: var(--serious); } .pill.none { color: var(--ink-3); }
+.why { font-size: 14px; color: var(--ink-2); }
+details.more summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 13px; }
+details.more div { font-size: 13px; color: var(--ink-2); padding-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.kv { display: grid; grid-template-columns: auto auto; justify-content: start; gap: 2px 14px; font-size: 13px; }
+.kv span:nth-child(odd) { color: var(--ink-3); }
+.where { font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--grid); padding-top: 8px; }
+.note { font-size: 13px; color: var(--ink-3); max-width: 80ch; }
+svg text { fill: var(--ink-3); font: 11px var(--font-body); }
+svg .ink { fill: var(--ink); }
+.alarmhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.sentence { font-size: 17px; display: block; }
+.sentence b { font-weight: 700; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 700; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+td { padding: 7px 8px; border-bottom: 1px solid var(--grid); }
+td.r, th.r { text-align: right; }
+tr.ex td { color: var(--ink-3); }
+.scroll { overflow-x: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* replay */
+.stage { position: relative; background: var(--sunken); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; touch-action: none; }
+.stage canvas { display: block; width: 100%; height: 380px; cursor: grab; }
+.hud { position: absolute; left: 10px; top: 10px; display: grid; grid-template-columns: repeat(3, auto); gap: 6px; }
+.hud div { background: color-mix(in srgb, var(--surface) 88%, transparent); border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; min-width: 76px; }
+.hud .label { font-size: 10.5px; }
+.hud b { font: 700 19px/1.1 var(--font-display); }
+.hint { position: absolute; right: 10px; bottom: 8px; font-size: 12px; color: var(--ink-3); }
+.controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 14px; cursor: pointer; font-weight: 600; color: var(--ink-2); }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); min-width: 92px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--sunken); }
+.seg button { border: 0; background: none; padding: 5px 11px; cursor: pointer; color: var(--ink-2); font-weight: 600; font-size: 13.5px; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: inset 0 0 0 1px var(--line); }
+.scrub { position: relative; height: 34px; flex: 1; min-width: 200px; cursor: pointer; touch-action: none; }
+.scrub canvas { width: 100%; height: 34px; display: block; border-radius: 6px; }
+.clock { font: 600 15px var(--font-mono); min-width: 92px; text-align: right; }
+
+@media (max-width: 900px) { .concept { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  .concept, .grid2, .grid3 { grid-template-columns: minmax(0, 1fr); }
+  .vh h1 { font-size: 25px; }
+  .stage canvas { height: 300px; }
+  .hud { grid-template-columns: repeat(2, auto); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header class="top">
+  <span class="brand">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0d6a83"/><path d="M12 46H21L27 37L32 40L39 27L44 30L51 17" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="51" cy="17" r="5" fill="#fff"/></svg>
+    <span class="wordmark"><b>TLM</b>scope</span>
+    <span class="tag">Feature concepts</span>
+  </span>
+  <nav class="nav" aria-label="Features">
+    <a href="#alarms">Alarm settings</a>
+    <a href="#thermals">Thermals</a>
+    <a href="#replay">Replay</a>
+    <a href="#battery-trend">Battery ageing</a>
+  </nav>
+</header>
+
+<main>
+  <!-- 1 ALARMS -->
+  <section class="view" id="v-alarms">
+    <div class="vh">
+      <h1>Alarm settings for your transmitter</h1>
+      <p>Suggested telemetry alarms, worked out from your own flights and common practice. Each value says why, and how sure it is.</p>
+      <span class="demo"><b>DEMO</b> Based on 1 synthetic flight. With your logs the numbers come from all loaded flights.</span>
+    </div>
+    <div class="concept">
+      <div><h3>Question it answers</h3>“Where should I set the alarms on my radio so they warn in time but don’t go off on every climb?”</div>
+      <div><h3>Uses</h3><ul><li>mAh per motor climb</li><li>Voltage sag and internal resistance</li><li>Peak temperatures, receiver voltage</li></ul></div>
+      <div><h3>Rules</h3><ul><li>Never riskier than the common rule (80 %, 3.3 V under load)</li><li>Fewer than 3 flights: only the common rule</li></ul></div>
+      <div><h3>Limits</h3><ul><li>Menu names differ per radio; the NX8 manual lists alarm types Inh and Tone</li><li>No suggestion for frame losses or holds</li></ul></div>
+    </div>
+    <div class="grid3" id="alarmCards"></div>
+    <p class="note">Suggestions from your logs and common hobby practice, not manufacturer settings. Change telemetry settings only with the model switched off: the NX8 manual warns that leaving the telemetry menu briefly interrupts the radio signal.</p>
+  </section>
+
+  <!-- 2 THERMALS -->
+  <section class="view" id="v-thermals" hidden>
+    <div class="vh">
+      <h1>Thermals</h1>
+      <p>Every climb without motor, with its strength, its circles and how much battery it saved.</p>
+      <span class="demo"><b>DEMO</b> Synthetic flight. Rows and map points marked “example” stand for other flights.</span>
+    </div>
+    <div class="concept">
+      <div><h3>Question it answers</h3>“How good was the lift today, did I centre it well, and where does it usually stand at my field?”</div>
+      <div><h3>Uses</h3><ul><li>Lift phases and circling (already detected)</li><li>Smoothed climb rate</li><li>GPS, if present: position and drift</li></ul></div>
+      <div><h3>New numbers</h3><ul><li>Average and best 10 s climb</li><li>Climb per circle, seconds per circle</li><li>Motor time and mAh saved</li></ul></div>
+      <div><h3>Without GPS</h3>Everything except the circle plot, drift and the field map.</div>
+    </div>
+    <p class="sentence card" id="thermSentence"></p>
+    <div class="grid2">
+      <div class="card"><h2>Climb per circle</h2><p class="sub">Each bar is one full circle. Even bars mean well centred.</p><div id="circleBars"></div></div>
+      <div class="card"><h2>Circles from above</h2><p class="sub">Path while circling, coloured from first to last circle. The arrow shows the drift.</p><div id="circlePlot"></div></div>
+    </div>
+    <div class="card">
+      <h2>All thermals</h2>
+      <div class="scroll"><table id="thermTable"></table></div>
+    </div>
+    <div class="card">
+      <h2>Where the lift stands</h2>
+      <p class="sub">Thermal centres from all flights with GPS, around the launch point. Bigger dot, stronger climb.</p>
+      <div id="fieldMap"></div>
+    </div>
+  </section>
+
+  <!-- 5 REPLAY -->
+  <section class="view" id="v-replay" hidden>
+    <div class="vh">
+      <h1>Replay</h1>
+      <p>Play the flight back in 3D, faster than real time, with the numbers of the moment and an optional vario tone.</p>
+      <span class="demo"><b>DEMO</b> Synthetic flight. In the app this runs on the existing map view.</span>
+    </div>
+    <div class="concept">
+      <div><h3>Question it answers</h3>“What exactly happened, and when?” Re-living the flight is easier than reading charts.</div>
+      <div><h3>Controls</h3><ul><li>Play, speed 1× to 60×, scrub bar in phase colours</li><li>Space = play, ← → = 5 s</li><li>Drag the view to turn it</li></ul></div>
+      <div><h3>Linked</h3>The cursor in every chart of the session follows the replay, and moving a chart cursor moves the replay.</div>
+      <div><h3>Without GPS</h3>A side view: height over time with the same controls and the vario tone.</div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="scene" aria-label="3D flight path replay"></canvas>
+      <div class="hud" id="hud"></div>
+      <span class="hint">Drag to turn</span>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="play">▶ Play</button>
+      <div class="seg" role="group" aria-label="Speed" id="speeds"></div>
+      <div class="scrub" id="scrub"><canvas id="scrubCv" aria-label="Timeline"></canvas></div>
+      <span class="clock num" id="clock">0:00</span>
+      <button class="btn" id="vario" aria-pressed="false">Vario tone: off</button>
+    </div>
+    <div class="legend"><span><i style="background:var(--s-motor)"></i>Motor climb</span><span><i style="background:var(--s-glide)"></i>Gliding</span><span><i style="background:var(--s-lift)"></i>Lift</span><span><i style="background:var(--s-ground)"></i>On ground</span></div>
+  </section>
+
+  <!-- 6 BATTERY TREND -->
+  <section class="view" id="v-battery-trend" hidden>
+    <div class="vh">
+      <h1>Battery ageing</h1>
+      <p>Internal resistance of each pack over weeks of flying, with a forecast of when it reaches the retire level.</p>
+      <span class="demo"><b>DEMO</b> Invented history of three packs over four months. With your logs every flight of a smart battery adds a point.</span>
+    </div>
+    <div class="concept">
+      <div><h3>Question it answers</h3>“Which pack is wearing out, and how long until I should retire it?”</div>
+      <div><h3>Uses</h3><ul><li>Resistance per flight (already estimated)</li><li>Smart battery ID and cycle count</li><li>Battery temperature</li></ul></div>
+      <div><h3>Method</h3><ul><li>Cold flights read high: values below 20 °C are corrected</li><li>Trend over the last 10 flights</li><li>Forecast only with ≥ 5 flights over ≥ 2 weeks</li></ul></div>
+      <div><h3>Needs</h3>All flights loaded at once, or files kept in the browser (planned storage). Packs without ID cannot be told apart.</div>
+    </div>
+    <div class="grid3" id="packCards"></div>
+    <div class="card">
+      <h2>Internal resistance per cell</h2>
+      <p class="sub">Dots are flights (hollow = cold, corrected). Lines are the trend. Shading: up to 10 mΩ excellent, 12 acceptable, above 15 retire.</p>
+      <div id="irChart"></div>
+      <div class="legend" id="irLegend"></div>
+    </div>
+    <p class="note">The resistance is estimated from the voltage drop under motor load and includes wires and plugs. It is good for comparing a pack with itself over time, not for comparing with a charger’s reading.</p>
+  </section>
+</main>
+
+<script>
+const D = {"n":541,"channels":["altitude","climb_rate.0_25s","climb_rate.0_5s","climb_rate","climb_rate.1_5s","climb_rate.2_0s","climb_rate.3_0s","rpm_electrical","pack_voltage","temperature.esc","motor_current","temperature.bec","bec_voltage","throttle_output","power_output","fades.a","frame_losses","holds","rx_voltage","signal_dbm","signal_quality","raw:spektrum.0x7e.u16@14","accel.x","accel.y","accel.z","accel.max_x","accel.max_y","accel.max_z","accel.min_z","rotation_rate.roll","rotation_rate.pitch","rotation_rate.yaw","rotation_rate.max_roll","rotation_rate.max_pitch","rotation_rate.max_yaw","flight_mode","gps.lat","gps.lon","heading","gps.hdop","gps.fix","gps.altitude","ground_speed","gps.satellites","temperature.battery","cell_voltage_min","cell_voltage_max","cell_voltage.1","cell_voltage.2","cell_voltage.3","consumed_mah"],"alt":[0,0,0,0,0,0,0,0,0,0,1.9,5.3,8.7,12.1,15.5,18.9,22.3,25.7,29.1,32.5,35.9,39.3,42.7,46.1,49.5,52.9,56.3,59.7,63.1,66.5,69.9,73.3,76.7,80.1,83.5,86.9,90.3,93.7,97.1,100.5,103.9,107.3,108.4,107.5,106.6,105.7,104.8,103.9,103,102.3,101.4,100.6,99.8,98.9,97.9,97,96.2,95.3,94.4,93.5,92.7,91.8,90.9,90.1,89.2,88.4,87.5,86.7,85.8,85.1,84.3,83.4,82.6,81.8,80.9,80,79.2,78.3,77.5,76.6,75.7,74.9,74,73.2,72.3,71.5,70.6,69.7,68.9,68,67.2,66.4,65.6,64.8,64,63.1,62.2,61.3,60.4,59.5,58.7,57.9,57,56.1,55.2,55.2,55.9,56.6,57.4,58.2,59.1,60.1,61.2,62.3,63.6,64.9,66.2,67.7,69.2,70.8,72.4,74,75.7,77.3,78.9,80.5,82.1,83.6,85.1,86.5,87.8,89,90.1,91.2,92.2,93.1,93.9,94.7,95.4,96.1,96.8,97.5,98.1,98.8,99.5,100.2,101,101.9,102.8,103.8,104.9,106,107.3,108.6,110,111.5,113,114.6,116.2,117.8,119.5,121.2,122.8,124.4,125.9,127.4,128.8,130.2,131.5,132.7,133.8,134.8,135.8,136.7,137.5,138.3,139,139.7,140.3,141,141.7,142.3,143,143.8,144.6,145.5,146.4,147.4,148.6,149.8,151,152.4,153.8,155.3,156.8,158.4,160.1,161.7,163.3,165,166.6,168.2,169.7,171.2,172.6,172.8,172,171.1,170.2,169.4,168.5,167.7,166.9,166,165.2,164.3,163.5,162.6,161.7,160.8,160,159.2,158.3,157.5,156.6,155.8,154.9,154,153.2,152.3,151.4,150.5,149.6,148.8,147.9,147,146.2,145.4,144.5,143.7,142.9,142,141.2,140.3,139.4,138.5,137.6,136.7,135.8,134.9,134.1,133.2,132.4,131.6,130.7,129.8,129,128.1,127.3,126.4,125.5,124.7,123.9,123.1,122.2,121.4,120.6,119.8,118.9,118,117.2,116.3,115.4,114.6,113.8,112.9,112,111.1,110.3,109.4,108.5,107.7,106.9,106,105.2,104.2,103.4,102.6,101.7,100.8,99.9,99,98.2,97.3,96.4,95.5,94.6,93.7,92.8,92,93.4,96.8,100.2,103.7,107,110.5,113.8,117.3,120.7,124,127.4,130.8,134.2,137.7,141,144.4,147.9,151.2,154.7,158,161.4,164.9,165.9,165.1,164.2,163.3,162.4,161.6,160.8,159.9,159,158.2,157.3,156.5,155.7,154.9,154.1,153.3,152.5,151.7,150.8,150,149.2,148.4,147.5,146.7,145.8,144.9,144.1,143.2,142.4,141.6,140.7,139.9,139,138.2,137.3,136.4,135.6,134.7,133.9,133.1,132.2,131.4,130.5,129.6,128.7,127.9,127.1,126.3,125.4,124.6,123.8,122.9,122,121.2,120.3,119.4,118.6,117.7,116.9,116.1,115.2,114.3,113.5,112.6,111.8,110.9,110.1,109.3,108.4,107.5,106.7,105.8,105.1,104.3,103.5,102.6,101.8,101,100.2,99.4,98.6,97.8,97,96.1,95.3,94.4,93.5,92.7,91.9,91,90.2,89.3,88.4,87.5,86.7,85.8,85,84.1,83.3,82.5,81.6,80.8,79.9,79,78.2,77.4,76.5,75.6,74.8,74,73.2,72.3,71.3,70.4,69.5,68.6,67.8,67,66.1,65.3,64.5,63.7,62.8,62,61.1,60.3,59.5,58.6,57.7,56.9,56,55.2,54.3,53.5,52.5,51.7,50.9,50,49.1,48.3,47.5,46.6,45.6,44.7,43.9,43.1,42.2,41.4,40.5,39.6,38.7,37.8,36.9,35.9,35,34.1,33.2,32.3,31.4,30.5,29.6,28.6,27.7,26.8,25.9,25,24.1,23.2,22.3,21.4,20.4,19.6,18.6,17.7,16.8,15.9,15,14.1,13.2,12.3,11.3,10.4,9.5,8.6,7.7,6.8,5.9,5,4,3.2,2.5,1.9,1.5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"climb":[0,0,0,0,0,0,0.38,0.76,1.13,1.51,1.89,2.27,2.64,3.02,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,2.93,2.46,1.98,1.51,1.03,0.54,0.08,-0.39,-0.86,-0.86,-0.86,-0.86,-0.88,-0.87,-0.86,-0.87,-0.88,-0.88,-0.89,-0.89,-0.89,-0.87,-0.87,-0.87,-0.87,-0.86,-0.85,-0.84,-0.83,-0.83,-0.83,-0.83,-0.83,-0.83,-0.84,-0.84,-0.85,-0.85,-0.86,-0.86,-0.86,-0.86,-0.86,-0.86,-0.87,-0.86,-0.86,-0.85,-0.85,-0.85,-0.84,-0.83,-0.83,-0.83,-0.84,-0.85,-0.85,-0.86,-0.86,-0.86,-0.88,-0.88,-0.87,-0.69,-0.51,-0.33,-0.15,0.04,0.24,0.45,0.67,0.89,0.96,1.03,1.1,1.18,1.25,1.33,1.39,1.45,1.49,1.53,1.56,1.58,1.59,1.58,1.56,1.53,1.5,1.45,1.4,1.33,1.26,1.19,1.11,1.04,0.97,0.9,0.85,0.8,0.77,0.74,0.72,0.71,0.72,0.74,0.77,0.81,0.85,0.91,0.98,1.05,1.12,1.2,1.27,1.35,1.41,1.46,1.51,1.54,1.57,1.58,1.59,1.58,1.55,1.52,1.48,1.44,1.38,1.31,1.24,1.17,1.09,1.02,0.95,0.89,0.83,0.79,0.76,0.73,0.71,0.71,0.73,0.75,0.78,0.82,0.87,0.93,1,1.07,1.15,1.22,1.3,1.37,1.42,1.47,1.52,1.55,1.57,1.59,1.59,1.57,1.55,1.28,1.01,0.73,0.45,0.18,-0.09,-0.35,-0.6,-0.85,-0.85,-0.85,-0.85,-0.85,-0.86,-0.86,-0.86,-0.86,-0.85,-0.86,-0.86,-0.86,-0.86,-0.85,-0.85,-0.85,-0.87,-0.87,-0.88,-0.87,-0.87,-0.88,-0.87,-0.87,-0.87,-0.86,-0.84,-0.84,-0.85,-0.85,-0.85,-0.86,-0.87,-0.87,-0.88,-0.88,-0.88,-0.88,-0.87,-0.87,-0.86,-0.86,-0.85,-0.85,-0.85,-0.86,-0.86,-0.85,-0.85,-0.85,-0.85,-0.84,-0.83,-0.84,-0.84,-0.83,-0.85,-0.85,-0.86,-0.84,-0.86,-0.87,-0.87,-0.86,-0.87,-0.87,-0.87,-0.86,-0.87,-0.86,-0.87,-0.86,-0.87,-0.86,-0.86,-0.86,-0.87,-0.87,-0.88,-0.87,-0.87,-0.88,-0.88,-0.88,-0.89,-0.89,-0.41,0.07,0.54,1.01,1.49,1.97,2.45,2.93,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,3.4,2.93,2.46,1.98,1.51,1.04,0.56,0.09,-0.38,-0.86,-0.86,-0.86,-0.85,-0.84,-0.84,-0.83,-0.83,-0.83,-0.82,-0.82,-0.82,-0.82,-0.82,-0.83,-0.83,-0.84,-0.84,-0.85,-0.85,-0.85,-0.85,-0.85,-0.85,-0.85,-0.84,-0.85,-0.85,-0.85,-0.85,-0.85,-0.86,-0.86,-0.85,-0.87,-0.86,-0.85,-0.85,-0.85,-0.86,-0.85,-0.85,-0.84,-0.84,-0.84,-0.85,-0.85,-0.86,-0.86,-0.86,-0.86,-0.86,-0.86,-0.86,-0.86,-0.86,-0.86,-0.85,-0.85,-0.85,-0.86,-0.86,-0.85,-0.85,-0.83,-0.83,-0.83,-0.83,-0.83,-0.82,-0.81,-0.81,-0.81,-0.82,-0.82,-0.82,-0.82,-0.82,-0.83,-0.83,-0.84,-0.85,-0.84,-0.86,-0.86,-0.86,-0.86,-0.86,-0.86,-0.87,-0.86,-0.86,-0.85,-0.85,-0.85,-0.85,-0.84,-0.85,-0.85,-0.85,-0.85,-0.85,-0.84,-0.84,-0.85,-0.87,-0.87,-0.87,-0.87,-0.87,-0.87,-0.87,-0.85,-0.84,-0.84,-0.83,-0.83,-0.82,-0.84,-0.83,-0.85,-0.85,-0.86,-0.85,-0.85,-0.86,-0.87,-0.85,-0.86,-0.86,-0.85,-0.85,-0.85,-0.87,-0.87,-0.88,-0.87,-0.87,-0.86,-0.87,-0.87,-0.88,-0.87,-0.87,-0.87,-0.88,-0.89,-0.89,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.9,-0.89,-0.86,-0.81,-0.76,-0.66,-0.56,-0.46,-0.36,-0.26,-0.17,-0.1,-0.04,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"amps":[0,0,0,0,0,0,0,0,0,0,19.7,20,20.1,20,19.5,19.5,20,19.9,19.8,19.9,20,20,20.1,19.9,20.1,20.1,19.7,19.8,20,19.8,20,20,19.8,19.9,20.1,19.8,20.1,20.1,19.9,20.1,20.1,20.1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,19.7,19.9,20,20,19.9,20.1,20,20,19.9,19.7,20.1,19.6,20,19.9,19.6,19.9,20.1,19.9,19.7,20.1,20,19.9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"packV":[12.54,12.54,12.54,12.54,12.54,12.54,12.54,12.54,12.54,12.54,12.18,12.17,12.17,12.17,12.17,12.16,12.15,12.15,12.15,12.14,12.14,12.13,12.13,12.13,12.12,12.11,12.12,12.11,12.1,12.1,12.09,12.09,12.09,12.09,12.08,12.08,12.07,12.07,12.07,12.06,12.05,12.05,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.41,12.05,12.05,12.04,12.04,12.03,12.02,12.02,12.02,12.02,12.02,12.01,12.01,12,12,12,11.99,11.98,11.98,11.98,11.97,11.97,11.97,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32,12.32],"cellMin":[4.176,null,null,null,null,null,null,null,null,null,4.058,null,null,null,null,null,null,null,null,null,4.044,null,null,null,null,null,null,null,null,null,4.031,null,null,null,null,null,null,null,null,null,4.017,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.133,null,null,null,null,null,null,null,null,null,4.014,null,null,null,null,null,null,null,null,null,4.002,null,null,null,null,null,null,null,null,null,3.985,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103,null,null,null,null,null,null,null,null,null,4.103],"mah":[0,0,0,0,0,0,0,0,0,0,5,10,16,21,27,32,37,43,48,54,59,64,70,75,81,86,92,97,102,108,113,119,124,130,135,140,146,151,157,162,168,173,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,174,178,184,189,195,200,206,211,217,222,227,233,238,243,249,254,260,265,271,276,281,287,292,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293,293],"dbm":[-44,-44,-44,-44,-43,-43,-44,-43,-44,-44,-44,-46,-48,-49,-50,-52,-52,-54,-55,-56,-57,-59,-60,-61,-63,-63,-64,-66,-68,-68,-70,-71,-72,-74,-76,-76,-77,-79,-80,-82,-82,-84,-85,-84,-84,-85,-84,-83,-82,-80,-79,-78,-77,-76,-74,-76,-75,-75,-75,-76,-77,-78,-78,-79,-80,-81,-81,-82,-81,-81,-80,-79,-78,-77,-75,-74,-73,-71,-70,-70,-69,-68,-67,-67,-67,-66,-67,-67,-67,-67,-67,-68,-68,-68,-68,-69,-69,-69,-69,-69,-68,-69,-67,-68,-67,-66,-65,-64,-64,-63,-64,-64,-65,-66,-67,-69,-68,-68,-68,-67,-66,-66,-65,-65,-66,-67,-67,-68,-69,-70,-71,-71,-71,-70,-69,-68,-68,-67,-67,-68,-69,-70,-71,-72,-72,-72,-72,-71,-70,-69,-70,-68,-69,-69,-71,-73,-74,-74,-75,-74,-74,-74,-73,-73,-72,-72,-72,-73,-74,-75,-76,-77,-77,-78,-77,-77,-76,-75,-74,-74,-74,-76,-76,-77,-79,-79,-79,-80,-79,-79,-78,-78,-77,-77,-76,-78,-79,-80,-80,-82,-83,-83,-83,-82,-81,-81,-79,-79,-78,-78,-76,-77,-77,-78,-78,-78,-79,-80,-80,-81,-82,-83,-84,-85,-85,-85,-85,-85,-84,-83,-83,-81,-81,-79,-79,-78,-76,-76,-76,-75,-76,-77,-77,-78,-79,-81,-82,-83,-84,-84,-85,-84,-85,-84,-83,-82,-81,-79,-79,-78,-76,-76,-75,-74,-73,-72,-71,-71,-69,-68,-68,-66,-65,-65,-62,-62,-61,-61,-61,-60,-61,-62,-62,-63,-64,-66,-66,-67,-69,-69,-69,-70,-71,-70,-71,-71,-70,-69,-69,-69,-68,-67,-67,-67,-66,-66,-66,-66,-66,-66,-66,-67,-67,-67,-69,-69,-69,-70,-72,-72,-73,-74,-75,-76,-77,-78,-79,-80,-82,-82,-83,-84,-84,-85,-85,-84,-83,-83,-83,-81,-81,-80,-79,-77,-77,-76,-75,-74,-74,-73,-73,-72,-72,-71,-71,-70,-70,-69,-69,-68,-68,-66,-66,-64,-64,-62,-61,-60,-60,-59,-58,-60,-60,-61,-62,-64,-65,-65,-68,-68,-69,-70,-70,-69,-70,-69,-70,-70,-69,-68,-66,-68,-67,-66,-65,-64,-64,-64,-63,-63,-62,-62,-62,-62,-63,-63,-63,-65,-66,-67,-68,-68,-69,-70,-71,-72,-72,-72,-72,-72,-71,-71,-70,-69,-68,-68,-66,-65,-64,-64,-63,-62,-61,-61,-61,-61,-61,-61,-61,-61,-62,-63,-63,-64,-64,-65,-65,-65,-66,-66,-66,-65,-65,-65,-64,-63,-62,-62,-60,-58,-57,-56,-55,-54,-53,-54,-54,-55,-56,-58,-58,-58,-59,-60,-61,-61,-62,-62,-62,-62,-62,-62,-62,-62,-62,-60,-60,-60,-59,-57,-57,-56,-55,-54,-53,-52,-52,-51,-50,-49,-48,-49,-49,-48,-49,-50,-50,-51,-52,-53,-54,-54,-56,-56,-57,-57,-57,-57,-57,-56,-57,-56,-57,-56,-57,-57,-57,-57,-57,-57,-57,-57,-57,-57,-57,-57,-57,-57,-57,-57,-57],"phase":["ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","lift","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","motor","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","glide","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground","ground"],"turn":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,20,20,20,20,20,20,20,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-20,-20,-20,-16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,26,26,26,26,26,26,26,26,26,26,26,27,26,26,25,26,26,26,26,26,25,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,25,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,27,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,27,26,26,26,25,26,26,26,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-20,-20,-20,-20,-17,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-18,-20,-20,-20,-20,-20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"east":[0,0,0,0,0,0,0,0,0,0,-6.3,-16.6,-27.1,-37.5,-47.9,-58.3,-68.7,-79.2,-89.6,-100,-110.4,-120.8,-131.2,-141.7,-152,-162.5,-173,-183.3,-193.8,-204.1,-214.6,-224.9,-235.4,-245.8,-256.2,-266.7,-277.1,-287.5,-297.9,-308.3,-319.2,-330.2,-338.8,-344.5,-347,-345.8,-340.8,-332.4,-321.6,-310.7,-300.3,-290.9,-282.4,-275.3,-269.8,-266,-264.1,-264.5,-266.8,-271.4,-277.5,-285.3,-294,-303.1,-312.2,-320.3,-326.8,-330.7,-330.8,-327.2,-320.7,-312.1,-301.6,-290,-277.5,-264.7,-252,-239.8,-228.3,-217.6,-208,-199.4,-191.6,-184.8,-178.7,-173.2,-168.1,-163.3,-158.5,-153.6,-148.5,-142.8,-136.5,-129.5,-121.5,-112.6,-102.6,-91.8,-80,-67.6,-54.9,-42.1,-29.9,-18.5,-8.5,-1.2,1.9,0.5,-4.8,-12.3,-20.4,-26.9,-30.2,-29.3,-24,-14.9,-3.6,7.9,17.9,24.5,26.9,24.8,19.2,11.4,3.5,-2.7,-5.5,-3.8,2.1,11.6,23,34.5,44.1,50.1,51.8,49.1,42.9,35,27.2,21.5,19.4,21.8,28.4,38.3,49.8,61.1,70.1,75.6,76.5,73.3,66.8,58.7,51.1,45.9,44.4,47.5,54.5,64.9,76.5,87.6,96.2,101,101.2,97.4,90.5,82.3,75,70.4,69.6,73.2,81,91.5,103.3,114.1,122.1,126.2,125.7,121.3,114.2,106.1,99,94.8,94.7,99.1,107.4,118.3,129.9,140.4,147.9,151.3,150.3,145.3,137.8,129.8,123.1,119.5,120,125,133.8,144.9,156.7,166.8,173.7,176.3,174.7,169.1,161.7,153.3,144.3,135.2,126.1,117.4,109.2,101.7,94.8,88.5,82.9,77.7,72.9,68.3,63.7,59,54.1,48.7,42.6,34.4,25.4,16.5,9.4,4.1,0.1,-2.1,-2.4,-0.7,3.3,9.4,17.7,27.7,39.3,51.8,64.4,77,88.5,98.4,106.4,112.1,115.3,116,114.1,109.1,101.5,92.6,83.6,75.7,70.3,66.3,63.7,62.5,62.2,63,64.7,66.9,69.6,72.5,75.5,78.3,80.8,82.8,84.1,84.6,84,82.1,79,74.6,68.7,61.8,53.7,44.9,35.7,26.8,18.3,10.9,5.4,1.9,0.8,2.3,6.6,13.4,22.2,33,45,57.6,70.4,82.7,94.2,104.4,113.2,120.4,126,130,132.9,135.9,138.6,141.6,144.5,147.4,150.3,153.1,156,158.9,161.8,164.7,167.6,170.4,173.3,176.2,179.1,182,184.8,187.7,190.6,193.5,196.8,202.1,209.6,219.1,230.2,242.4,255.2,267.7,279.6,290.2,298.9,305.4,309.5,311,310.1,306.9,301.9,295.3,287.6,279,270,260.8,251.7,242.7,234.3,226,218.2,210.6,203.3,196.2,189.1,181.9,174.5,166.8,158.8,150.4,141.7,132.6,123.4,114.3,105.5,97.2,90,84.1,79.9,77.8,78.2,80.8,86.1,93.7,103.4,114.7,127,139.8,152.4,164,174.4,183,189.5,193.7,195.6,195.4,193.3,189.4,184,177.5,170.2,162,153.5,144.7,135.7,126.5,117.5,108.3,99.1,89.9,80.8,71.8,62.8,54.1,45.8,38,31.1,25.1,20.5,17.4,16.3,17.2,20.4,25.8,33.4,42.9,54,66.3,79,91.7,103.5,114,122.6,129,132.9,134.5,133.4,130.3,125.2,118.5,110.7,102.1,93,83.9,74.8,65.8,57.3,49.1,41.3,33.8,26.5,19.3,12.2,5,-2.4,-10.1,-18.1,-26.5,-35.2,-44.3,-53.5,-62.6,-71.4,-79.7,-86.9,-92.7,-96.8,-98.7,-98.4,-95.6,-90.3,-82.6,-72.8,-61.5,-49.2,-36.4,-23.8,-12.2,-1.9,6.6,13,17.2,19.2,19.8,18.8,16.7,13.4,9,3.5,-2.7,-9.3,-16.4,-23.6,-30.7,-37.5,-43.7,-49.3,-54,-57.6,-60,-61.1,-60.8,-59.4,-58,-56.5,-55.1,-53.6,-52.2,-50.7,-49.3,-47.8,-46.4,-44.9,-43.5,-42,-40.6,-39.2,-37.7,-36.3,-34.8,-33.4,-31.9,-30.5,-29,-27.6,-26.1,-24.7,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1,-24.1],"north":[0,0,0,0,0,0,0,0,0,0,-2.2,-6.1,-10,-13.9,-17.6,-21.5,-25.4,-29.3,-33,-36.9,-40.8,-44.7,-48.6,-52.3,-56.2,-60,-63.9,-67.6,-71.5,-75.4,-79.3,-83,-86.9,-90.8,-94.7,-98.4,-102.3,-106.2,-110.1,-113.8,-116.2,-114,-108,-99.5,-88.8,-77.3,-66.2,-56.9,-50,-43.4,-35.8,-27.2,-17.8,-7.6,3.3,14.6,26.3,37.6,48.4,58,66.2,72.1,76,77.1,75.6,71.5,65.2,56.3,46.1,36,26.7,18.7,12.4,8.2,6.1,6.3,8.3,12.4,18.2,25.4,33.5,42.8,52.6,63,73.8,84.7,95.8,106.9,118.2,129.4,140.5,151.2,162,172.2,182,190.9,198.9,205.7,210.9,214.4,216.1,215.5,212.9,208.1,201.4,193.3,184,175.3,168.8,166.2,168.1,174,183.1,193.5,203.5,210.7,214.2,213.3,208.3,200.3,190.9,182.4,176.4,174.6,177,183.5,192.9,203.5,213.1,220,222.8,221.1,215.5,207.2,197.9,189.6,184.2,182.9,186.1,193.1,202.9,213.3,222.6,228.9,231.1,228.9,222.8,214.1,204.8,196.8,192,191.4,195.1,202.7,212.8,223.1,232.2,238,239.4,236.5,229.8,220.9,211.6,204.2,200,200,204.4,212.6,222.8,233,241.7,246.7,247.4,243.9,236.8,227.8,218.7,211.6,207.9,208.7,213.9,222.4,232.6,242.8,250.9,255.4,255.6,251.3,243.9,234.6,225.7,219.1,216.1,217.6,223.3,232.2,242.6,252.6,260.2,264.1,263.5,258.7,250.7,241.5,232.8,225.9,220.4,217,215.3,215.9,217.9,221.8,227,233.5,240.7,248.9,257.6,266.7,276.1,285.6,295.2,304.7,313.9,323,331.2,336.4,337.8,335.6,330.1,322.3,313.4,303.9,293.7,283.4,273.2,263.7,255.4,248.7,244.3,242.2,242.8,245.9,251.7,259.6,269.3,280,291.5,303.2,314.1,323.2,329.5,332.3,331.4,326.7,319.1,310.2,300.8,291,280.8,270.4,260,249.4,239.3,228.9,218.5,208.1,197.7,187.4,177,166.6,156.6,146.8,137.5,129.2,121.8,115.8,111.6,109.2,109.2,111.4,115.8,122.7,131.4,141.6,152.7,164.4,175.7,186.1,195,202,206.6,208.9,208.9,206.3,201.6,195.3,187.4,178.5,168.6,158.6,147,134.7,122.3,109.9,97.7,85.2,72.8,60.6,48.2,35.8,23.5,11.1,-1.3,-13.5,-25.9,-38.4,-50.6,-63,-75.4,-87.7,-100.1,-112.5,-123.6,-133.2,-142.1,-149.4,-154.6,-157.5,-157.9,-155.5,-150.7,-143.4,-134.2,-123.8,-112.5,-100.8,-89.5,-79.1,-70.1,-62.3,-56.3,-52.1,-49.7,-48.7,-49.3,-51.3,-54.3,-58.4,-63,-68.2,-73.9,-79.7,-85.4,-91.2,-96.6,-101.6,-106,-109.5,-112.1,-113.4,-113.4,-111.8,-108.4,-103.4,-96.6,-88,-78.2,-67.5,-56,-44.3,-33.4,-23.4,-15.2,-9.1,-5.4,-4.3,-5.9,-10,-16.3,-24.3,-33.7,-43.7,-54.1,-64.3,-73.9,-82.8,-90.4,-97.1,-102.5,-106.7,-109.9,-112.1,-113.6,-114.5,-114.9,-115.1,-115.3,-115.5,-116.2,-117.3,-119.2,-121.9,-125.7,-130.5,-136.4,-143.6,-152,-161.2,-171.2,-181.6,-191.8,-201.6,-210.3,-217.6,-222.8,-225.5,-225.7,-223.3,-218.3,-211.1,-201.8,-191.3,-180,-168.5,-157.2,-146.8,-137.7,-130.1,-124.2,-119.9,-117.5,-116.8,-117.3,-119.3,-122.5,-126.4,-131.2,-136.4,-142,-147.9,-153.6,-159.4,-164.8,-169.8,-174,-177.5,-180.1,-181.4,-181.2,-179.6,-176.2,-171.1,-164.2,-155.7,-145.9,-134.9,-123.4,-111.9,-101,-91,-82.8,-76.9,-73.2,-72.3,-73.9,-78.2,-84.5,-92.7,-101.9,-112.1,-121.2,-129.5,-137.5,-145.1,-151.8,-157.7,-162.3,-166.1,-168.3,-169.2,-168.8,-167,-163.6,-159.2,-153.4,-146.6,-138.6,-130.1,-121,-111.6,-101.9,-92.5,-82.8,-73.2,-63.6,-54.1,-44.5,-34.8,-25.2,-15.8,-6.1,3.5,13.2,22.6,32.2,41.9,51.5,61.2,70.6,80.2,89.9,99.5,109,118.6,128.2,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1,132.1],"lat":[51.1262,51.1262,51.1262,51.1262,51.1262,51.1262,51.1262,51.1262,51.1262,51.1262,51.12618,51.126145,51.12611,51.126075,51.126042,51.126007,51.125972,51.125937,51.125903,51.125868,51.125833,51.125798,51.125763,51.12573,51.125695,51.12566,51.125625,51.125592,51.125557,51.125522,51.125487,51.125453,51.125418,51.125383,51.125348,51.125315,51.12528,51.125245,51.12521,51.125177,51.125155,51.125175,51.125228,51.125305,51.125402,51.125505,51.125605,51.125688,51.12575,51.12581,51.125878,51.125955,51.12604,51.126132,51.12623,51.126332,51.126437,51.126538,51.126635,51.126722,51.126795,51.126848,51.126883,51.126893,51.12688,51.126843,51.126787,51.126707,51.126615,51.126523,51.12644,51.126368,51.126312,51.126273,51.126255,51.126257,51.126275,51.126312,51.126363,51.126428,51.126502,51.126585,51.126673,51.126767,51.126863,51.126962,51.127062,51.127162,51.127263,51.127363,51.127463,51.12756,51.127657,51.127748,51.127837,51.127917,51.127988,51.12805,51.128097,51.128128,51.128143,51.128138,51.128115,51.128072,51.128012,51.127938,51.127855,51.127777,51.127718,51.127695,51.127712,51.127765,51.127847,51.12794,51.12803,51.128095,51.128127,51.128118,51.128073,51.128002,51.127917,51.12784,51.127787,51.12777,51.127792,51.12785,51.127935,51.12803,51.128117,51.128178,51.128203,51.128188,51.128138,51.128063,51.12798,51.127905,51.127857,51.127845,51.127873,51.127937,51.128025,51.128118,51.128202,51.128258,51.128278,51.128258,51.128203,51.128125,51.128042,51.12797,51.127927,51.127922,51.127955,51.128023,51.128113,51.128207,51.128288,51.12834,51.128353,51.128327,51.128267,51.128187,51.128103,51.128037,51.127998,51.127998,51.128038,51.128112,51.128203,51.128295,51.128373,51.128418,51.128425,51.128393,51.12833,51.128248,51.128167,51.128103,51.12807,51.128077,51.128123,51.1282,51.128292,51.128383,51.128457,51.128497,51.128498,51.12846,51.128393,51.12831,51.12823,51.12817,51.128143,51.128157,51.128208,51.128288,51.128382,51.128472,51.12854,51.128575,51.12857,51.128527,51.128455,51.128372,51.128293,51.128232,51.128182,51.128152,51.128137,51.128142,51.12816,51.128195,51.128242,51.1283,51.128365,51.128438,51.128517,51.128598,51.128683,51.128768,51.128855,51.12894,51.129023,51.129105,51.129178,51.129225,51.129238,51.129218,51.129168,51.129098,51.129018,51.128933,51.128842,51.128748,51.128657,51.128572,51.128497,51.128437,51.128397,51.128378,51.128383,51.128412,51.128463,51.128535,51.128622,51.128718,51.128822,51.128927,51.129025,51.129107,51.129163,51.129188,51.12918,51.129138,51.12907,51.12899,51.128905,51.128817,51.128725,51.128632,51.128538,51.128443,51.128352,51.128258,51.128165,51.128072,51.127978,51.127885,51.127792,51.127698,51.127608,51.12752,51.127437,51.127362,51.127295,51.127242,51.127203,51.127182,51.127182,51.127202,51.127242,51.127303,51.127382,51.127473,51.127573,51.127678,51.12778,51.127873,51.127953,51.128017,51.128058,51.128078,51.128078,51.128055,51.128013,51.127957,51.127885,51.127805,51.127717,51.127627,51.127522,51.127412,51.1273,51.127188,51.127078,51.126967,51.126855,51.126745,51.126633,51.126522,51.126412,51.1263,51.126188,51.126078,51.125967,51.125855,51.125745,51.125633,51.125522,51.125412,51.1253,51.125188,51.125088,51.125002,51.124922,51.124857,51.12481,51.124783,51.12478,51.124802,51.124845,51.12491,51.124993,51.125087,51.125188,51.125293,51.125395,51.125488,51.12557,51.12564,51.125693,51.125732,51.125753,51.125762,51.125757,51.125738,51.125712,51.125675,51.125633,51.125587,51.125535,51.125483,51.125432,51.12538,51.125332,51.125287,51.125247,51.125215,51.125192,51.12518,51.12518,51.125195,51.125225,51.12527,51.125332,51.125408,51.125497,51.125593,51.125697,51.125802,51.1259,51.12599,51.126063,51.126118,51.126152,51.126162,51.126147,51.12611,51.126053,51.125982,51.125897,51.125807,51.125713,51.125622,51.125535,51.125455,51.125387,51.125327,51.125278,51.12524,51.125212,51.125192,51.125178,51.12517,51.125167,51.125165,51.125163,51.125162,51.125155,51.125145,51.125128,51.125103,51.12507,51.125027,51.124973,51.124908,51.124833,51.12475,51.12466,51.124567,51.124475,51.124387,51.124308,51.124243,51.124197,51.124172,51.12417,51.124192,51.124237,51.124302,51.124385,51.12448,51.124582,51.124685,51.124787,51.12488,51.124962,51.12503,51.125083,51.125122,51.125143,51.12515,51.125145,51.125127,51.125098,51.125063,51.12502,51.124973,51.124923,51.12487,51.124818,51.124767,51.124718,51.124673,51.124635,51.124603,51.12458,51.124568,51.12457,51.124585,51.124615,51.124662,51.124723,51.1248,51.124888,51.124987,51.12509,51.125193,51.125292,51.125382,51.125455,51.125508,51.125542,51.12555,51.125535,51.125497,51.12544,51.125367,51.125283,51.125192,51.12511,51.125035,51.124963,51.124895,51.124835,51.124782,51.12474,51.124707,51.124687,51.124678,51.124682,51.124698,51.124728,51.124768,51.12482,51.124882,51.124953,51.12503,51.125112,51.125197,51.125283,51.125368,51.125455,51.125542,51.125628,51.125713,51.1258,51.125887,51.125973,51.126058,51.126145,51.126232,51.126318,51.126403,51.12649,51.126577,51.126663,51.12675,51.126835,51.126922,51.127008,51.127095,51.12718,51.127267,51.127353,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388,51.127388],"lon":[10.4005,10.4005,10.4005,10.4005,10.4005,10.4005,10.4005,10.4005,10.4005,10.4005,10.40041,10.400262,10.400112,10.399963,10.399813,10.399665,10.399515,10.399365,10.399217,10.399067,10.398918,10.398768,10.39862,10.39847,10.398322,10.398172,10.398022,10.397873,10.397723,10.397575,10.397425,10.397277,10.397127,10.396978,10.396828,10.396678,10.39653,10.39638,10.396232,10.396082,10.395927,10.395768,10.395645,10.395563,10.395528,10.395545,10.395617,10.395737,10.395892,10.396048,10.396197,10.396332,10.396453,10.396555,10.396633,10.396688,10.396715,10.39671,10.396677,10.396612,10.396523,10.396412,10.396287,10.396157,10.396027,10.39591,10.395817,10.395762,10.39576,10.395812,10.395905,10.396028,10.396178,10.396345,10.396523,10.396707,10.396888,10.397063,10.397228,10.397382,10.39752,10.397643,10.397755,10.397852,10.39794,10.398018,10.398092,10.39816,10.398228,10.398298,10.398372,10.398453,10.398543,10.398645,10.398758,10.398887,10.39903,10.399185,10.399353,10.399532,10.399713,10.399897,10.400072,10.400235,10.400378,10.400483,10.400527,10.400507,10.400432,10.400323,10.400208,10.400115,10.400067,10.40008,10.400157,10.400287,10.400448,10.400613,10.400757,10.400852,10.400885,10.400855,10.400775,10.400663,10.40055,10.400462,10.400422,10.400445,10.40053,10.400667,10.40083,10.400995,10.401132,10.401218,10.401242,10.401203,10.401115,10.401002,10.40089,10.400808,10.400778,10.400812,10.400907,10.401048,10.401213,10.401375,10.401505,10.401583,10.401597,10.40155,10.401457,10.401342,10.401232,10.401158,10.401137,10.40118,10.401282,10.40143,10.401597,10.401755,10.401878,10.401947,10.40195,10.401895,10.401797,10.40168,10.401575,10.401508,10.401497,10.401548,10.40166,10.401812,10.40198,10.402135,10.40225,10.402308,10.402302,10.402238,10.402137,10.40202,10.401918,10.401858,10.401857,10.40192,10.402038,10.402195,10.402362,10.402512,10.40262,10.402668,10.402653,10.402582,10.402475,10.40236,10.402263,10.402212,10.40222,10.402292,10.402417,10.402577,10.402745,10.40289,10.402988,10.403027,10.403003,10.402923,10.402817,10.402697,10.402568,10.402437,10.402307,10.402182,10.402065,10.401957,10.401858,10.401768,10.401688,10.401613,10.401545,10.401478,10.401413,10.401345,10.401275,10.401198,10.40111,10.400993,10.400863,10.400737,10.400635,10.400558,10.400502,10.40047,10.400465,10.40049,10.400547,10.400635,10.400753,10.400897,10.401063,10.401242,10.401423,10.401603,10.401768,10.40191,10.402025,10.402107,10.402152,10.402162,10.402135,10.402063,10.401955,10.401827,10.401698,10.401585,10.401507,10.40145,10.401413,10.401395,10.401392,10.401403,10.401427,10.401458,10.401497,10.401538,10.401582,10.401622,10.401658,10.401687,10.401705,10.401712,10.401703,10.401677,10.401632,10.401568,10.401485,10.401385,10.40127,10.401143,10.401012,10.400883,10.400762,10.400657,10.400577,10.400527,10.400512,10.400533,10.400595,10.400692,10.400818,10.400973,10.401145,10.401325,10.401508,10.401685,10.40185,10.401997,10.402122,10.402225,10.402305,10.402363,10.402405,10.402447,10.402487,10.402528,10.40257,10.402612,10.402653,10.402693,10.402735,10.402777,10.402818,10.40286,10.402902,10.402942,10.402983,10.403025,10.403067,10.403108,10.403148,10.40319,10.403232,10.403273,10.40332,10.403397,10.403503,10.40364,10.403798,10.403973,10.404157,10.404337,10.404507,10.404658,10.404783,10.404877,10.404935,10.404957,10.404943,10.404898,10.404827,10.404732,10.404622,10.404498,10.404368,10.404237,10.404107,10.403978,10.403857,10.403738,10.403627,10.403518,10.403413,10.403312,10.40321,10.403107,10.403,10.40289,10.402775,10.402655,10.40253,10.4024,10.402268,10.402138,10.402012,10.401893,10.40179,10.401705,10.401645,10.401615,10.40162,10.401658,10.401733,10.401843,10.401982,10.402143,10.40232,10.402503,10.402683,10.40285,10.402998,10.403122,10.403215,10.403275,10.403303,10.4033,10.40327,10.403213,10.403137,10.403043,10.402938,10.402822,10.4027,10.402573,10.402445,10.402313,10.402183,10.402052,10.40192,10.401788,10.401658,10.401528,10.4014,10.401275,10.401157,10.401045,10.400945,10.40086,10.400793,10.40075,10.400733,10.400747,10.400792,10.40087,10.400978,10.401115,10.401273,10.40145,10.401632,10.401813,10.401983,10.402133,10.402257,10.402348,10.402405,10.402427,10.402412,10.402367,10.402293,10.402198,10.402087,10.401963,10.401833,10.401702,10.401572,10.401443,10.401322,10.401203,10.401092,10.400985,10.40088,10.400777,10.400675,10.400572,10.400465,10.400355,10.40024,10.40012,10.399995,10.399865,10.399733,10.399603,10.399477,10.399358,10.399255,10.399172,10.399113,10.399085,10.39909,10.39913,10.399207,10.399317,10.399457,10.399618,10.399795,10.399978,10.400158,10.400325,10.400473,10.400595,10.400687,10.400747,10.400775,10.400783,10.40077,10.40074,10.400692,10.400628,10.40055,10.400462,10.400367,10.400265,10.400162,10.40006,10.399963,10.399873,10.399793,10.399727,10.399675,10.39964,10.399625,10.399628,10.399648,10.399668,10.39969,10.39971,10.399732,10.399752,10.399773,10.399793,10.399815,10.399835,10.399857,10.399877,10.399898,10.399918,10.399938,10.39996,10.39998,10.400002,10.400022,10.400043,10.400063,10.400085,10.400105,10.400127,10.400147,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155,10.400155],"speed":[0,0,0,0,0,0,0,0,0,0,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.1,11.4,9.9,10.5,11.1,11.8,12.3,12.7,12.9,12.8,12.8,12.7,12.6,12.4,12.2,12,11.7,11.3,11,10.5,10.1,9.8,9.4,9.2,9.1,9.1,9.3,9.7,10.3,11,11.5,11.9,12.2,12.5,12.7,12.8,12.9,12.9,12.9,12.8,12.7,12.6,12.5,12.4,12.3,12.2,12.2,12.2,12.2,12.2,12.2,12.3,12.4,12.5,12.6,12.7,12.8,12.8,12.9,12.9,12.8,12.7,12.6,12.3,12,10.5,9.6,8.8,8.3,8.1,8.4,9.1,9.9,10.8,11.4,11.8,11.9,11.6,11.1,10.3,9.5,8.7,8.2,8.2,8.5,9.2,10.1,10.9,11.5,11.8,11.9,11.6,11,10.2,9.4,8.6,8.2,8.2,8.6,9.4,10.2,11,11.5,11.9,11.8,11.5,10.9,10.1,9.3,8.5,8.2,8.2,8.7,9.5,10.3,11.1,11.6,11.9,11.8,11.4,10.8,10,9.1,8.5,8.1,8.3,8.8,9.6,10.4,11.2,11.7,11.9,11.8,11.3,10.6,9.8,9,8.4,8.1,8.3,8.9,9.7,10.6,11.3,11.7,11.9,11.7,11.3,10.5,9.7,8.9,8.3,8.1,8.4,9,9.9,10.7,11.4,11.8,11.9,11.7,11.2,10.4,9.6,8.8,9.3,9.2,9.1,9.1,9.2,9.4,9.6,9.7,9.9,10.1,10.3,10.4,10.5,10.6,10.6,10.6,10.6,10.5,10.4,10.2,9.6,9.2,9.1,9.3,9.5,9.7,10,10.3,10.6,11,11.4,11.8,12.1,12.4,12.7,12.8,12.9,12.9,12.7,12.5,12.2,11.9,11.5,11,10.4,9.8,9.3,9.1,9.2,9.4,9.7,9.9,10.1,10.3,10.4,10.5,10.6,10.7,10.8,10.8,10.7,10.7,10.6,10.4,10.3,10.1,9.9,9.7,9.5,9.3,9.2,9.1,9.1,9.2,9.4,9.7,10,10.4,10.9,11.4,11.8,12.2,12.5,12.7,12.8,12.9,12.9,12.7,12.6,12.3,12.1,11.8,11.4,11.2,10.9,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,12.7,10.9,11.3,11.7,12,12.3,12.6,12.8,12.9,12.9,12.8,12.6,12.3,12,11.6,11.2,10.8,10.4,10.1,9.8,9.5,9.3,9.2,9.1,9.1,9.1,9.1,9.2,9.2,9.2,9.2,9.2,9.2,9.2,9.2,9.1,9.1,9.1,9.1,9.2,9.3,9.5,9.7,10.1,10.4,10.8,11.2,11.6,12,12.3,12.6,12.8,12.9,12.9,12.8,12.7,12.4,12.1,11.7,11.3,10.9,10.5,10.2,9.9,9.6,9.4,9.2,9.2,9.1,9.1,9.1,9.1,9.2,9.2,9.2,9.2,9.2,9.2,9.1,9.1,9.1,9.1,9.2,9.2,9.4,9.6,9.8,10.1,10.5,10.9,11.3,11.7,12,12.4,12.6,12.8,12.9,12.9,12.8,12.6,12.3,12,11.6,11.2,10.8,10.4,10.1,9.7,9.5,9.3,9.2,9.1,9.1,9.1,9.1,9.2,9.2,9.2,9.2,9.2,9.2,9.2,9.2,9.1,9.1,9.1,9.1,9.2,9.3,9.5,9.7,10.1,10.4,10.8,11.2,11.6,12,12.3,12.6,12.8,12.9,12.9,12.8,12.6,12.4,12.1,11.7,11.3,10.9,8.6,8.3,8,7.7,7.5,7.3,7.2,7.1,7.1,7.2,7.2,7.4,7.6,7.8,8.1,8.4,8.7,8.9,9.2,9.5,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,9.7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"climbs":[{"kind":"motor","start":10,"end":41,"gainM":106.48999999999998,"mah":173.5933333333333,"mPer100mAh":61.34452167901993},{"kind":"motor","start":300,"end":321,"gainM":72.44,"mah":119.18333333333331,"mPer100mAh":60.78031044609147}],"lifts":[{"kind":"lift","start":106,"end":204,"gainM":116.72}],"circlingPeriods":[{"start":105,"end":204,"direction":1,"circles":7,"degrees":2602.919988063934}],"batteryUse":{"usedMah":292.77666666666664,"capacityMah":2200,"capacityAssumed":false,"usedPct":13.308030303030302,"level":4},"batteryCondition":{"cells":3,"resistancePerCellMilliOhm":5.00778631673403,"level":4,"dropAt20A":0.30046717900404185,"lowestLoadedV":11.972},"charge":{"cells":3,"startCellV":4.18,"endCellV":4.1066666666666665,"startPct":98.57142857142854,"endPct":93.33333333333333},"temps":{"escMaxC":40.1,"becMaxC":38.1,"batteryMaxC":28,"escLevel":4,"batteryLevel":4,"level":4},"rx":{"rxMinV":5.94,"becMinV":6,"holdInAir":false,"level":4},"link":{"basis":"frame_losses","levels":[4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],"overall":{"level":4,"worst":3,"weakShare":0,"shares":{"1":0,"2":0,"3":0.16167664670658682,"4":0.8383233532934131}},"frameLosses":82,"frameLossesPerMinute":9.820359281437126,"holdsAirborne":0,"holdsTotal":0,"fades":{"a":494},"worstSecond":{"at":46,"frameLosses":4}},"mPer100mAh":61.11484294058042,"glideSink":0.86,"airtime":500,"airStart":11,"airEnd":511};
+const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (v, d = 0) => v.toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d });
+const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+const el = (tag, attrs = {}, html = "") => { const e = document.createElement(tag); Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v)); e.innerHTML = html; return e; };
+const svgNS = "http://www.w3.org/2000/svg";
+const PHASE = { motor: "--s-motor", glide: "--s-glide", lift: "--s-lift", ground: "--s-ground" };
+
+/* ---------- routing ---------- */
+const VIEWS = ["alarms", "thermals", "replay", "battery-trend"];
+function route() {
+  const h = location.hash.slice(1);
+  const v = VIEWS.includes(h) ? h : "alarms";
+  VIEWS.forEach((x) => { document.getElementById("v-" + x).hidden = x !== v; });
+  document.querySelectorAll(".nav a").forEach((a) => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"));
+  if (v === "replay") replay.resize();
+  if (v !== "replay") replay.pause();
+}
+window.addEventListener("hashchange", route);
+
+/* ---------- shared numbers ---------- */
+const CAP = D.batteryUse.capacityMah;
+const climbs = D.climbs;
+const mahPerClimb = climbs.reduce((s, c) => s + c.mah, 0) / climbs.length;
+const maxAmps = Math.max(...D.amps.filter((v) => v !== null));
+const rCell = D.batteryCondition.resistancePerCellMilliOhm;
+const LIPO = [[3.5, 0], [3.68, 10], [3.73, 20], [3.77, 30], [3.8, 40], [3.84, 50], [3.87, 60], [3.92, 70], [3.97, 80], [4.06, 90], [4.2, 100]];
+const vRest = (pct) => { for (let i = 1; i < LIPO.length; i++) if (pct <= LIPO[i][1]) { const [v0, p0] = LIPO[i - 1], [v1, p1] = LIPO[i]; return v0 + (v1 - v0) * (pct - p0) / (p1 - p0); } return 4.2; };
+const pctAt = (v) => { if (v <= 3.5) return 0; for (let i = 1; i < LIPO.length; i++) if (v <= LIPO[i][0]) { const [v0, p0] = LIPO[i - 1], [v1, p1] = LIPO[i]; return p0 + (p1 - p0) * (v - v0) / (v1 - v0); } return 100; };
+
+/* ---------- small SVG helpers ---------- */
+function svg(w, h) { const s = document.createElementNS(svgNS, "svg"); s.setAttribute("viewBox", `0 0 ${w} ${h}`); s.setAttribute("width", "100%"); s.style.display = "block"; s.style.maxWidth = "100%"; return s; }
+function add(s, tag, attrs, text) { const e = document.createElementNS(svgNS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; s.appendChild(e); return e; }
+
+/* ================= 1 ALARMS ================= */
+function alarmCards() {
+  const reserve = Math.ceil(2 * mahPerClimb / 50) * 50;
+  const ceiling = 0.8 * CAP;
+  const capAlarm = Math.floor((ceiling - reserve) / 50) * 50;
+  const leftAtAlarm = 100 * (1 - capAlarm / CAP);
+  const sag = maxAmps * rCell / 1000;
+  const sagAged = maxAmps * 15 / 1000;
+  const cellAlarm = 3.5;
+  const pctWhenAlarm = pctAt(cellAlarm + sag);
+  const cards = [];
+
+  // capacity
+  {
+    const w = 320, h = 86, x = (m) => 10 + (m / CAP) * (w - 20);
+    const s = svg(w, h);
+    add(s, "rect", { x: 10, y: 22, width: w - 20, height: 18, rx: 4, fill: css("--sunken"), stroke: css("--line") });
+    add(s, "rect", { x: 10, y: 22, width: x(D.batteryUse.usedMah) - 10, height: 18, rx: 4, fill: css("--s-alt") });
+    add(s, "rect", { x: x(capAlarm), y: 22, width: x(ceiling) - x(capAlarm), height: 18, fill: css("--s-motor"), opacity: .25 });
+    add(s, "line", { x1: x(capAlarm), x2: x(capAlarm), y1: 14, y2: 48, stroke: css("--ink"), "stroke-width": 2 });
+    add(s, "line", { x1: x(ceiling), x2: x(ceiling), y1: 18, y2: 44, stroke: css("--crit"), "stroke-width": 1.5, "stroke-dasharray": "3 2" });
+    add(s, "text", { x: x(capAlarm), y: 11, "text-anchor": "middle", class: "ink" }, `alarm ${fmt(capAlarm)}`);
+    add(s, "text", { x: x(ceiling), y: 60, "text-anchor": "middle" }, "80 %");
+    add(s, "text", { x: (x(capAlarm) + x(ceiling)) / 2, y: 74, "text-anchor": "middle" }, "reserve: 2 climbs");
+    add(s, "text", { x: 12, y: 60 }, `this flight ${fmt(D.batteryUse.usedMah)} mAh`);
+    add(s, "text", { x: w - 10, y: 84, "text-anchor": "end" }, `${fmt(CAP)} mAh`);
+    cards.push({
+      name: "Battery used", value: fmt(capAlarm), unit: "mAh", conf: ["high", "High"],
+      sub: `${fmt(100 * capAlarm / CAP)} % of ${fmt(CAP)} mAh`, chart: s,
+      why: `Stop at 80 % (${fmt(ceiling)} mAh) at the latest. A motor climb costs you about ${fmt(mahPerClimb)} mAh, so the alarm leaves room for two more climbs after it sounds.`,
+      more: [["Common rule", "use at most 80 %"], ["Per motor climb", `${fmt(mahPerClimb)} mAh (${climbs.length} climbs)`], ["Reserve", `${fmt(reserve)} mAh`], ["Left when it sounds", `${fmt(leftAtAlarm)} %`]],
+      where: "Smart Battery sensor: capacity alarm. Check the exact menu name on your radio.",
+    });
+  }
+  // cell voltage under load
+  {
+    const w = 320, h = 120, pad = { l: 34, r: 8, t: 8, b: 20 };
+    const s = svg(w, h);
+    const X = (p) => pad.l + (1 - p / 100) * (w - pad.l - pad.r); // charge left 100 → 0
+    const Y = (v) => pad.t + (4.2 - v) / (4.2 - 3.2) * (h - pad.t - pad.b);
+    [3.3, 3.5, 3.7, 3.9, 4.1].forEach((v) => { add(s, "line", { x1: pad.l, x2: w - pad.r, y1: Y(v), y2: Y(v), stroke: css("--grid") }); add(s, "text", { x: pad.l - 4, y: Y(v) + 4, "text-anchor": "end" }, v.toFixed(1)); });
+    add(s, "rect", { x: pad.l, y: Y(3.3), width: w - pad.l - pad.r, height: Y(3.2) - Y(3.3), fill: css("--crit"), opacity: .12 });
+    const line = (fn, color, dash) => { let d = ""; for (let p = 100; p >= 0; p -= 2) d += `${p === 100 ? "M" : "L"}${X(p).toFixed(1)},${Y(fn(p)).toFixed(1)}`; add(s, "path", { d, fill: "none", stroke: color, "stroke-width": 2, "stroke-dasharray": dash || "" }); };
+    line((p) => vRest(p), css("--ink-3"), "2 3");
+    line((p) => vRest(p) - sag, css("--s-alt"));
+    line((p) => vRest(p) - sagAged, css("--s-motor"), "5 3");
+    add(s, "line", { x1: pad.l, x2: w - pad.r, y1: Y(cellAlarm), y2: Y(cellAlarm), stroke: css("--ink"), "stroke-width": 1.5 });
+    add(s, "text", { x: w - pad.r - 2, y: Y(cellAlarm) - 4, "text-anchor": "end", class: "ink" }, `alarm ${cellAlarm.toFixed(1)} V`);
+    add(s, "line", { x1: X(leftAtAlarm), x2: X(leftAtAlarm), y1: pad.t, y2: h - pad.b, stroke: css("--line"), "stroke-dasharray": "3 3" });
+    add(s, "text", { x: pad.l, y: h - 5 }, "full");
+    add(s, "text", { x: X(leftAtAlarm), y: h - 5, "text-anchor": "middle" }, "mAh alarm");
+    add(s, "text", { x: w - pad.r, y: h - 5, "text-anchor": "end" }, "empty");
+    const leg = el("div", { class: "legend" }, `<span><i style="background:var(--ink-3)"></i>at rest</span><span><i style="background:var(--s-alt)"></i>full throttle, this pack</span><span><i style="background:var(--s-motor)"></i>worn pack (15 mΩ)</span>`);
+    const box = el("div"); box.append(s, leg);
+    cards.push({
+      name: "Lowest cell under load", value: cellAlarm.toFixed(1), unit: "V", conf: ["mid", "Medium"],
+      sub: "per cell, while the motor runs", chart: box,
+      why: `At full throttle your pack drops about ${sag.toFixed(2)} V per cell. With a ${cellAlarm.toFixed(1)} V alarm it stays quiet in normal climbs and only sounds with about ${fmt(pctWhenAlarm)} % left: a backstop behind the mAh alarm.`,
+      more: [["Resistance per cell", `${rCell.toFixed(1)} mΩ`], ["Highest current", `${maxAmps.toFixed(1)} A`], ["Drop at full throttle", `${sag.toFixed(2)} V per cell`], ["Hard floor", "3.3 V under load"], ["Data", "flights ended at 87 % left; below that the curve is calculated"]],
+      where: "Smart Battery sensor: low cell voltage alarm. If your radio only offers pack voltage: 3 × value.",
+    });
+  }
+  const simple = (name, value, unit, conf, sub, why, more, where, seen, limit, max) => {
+    const w = 320, h = 44, x = (v) => 10 + (v / max) * (w - 20), s = svg(w, h);
+    add(s, "rect", { x: 10, y: 14, width: w - 20, height: 10, rx: 5, fill: css("--sunken"), stroke: css("--line") });
+    add(s, "circle", { cx: x(seen), cy: 19, r: 6, fill: css("--s-alt") });
+    add(s, "line", { x1: x(limit), x2: x(limit), y1: 8, y2: 30, stroke: css("--ink"), "stroke-width": 2 });
+    add(s, "text", { x: x(seen), y: 42, "text-anchor": "middle" }, `seen ${seen}`);
+    add(s, "text", { x: x(limit), y: 7, "text-anchor": "middle", class: "ink" }, `alarm ${limit}`);
+    cards.push({ name, value, unit, conf, sub, why, more, where, chart: s });
+  };
+  simple("Receiver voltage", "5.2", "V", ["high", "High"], "alarm below",
+    `Your receiver sees ${D.rx.rxMinV.toFixed(2)} V at the lowest from a 6.0 V BEC. 5.2 V warns of a failing BEC long before the receiver is at risk (4.8 V under load is its limit).`,
+    [["Lowest seen", `${D.rx.rxMinV.toFixed(2)} V`], ["BEC output", `${D.rx.becMinV.toFixed(1)} V`], ["Receiver limit", "4.8 V under load (AR8360T manual)"]],
+    "Receiver or ESC sensor: voltage alarm.", D.rx.rxMinV, 5.2, 7);
+  simple("Battery temperature", "55", "°C", ["high", "High"], "alarm above",
+    `Your pack reached ${fmt(D.temps.batteryMaxC)} °C. 55 °C leaves room on hot days and still warns well before 60 °C, the usual ceiling.`,
+    [["Highest seen", `${fmt(D.temps.batteryMaxC)} °C`], ["Common ceiling", "60 °C"]],
+    "Smart Battery sensor: temperature alarm.", Math.round(D.temps.batteryMaxC), 55, 80);
+  simple("Controller temperature", "70", "°C", ["mid", "Medium"], "alarm above",
+    `The controller reached ${fmt(D.temps.escMaxC)} °C. No limit is published for the Avian; 70 °C is a cautious general value.`,
+    [["Highest seen", `${fmt(D.temps.escMaxC)} °C`], ["Manufacturer limit", "not published"]],
+    "Smart ESC sensor: FET temperature alarm.", Math.round(D.temps.escMaxC), 70, 110);
+  cards.push({ name: "Radio link", value: "–", unit: "", conf: ["none", "No suggestion"], sub: "frame losses, holds",
+    why: "The NX8 manual shows frame losses and holds on the Flight Log screen but names no alarm for them. TLMscope rates the link after the flight instead.",
+    more: [["Holds in this flight", "0"], ["Normal in the air", "up to 100 frame losses per minute (NX8 manual)"]], where: "Check after each flying day in TLMscope." });
+
+  const root = document.getElementById("alarmCards");
+  for (const c of cards) {
+    const card = el("div", { class: "card" });
+    card.innerHTML = `<div class="alarmhead"><div><div class="label">${c.name}</div><div class="big num">${c.value}<small>${c.unit}</small></div><div class="sub">${c.sub}</div></div><span class="pill ${c.conf[0]}">${c.conf[1]}</span></div>`;
+    if (c.chart) card.appendChild(c.chart);
+    card.appendChild(el("p", { class: "why" }, c.why));
+    const more = el("details", { class: "more" }, `<summary>Where the number comes from</summary><div class="kv">${c.more.map(([k, v]) => `<span>${k}</span><span class="num">${v}</span>`).join("")}</div>`);
+    card.appendChild(more);
+    card.appendChild(el("p", { class: "where" }, c.where));
+    root.appendChild(card);
+  }
+}
+
+/* ================= 2 THERMALS ================= */
+function thermals() {
+  const L = D.lifts[0];
+  const circ = D.circlingPeriods[0];
+  const dur = L.end - L.start;
+  const avg = L.gainM / dur;
+  let best = 0;
+  for (let i = L.start; i + 10 <= L.end; i++) if (D.alt[i] !== null && D.alt[i + 10] !== null) best = Math.max(best, (D.alt[i + 10] - D.alt[i]) / 10);
+  // split into circles by integrating the turn rate
+  const circles = []; let acc = 0, s0 = circ.start;
+  for (let i = circ.start; i <= circ.end; i++) { acc += Math.abs(D.turn[i] || 0); if (acc >= 360) { circles.push([s0, i]); s0 = i; acc -= 360; } }
+  const climbRate = D.climbs.reduce((s, c) => s + c.gainM, 0) / D.climbs.reduce((s, c) => s + (c.end - c.start), 0);
+  const savedS = L.gainM / climbRate, savedMah = L.gainM / (D.mPer100mAh / 100);
+  const secsPerCircle = (circles.at(-1)[1] - circles[0][0]) / circles.length;
+  const dir = circ.direction > 0 ? "right" : "left";
+  document.getElementById("thermSentence").innerHTML =
+    `One thermal: <b>+${fmt(L.gainM)} m</b> in <b>${clock(dur)} min</b>, <b>${fmt(avg, 1)} m/s</b> on average, best 10 s <b>${fmt(best, 1)} m/s</b>. ` +
+    `<b>${circles.length} ${dir}-hand circles</b>, ${fmt(secsPerCircle)} s each. It saved about <b>${fmt(savedS)} s of motor</b> (${fmt(savedMah)} mAh).`;
+
+  // climb per circle bars
+  {
+    const per = circles.map(([a, b]) => ({ gain: D.alt[b] - D.alt[a], s: b - a }));
+    const w = 520, h = 190, pad = { l: 36, r: 10, t: 12, b: 26 };
+    const max = Math.ceil(Math.max(...per.map((p) => p.gain)) / 5) * 5;
+    const s = svg(w, h), bw = (w - pad.l - pad.r) / per.length;
+    const Y = (v) => pad.t + (1 - v / max) * (h - pad.t - pad.b);
+    for (let v = 0; v <= max; v += 5) { add(s, "line", { x1: pad.l, x2: w - pad.r, y1: Y(v), y2: Y(v), stroke: css("--grid") }); add(s, "text", { x: pad.l - 5, y: Y(v) + 4, "text-anchor": "end" }, `${v} m`); }
+    const mean = per.reduce((a, p) => a + p.gain, 0) / per.length;
+    per.forEach((p, i) => {
+      const x = pad.l + i * bw + 3;
+      const r = add(s, "rect", { x, y: Y(Math.max(0, p.gain)), width: bw - 6, height: Y(0) - Y(Math.max(0, p.gain)), rx: 3, fill: css("--s-lift") });
+      add(r, "title", {}, `Circle ${i + 1}: +${p.gain.toFixed(1)} m in ${p.s} s`);
+      add(s, "text", { x: x + (bw - 6) / 2, y: h - 9, "text-anchor": "middle" }, `${i + 1}`);
+      add(s, "text", { x: x + (bw - 6) / 2, y: Y(p.gain) - 4, "text-anchor": "middle", class: "ink" }, `+${fmt(p.gain)}`);
+    });
+    add(s, "line", { x1: pad.l, x2: w - pad.r, y1: Y(mean), y2: Y(mean), stroke: css("--ink-2"), "stroke-dasharray": "4 3" });
+    const order = per.map((p, i) => [p.gain, i + 1]).sort((a, b) => a[0] - b[0]);
+    document.getElementById("circleBars").append(s, el("p", { class: "sub" }, `Average ${fmt(mean, 1)} m per circle (dashed). Weakest: circle ${order[0][1]} (+${fmt(order[0][0])} m), strongest: circle ${order.at(-1)[1]} (+${fmt(order.at(-1)[0])} m). Big differences mean the core was lost and found again.`));
+  }
+  // circles from above
+  {
+    const pts = []; for (let i = circ.start; i <= circ.end; i++) if (D.east[i] !== null) pts.push([D.east[i], D.north[i], i]);
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const w = 520, h = 230, span = Math.max(maxX - minX, maxY - minY) * 1.1, k = (h - 30) / span;
+    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    const X = (e) => w / 2 + (e - cx) * k, Y = (n) => h / 2 - (n - cy) * k;
+    const s = svg(w, h);
+    for (let i = 1; i < pts.length; i++) {
+      const f = (pts[i][2] - circ.start) / (circ.end - circ.start);
+      add(s, "line", { x1: X(pts[i - 1][0]), y1: Y(pts[i - 1][1]), x2: X(pts[i][0]), y2: Y(pts[i][1]), stroke: css("--s-lift"), "stroke-width": 2.2, opacity: (0.25 + 0.75 * f).toFixed(2), "stroke-linecap": "round" });
+    }
+    const centre = ([a, b]) => { let e = 0, n = 0, c = 0; for (let i = a; i <= b; i++) if (D.east[i] !== null) { e += D.east[i]; n += D.north[i]; c++; } return [e / c, n / c]; };
+    const c0 = centre(circles[0]), c1 = centre(circles.at(-1));
+    add(s, "defs", {}).innerHTML = `<marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="${css("--ink")}"/></marker>`;
+    add(s, "line", { x1: X(c0[0]), y1: Y(c0[1]), x2: X(c1[0]), y2: Y(c1[1]), stroke: css("--ink"), "stroke-width": 2, "marker-end": "url(#arr)" });
+    const dm = Math.hypot(c1[0] - c0[0], c1[1] - c0[1]), dt = circles.at(-1)[0] - circles[0][0];
+    const bearing = (Math.atan2(c1[0] - c0[0], c1[1] - c0[1]) * 180 / Math.PI + 360) % 360;
+    const dirs = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
+    add(s, "text", { x: 8, y: 16 }, "N ↑");
+    const sb = 50; add(s, "line", { x1: w - 10 - sb * k, x2: w - 10, y1: h - 10, y2: h - 10, stroke: css("--ink-2"), "stroke-width": 2 }); add(s, "text", { x: w - 10, y: h - 15, "text-anchor": "end" }, `${sb} m`);
+    document.getElementById("circlePlot").append(s, el("p", { class: "sub" }, `Drift ${fmt(dm)} m towards the ${dirs[Math.round(bearing / 45) % 8]} in ${clock(dt)} min (about ${fmt(dm / dt, 1)} m/s wind).`));
+  }
+  // table
+  {
+    const rows = [
+      { when: "14 Jun 16:06", flight: "this flight", gain: L.gainM, dur, avg, best, circles: circles.length, saved: savedMah, ex: false },
+      { when: "14 Jun 15:12", flight: "example", gain: 64, dur: 71, avg: 0.9, best: 1.4, circles: 5, saved: 105, ex: true },
+      { when: "07 Jun 17:40", flight: "example", gain: 182, dur: 156, avg: 1.17, best: 2.1, circles: 11, saved: 298, ex: true },
+      { when: "07 Jun 17:05", flight: "example", gain: 38, dur: 52, avg: 0.73, best: 1.1, circles: 4, saved: 62, ex: true },
+    ];
+    document.getElementById("thermTable").innerHTML = `<thead><tr><th>Start</th><th>Flight</th><th class="r">Gain</th><th class="r">Time</th><th class="r">Average</th><th class="r">Best 10 s</th><th class="r">Circles</th><th class="r">Saved</th></tr></thead><tbody>` +
+      rows.map((r) => `<tr class="${r.ex ? "ex" : ""}"><td class="num">${r.when}</td><td>${r.flight}</td><td class="r num">+${fmt(r.gain)} m</td><td class="r num">${clock(r.dur)}</td><td class="r num">${fmt(r.avg, 1)} m/s</td><td class="r num">${fmt(r.best, 1)} m/s</td><td class="r num">${r.circles}</td><td class="r num">${fmt(r.saved)} mAh</td></tr>`).join("") + "</tbody>";
+  }
+  // field map
+  {
+    const w = 900, h = 300, s = svg(w, h), k = 0.32, X = (e) => w / 2 + e * k, Y = (n) => h / 2 - n * k;
+    for (const r of [100, 200, 300, 400]) { add(s, "circle", { cx: X(0), cy: Y(0), r: r * k, fill: "none", stroke: css("--grid") }); add(s, "text", { x: X(0) + r * k + 3, y: Y(0) - 3 }, `${r} m`); }
+    add(s, "line", { x1: X(-430), x2: X(430), y1: Y(-60), y2: Y(60), stroke: css("--line"), "stroke-width": 1.5, "stroke-dasharray": "6 4" });
+    add(s, "text", { x: X(-430), y: Y(-60) + 14 }, "field edge (example)");
+    const c = D.circlingPeriods[0]; let e = 0, n = 0, m = 0; for (let i = c.start; i <= c.end; i++) if (D.east[i] !== null) { e += D.east[i]; n += D.north[i]; m++; }
+    const spots = [{ e: e / m, n: n / m, avg, me: true }, { e: 140, n: 210, avg: 0.9 }, { e: 170, n: 250, avg: 1.17 }, { e: -260, n: -90, avg: 0.73 }, { e: 120, n: 180, avg: 1.3 }, { e: 210, n: 230, avg: 0.8 }];
+    for (const p of spots) {
+      const dot = add(s, "circle", { cx: X(p.e), cy: Y(p.n), r: 5 + p.avg * 7, fill: css("--s-lift"), opacity: p.me ? 0.9 : 0.4, stroke: p.me ? css("--ink") : "none", "stroke-width": 1.5 });
+      add(dot, "title", {}, `${p.me ? "This flight" : "Example"}: ${p.avg.toFixed(1)} m/s average`);
+    }
+    add(s, "circle", { cx: X(0), cy: Y(0), r: 5, fill: css("--ink") });
+    add(s, "text", { x: X(0) + 8, y: Y(0) + 14, class: "ink" }, "launch");
+    add(s, "text", { x: 8, y: 16 }, "N ↑");
+    const wrap = el("div", { class: "scroll" }); wrap.appendChild(s);
+    document.getElementById("fieldMap").append(wrap, el("p", { class: "sub" }, "In the app this is a layer on the existing map. Most lift here stood north to north-east of the launch point, about 200 m out."));
+  }
+}
+
+/* ================= 5 REPLAY ================= */
+const replay = (() => {
+  const cv = document.getElementById("scene"), ctx = cv.getContext("2d");
+  const sc = document.getElementById("scrubCv"), sctx = sc.getContext("2d");
+  const n = D.n; let t = D.airStart - 5, playing = false, speed = 10, yaw = -0.6, pitch = 0.95, last = 0, audio = null;
+  const exag = 1.6;
+  const pts = []; for (let i = 0; i < n; i++) pts.push(D.east[i] === null ? null : [D.east[i], D.north[i], (D.alt[i] || 0) * exag]);
+  const valid = pts.filter(Boolean);
+  const cx = (Math.min(...valid.map((p) => p[0])) + Math.max(...valid.map((p) => p[0]))) / 2;
+  const cy = (Math.min(...valid.map((p) => p[1])) + Math.max(...valid.map((p) => p[1]))) / 2;
+  const radius = Math.max(...valid.map((p) => Math.hypot(p[0] - cx, p[1] - cy)));
+  const hud = document.getElementById("hud");
+  const at = (arr, x) => { const i = Math.floor(x), f = x - i; const a = arr[i], b = arr[Math.min(i + 1, n - 1)]; if (a === null || a === undefined) return b ?? null; if (b === null || b === undefined) return a; return a + (b - a) * f; };
+
+  function project(p, W, H) {
+    const x = p[0] - cx, y = p[1] - cy;
+    const xr = x * Math.cos(yaw) - y * Math.sin(yaw), yr = x * Math.sin(yaw) + y * Math.cos(yaw);
+    const k = Math.min(W, H * 1.6) / (radius * 2.5);
+    return [W / 2 + xr * k, H * 0.62 - (yr * Math.cos(pitch) + p[2] * Math.sin(pitch)) * k * 0.9, yr];
+  }
+  function draw() {
+    const W = cv.clientWidth, H = cv.clientHeight, dpr = devicePixelRatio || 1;
+    if (cv.width !== W * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    // ground grid
+    ctx.strokeStyle = css("--grid"); ctx.lineWidth = 1;
+    for (let g = -400; g <= 400; g += 100) {
+      let a = project([cx + g, cy - 400, 0], W, H), b = project([cx + g, cy + 400, 0], W, H); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      a = project([cx - 400, cy + g, 0], W, H); b = project([cx + 400, cy + g, 0], W, H); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+    }
+    const now = Math.floor(t);
+    // shadow + path
+    for (let pass = 0; pass < 2; pass++) {
+      for (let i = 1; i <= now && i < n; i++) {
+        const p0 = pts[i - 1], p1 = pts[i]; if (!p0 || !p1) continue;
+        const a = project(pass ? p0 : [p0[0], p0[1], 0], W, H), b = project(pass ? p1 : [p1[0], p1[1], 0], W, H);
+        ctx.strokeStyle = pass ? css(PHASE[D.phase[i]] || "--s-glide") : css("--line");
+        ctx.globalAlpha = pass ? (now - i < 60 ? 1 : 0.55) : 0.8;
+        ctx.lineWidth = pass ? 2.4 : 1.2; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+    // model + drop line
+    const e = at(D.east, t), nn = at(D.north, t), z = (at(D.alt, t) || 0) * exag;
+    if (e !== null) {
+      const m = project([e, nn, z], W, H), g = project([e, nn, 0], W, H);
+      ctx.strokeStyle = css("--ink-3"); ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(m[0], m[1]); ctx.lineTo(g[0], g[1]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = css("--surface"); ctx.strokeStyle = css("--ink"); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(m[0], m[1], 6, 0, 7); ctx.fill(); ctx.stroke();
+    }
+    const home = project([0, 0, 0], W, H); ctx.fillStyle = css("--ink"); ctx.beginPath(); ctx.arc(home[0], home[1], 4, 0, 7); ctx.fill();
+    ctx.font = `12px ${css("--font-body")}`; ctx.fillStyle = css("--ink-2"); ctx.fillText("launch", home[0] + 7, home[1] + 4);
+    // HUD
+    const i = Math.min(n - 1, Math.max(0, Math.round(t)));
+    const ph = D.phase[i] || "ground";
+    const val = (v, d, u) => (v === null || v === undefined ? "–" : `${fmt(v, d)}<small style="font-size:12px;font-weight:600"> ${u}</small>`);
+    hud.innerHTML = [["Height", val(at(D.alt, t), 0, "m")], ["Vario", val(D.climb[i], 1, "m/s")], ["Speed", val(D.speed[i] !== null ? D.speed[i] * 3.6 : null, 0, "km/h")], ["Motor", val(D.amps[i] ?? 0, 0, "A")], ["Signal", val(D.dbm[i], 0, "dBm")], ["Phase", `<span style="font-size:15px">${{ motor: "Motor climb", glide: "Gliding", lift: "Lift", ground: "On ground" }[ph]}</span>`]]
+      .map(([k, v]) => `<div><div class="label">${k}</div><b class="num">${v}</b></div>`).join("");
+    document.getElementById("clock").textContent = `${clock(t)} / ${clock(n - 1)}`;
+    drawScrub();
+    if (audio) setVario(D.climb[i]);
+  }
+  function drawScrub() {
+    const W = sc.clientWidth, H = sc.clientHeight, dpr = devicePixelRatio || 1;
+    if (sc.width !== W * dpr) { sc.width = W * dpr; sc.height = H * dpr; }
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0); sctx.clearRect(0, 0, W, H);
+    for (let i = 0; i < n; i++) { sctx.fillStyle = css(PHASE[D.phase[i]] || "--s-ground"); sctx.globalAlpha = 0.45; sctx.fillRect(i / n * W, 0, W / n + 1, H); }
+    sctx.globalAlpha = 1; sctx.strokeStyle = css("--ink-2"); sctx.lineWidth = 1.2; sctx.beginPath();
+    const top = Math.max(...D.alt.filter((v) => v !== null));
+    D.alt.forEach((v, i) => { const x = i / n * W, y = H - 3 - ((v || 0) / top) * (H - 8); i ? sctx.lineTo(x, y) : sctx.moveTo(x, y); }); sctx.stroke();
+    const x = t / (n - 1) * W; sctx.fillStyle = css("--ink"); sctx.fillRect(x - 1, 0, 2.5, H);
+  }
+  function loop(ts) {
+    if (!playing) return;
+    const dt = last ? (ts - last) / 1000 : 0; last = ts;
+    t += dt * speed; if (t >= n - 1) { t = n - 1; pause(); }
+    draw(); if (playing) requestAnimationFrame(loop);
+  }
+  const btn = document.getElementById("play");
+  function play() { if (t >= n - 1) t = 0; playing = true; last = 0; btn.textContent = "❚❚ Pause"; requestAnimationFrame(loop); }
+  function pause() { playing = false; btn.textContent = "▶ Play"; if (audio) setVario(null); }
+  btn.onclick = () => (playing ? pause() : play());
+  const sp = document.getElementById("speeds");
+  [1, 10, 30, 60].forEach((v) => { const b = el("button", { "aria-pressed": String(v === speed) }, `${v}×`); b.onclick = () => { speed = v; sp.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); }; sp.appendChild(b); });
+  const scrub = document.getElementById("scrub");
+  const seek = (ev) => { const r = scrub.getBoundingClientRect(); t = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * (n - 1); draw(); };
+  scrub.addEventListener("pointerdown", (ev) => { scrub.setPointerCapture(ev.pointerId); seek(ev); scrub.onpointermove = seek; });
+  scrub.addEventListener("pointerup", () => { scrub.onpointermove = null; });
+  let drag = null;
+  cv.addEventListener("pointerdown", (ev) => { cv.setPointerCapture(ev.pointerId); drag = [ev.clientX, ev.clientY, yaw, pitch]; cv.style.cursor = "grabbing"; });
+  cv.addEventListener("pointermove", (ev) => { if (!drag) return; yaw = drag[2] + (ev.clientX - drag[0]) * 0.008; pitch = Math.max(0.25, Math.min(1.45, drag[3] + (ev.clientY - drag[1]) * 0.006)); draw(); });
+  cv.addEventListener("pointerup", () => { drag = null; cv.style.cursor = "grab"; });
+  document.addEventListener("keydown", (ev) => {
+    if (location.hash !== "#replay" || ev.target.closest("input,select,textarea")) return;
+    if (ev.key === " ") { ev.preventDefault(); playing ? pause() : play(); }
+    if (ev.key === "ArrowRight") { t = Math.min(n - 1, t + 5); draw(); }
+    if (ev.key === "ArrowLeft") { t = Math.max(0, t - 5); draw(); }
+  });
+  // vario tone: beeps rise with climb, silent while sinking slowly
+  let osc, gain, beepTimer;
+  function setVario(climb) {
+    if (!audio) return;
+    clearInterval(beepTimer);
+    if (climb === null || climb === undefined || climb < 0.2 || !playing) { gain.gain.setTargetAtTime(0, audio.currentTime, 0.02); return; }
+    osc.frequency.setTargetAtTime(500 + climb * 160, audio.currentTime, 0.05);
+    const period = Math.max(120, 600 - climb * 110);
+    let on = false; beepTimer = setInterval(() => { on = !on; gain.gain.setTargetAtTime(on ? 0.08 : 0, audio.currentTime, 0.01); }, period / 2);
+  }
+  const vb = document.getElementById("vario");
+  vb.onclick = () => {
+    if (audio) { clearInterval(beepTimer); audio.close(); audio = null; vb.textContent = "Vario tone: off"; vb.setAttribute("aria-pressed", "false"); return; }
+    try { audio = new AudioContext(); osc = audio.createOscillator(); gain = audio.createGain(); gain.gain.value = 0; osc.type = "sine"; osc.connect(gain).connect(audio.destination); osc.start(); vb.textContent = "Vario tone: on"; vb.setAttribute("aria-pressed", "true"); }
+    catch { vb.textContent = "No sound here"; }
+  };
+  new ResizeObserver(() => draw()).observe(cv);
+  return { resize: draw, pause };
+})();
+
+/* ================= 6 BATTERY TREND ================= */
+function batteryTrend() {
+  // invented history: three packs, Jul–Nov 2026
+  const rnd = (() => { let s = 7; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; })();
+  const packs = [
+    { id: "A", color: "--s-alt", base: 6.1, slope: 0.025, cycle0: 12 },
+    { id: "B", color: "--s-motor", base: 7.4, slope: 0.17, cycle0: 41 },
+    { id: "C", color: "--s-5", base: 5.6, slope: 0.01, cycle0: 3 },
+  ];
+  const start = Date.UTC(2026, 6, 4), end = Date.UTC(2026, 10, 7);
+  for (const p of packs) {
+    p.pts = []; let c = p.cycle0;
+    for (let d = start + rnd() * 3 * 864e5; d < end; d += (3 + rnd() * 5) * 864e5) {
+      c++;
+      const month = new Date(d).getUTCMonth();
+      const temp = Math.round((month >= 9 ? 9 : 17) + rnd() * 12);
+      const trueR = p.base + p.slope * (c - p.cycle0);
+      const raw = trueR + (temp < 20 ? 0.09 * (20 - temp) : 0) + (rnd() - 0.5) * 0.6;
+      const corr = raw - (temp < 20 ? 0.09 * (20 - temp) : 0);
+      p.pts.push({ d, c, temp, raw, corr });
+    }
+    const last = p.pts.slice(-10), mc = last.reduce((s, q) => s + q.c, 0) / last.length, mr = last.reduce((s, q) => s + q.corr, 0) / last.length;
+    p.k = last.reduce((s, q) => s + (q.c - mc) * (q.corr - mr), 0) / last.reduce((s, q) => s + (q.c - mc) ** 2, 0);
+    p.now = mr + p.k * (last.at(-1).c - mc);
+    p.left = p.k > 0.02 ? Math.max(0, Math.round((15 - p.now) / p.k)) : null;
+    p.cycles = last.at(-1).c;
+  }
+  const status = (p) => p.now >= 15 ? ["low", "Retire"] : p.left !== null && p.left < 40 ? ["mid", "Wearing"] : ["high", "Good"];
+  document.getElementById("packCards").innerHTML = packs.map((p) => {
+    const [cls, word] = status(p);
+    const fc = p.left === null || p.left > 150 ? "No wear worth noting: more than 150 cycles to go at this rate." : `Reaches 15 mΩ in about <b>${p.left} cycles</b> at this rate.`;
+    return `<div class="card"><div class="alarmhead"><div><div class="label"><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(${p.color});margin-right:6px"></i>Battery ${p.id}</div><div class="big num">${fmt(p.now, 1)}<small>mΩ per cell</small></div><div class="sub">${p.cycles} cycles · ${p.pts.length} flights logged</div></div><span class="pill ${cls}">${word}</span></div><p class="why">${fc} Trend +${fmt(p.k * 10, 2)} mΩ per 10 cycles.</p></div>`;
+  }).join("");
+  // chart
+  const w = 900, h = 300, pad = { l: 44, r: 14, t: 10, b: 28 }, s = svg(w, h);
+  const X = (d) => pad.l + (d - start) / (end - start) * (w - pad.l - pad.r), Y = (v) => pad.t + (17 - v) / (17 - 3) * (h - pad.t - pad.b);
+  [[3, 10, "--good", .07], [10, 12, "--warn", .08], [12, 15, "--serious", .08], [15, 17, "--crit", .1]].forEach(([a, b, c, o]) => add(s, "rect", { x: pad.l, y: Y(b), width: w - pad.l - pad.r, height: Y(a) - Y(b), fill: css(c), opacity: o }));
+  for (let v = 4; v <= 16; v += 2) { add(s, "line", { x1: pad.l, x2: w - pad.r, y1: Y(v), y2: Y(v), stroke: css("--grid") }); add(s, "text", { x: pad.l - 6, y: Y(v) + 4, "text-anchor": "end" }, `${v} mΩ`); }
+  for (let m = 6; m <= 10; m++) { const d = Date.UTC(2026, m, 1); if (d < start) continue; add(s, "text", { x: X(d), y: h - 8, "text-anchor": "middle" }, new Date(d).toLocaleString("en-GB", { month: "short" })); }
+  for (const p of packs) {
+    const col = css(p.color);
+    for (const q of p.pts) { const cold = q.temp < 20; const dot = add(s, "circle", { cx: X(q.d), cy: Y(q.corr), r: 3.6, fill: cold ? css("--surface") : col, stroke: col, "stroke-width": 1.5 }); add(dot, "title", {}, `Battery ${p.id}, ${new Date(q.d).toLocaleDateString("en-GB")}: ${q.corr.toFixed(1)} mΩ (${q.temp} °C${cold ? `, measured ${q.raw.toFixed(1)}` : ""})`); }
+    const a = p.pts[0], b = p.pts.at(-1);
+    const r0 = p.now - p.k * (b.c - a.c);
+    add(s, "line", { x1: X(a.d), y1: Y(r0), x2: X(b.d), y2: Y(p.now), stroke: col, "stroke-width": 2 });
+  }
+  const wrap = el("div", { class: "scroll" }); wrap.appendChild(s);
+  document.getElementById("irChart").appendChild(wrap);
+  document.getElementById("irLegend").innerHTML = packs.map((p) => `<span><i style="background:var(${p.color})"></i>Battery ${p.id}</span>`).join("") + `<span><i style="background:var(--surface);border:1.5px solid var(--ink-3)"></i>cold flight, corrected</span>`;
+}
+
+alarmCards(); thermals(); batteryTrend(); route();
+</script>

@@ -286,3 +286,4 @@ Every phase ends with passing tests, a short demo, small focused commits and you
 - Comparing flights side by side.
 - Decoding 0x7A once its meaning is clear.
 - Feedback feature: a way for users to send feedback from the app, through a Tally form.
+- Beta testers: research where to find them (RC forums and communities, e.g. groups for Spektrum and gliders). Only makes sense once the feedback feature exists.
