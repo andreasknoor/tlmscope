@@ -14,6 +14,9 @@ import { PHASE_COLOR } from "./charts/LineChart";
 
 export const KIND_COLOR: Record<string, string> = { flight: "var(--s-alt)", "ground-test": "var(--s-motor)", "powered-on": "var(--s-glide)", "transmitter-only": "var(--s-ground)" };
 
+/** major.minor, injected at build time from package.json. */
+export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
+
 export function Logo({ size = 28 }: { size?: number }) {
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
@@ -36,6 +39,7 @@ function Header() {
       <a className="brand" href="#sessions" onClick={(e) => { e.preventDefault(); go("sessions"); }}>
         <Logo /><Wordmark />
       </a>
+      <span className="version" title={`TLMscope ${APP_VERSION}`}>v{APP_VERSION}</span>
       {files.length > 0 && (
         <nav className="nav" aria-label="Main">
           {(["sessions", "batteries", "inventory"] as const).map((v) => (

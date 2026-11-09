@@ -76,6 +76,8 @@ npm run build                              # static export to out/
 npm run demo                               # regenerate public/demo/demo-flight.TLM
 ```
 
+**Versions.** The app version is `major.minor` from `package.json` and shows next to the name in the header. Every published update raises the minor version (1.1 → 1.2); the major version only changes on a deliberate decision. Pushes to `main` are published on Vercel automatically.
+
 The code in `src/core/` is framework-free TypeScript. It runs in the browser, in Node.js (`node file.ts` runs it directly) and in tests.
 
 ```
