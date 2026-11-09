@@ -40,7 +40,7 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 | Height and climb rate | Vario / altimeter sensor, or a receiver that reports it | Tested |
 | Loads (g) and rotation rates | Receiver with AS3X / SAFE | Tested |
 | Throttle stick position | Recent NX firmware (AutoLog files) | Tested |
-| Flight mode | Receiver with AS3X / SAFE | Partly understood |
+| Stabilization mode | Receiver with AS3X / SAFE | Partly understood |
 | Map, distance, speed over ground | Spektrum GPS telemetry sensor | Built from the specification, not tested yet |
 | Other sensors (airspeed, extra current or temperature sensors, …) | X-Bus / SRXL2 sensors | Shown as raw data for now |
 
@@ -221,7 +221,7 @@ Ids may also be `stick.*`, `switch.*` (control inputs) or `raw:*` (decoded but u
 | `ground_speed` | m/s | numeric | gps | Speed over ground from GPS. |
 | `heading` | ° | numeric | gps | Course over ground from GPS, 0 = north. |
 | `throttle_command` | % | numeric | controls | Throttle stick position at the transmitter. |
-| `flight_mode` | – | categorical | status | Flight mode reported by the receiver or flight controller. |
+| `flight_mode` | – | categorical | status | Stabilization mode (AS3X / SAFE) reported by the receiver or flight controller. |
 <!-- catalogue:end -->
 
 ## Spektrum `.TLM` file format

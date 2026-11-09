@@ -5,7 +5,7 @@
   "0x7e": { "label": "Drehzahl / Signal", "note": "Offset 8 = Signal in dBm, Offset 9 = Signal in % (Bedeutung unbestätigt). Offset 14 zählt etwa einmal pro Sekunde hoch (unbekannt, vielleicht Laufzeit des Empfängers)." },
   "0x14": { "label": "G-Messer", "note": "" },
   "0x1a": { "label": "Gyro", "note": "Achsen zugeordnet als x = Rollen, y = Nicken, z = Gieren. Geprüft an den Beispielflügen: y ist in jeder Kurve positiv, z gibt die Richtung an." },
-  "0x05": { "label": "Status Flugsteuerung (AS3X / SAFE)", "note": "Byte 2 sieht nach dem Flugmodus-Index aus (ab 0, unbestätigt). Byte 5 wechselt 0x80–0x82 wie eine Seitennummer; die Bytes 6–9 enthalten dann kleine Werte (Verstärkungen?)." },
+  "0x05": { "label": "Status Flugsteuerung (AS3X / SAFE)", "note": "Byte 2 sieht nach dem Index des Stabilisierungsmodus aus (ab 0, unbestätigt). Byte 5 wechselt 0x80–0x82 wie eine Seitennummer; die Bytes 6–9 enthalten dann kleine Werte (Verstärkungen?)." },
   "0x42/0x00": { "label": "Smart-Akku · Live-Werte", "note": "Little-Endian. Felder kommen oft nur teilweise gefüllt; Strom und verbrauchte mAh sind lückenhaft und werden nicht genutzt." },
   "0x42/0x10": { "label": "Smart-Akku · Zellen 1–6", "note": "" },
   "0x42/0x80": { "label": "Smart-Akku · Identität", "note": "" },

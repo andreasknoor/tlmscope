@@ -139,9 +139,9 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x05": {
     label: "Flight controller status (AS3X / SAFE)",
     understood: "partial",
-    note: "Byte 2 looks like the flight mode index (0-based, unverified). Byte 5 cycles 0x80–0x82 like a page number; bytes 6–9 then carry small values (gains?).",
+    note: "Byte 2 looks like the stabilization mode index (0-based, unverified). Byte 5 cycles 0x80–0x82 like a page number; bytes 6–9 then carry small values (gains?).",
     decode: (p) => [
-      { name: "Flight mode index (unverified)", unit: "", value: p[2], channel: "flight_mode", categorical: true },
+      { name: "Stabilization mode index (unverified)", unit: "", value: p[2], channel: "flight_mode", categorical: true },
       { name: "Byte 3", unit: "", value: p[3] },
       { name: "Byte 4", unit: "", value: p[4] },
       { name: "Page (byte 5)", unit: "", value: p[5] },

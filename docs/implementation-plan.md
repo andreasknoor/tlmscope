@@ -285,3 +285,4 @@ Every phase ends with passing tests, a short demo, small focused commits and you
 - Export (CSV of canonical channels, GPX/KML with GPS).
 - Comparing flights side by side.
 - Decoding 0x7A once its meaning is clear.
+- Feedback feature: a way for users to send feedback from the app, through a Tally form.

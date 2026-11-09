@@ -326,15 +326,18 @@
     "note": "Ohne GPS ist die Höhe der einzige Hinweis auf die Entfernung: höher heißt meist weiter weg."
   },
   "aircraft": {
-    "flightMode": "Flugmodus",
-    "flightModeHint": "Genutzte Schalterstellungen (unbestätigt)",
+    "flightMode": "Stabilisierung",
+    "flightModeHint": "Genutzte Modi laut Empfänger (Bedeutung unbestätigt)",
+    "modes": "Modus {list}",
+    "mode": "Modus {n}",
+    "disabled": "Deaktiviert",
     "controller": "Regler",
     "bec": "BEC",
     "battery": "Akku",
     "receiver": "Empfänger",
     "becOut": "BEC-Ausgang",
     "load": "Last (gesamt g)",
-    "fmOverTime": "Flugmodus im Verlauf"
+    "fmOverTime": "Stabilisierung im Verlauf"
   },
   "raw": {
     "title": "Sensoren in dieser Sitzung",
@@ -431,7 +434,7 @@
     "d5n": "Empfänger mit AS3X / SAFE",
     "d6": "Stellung des Gasknüppels",
     "d6n": "Aktuelle NX-Firmware (AutoLog-Dateien)",
-    "d7": "Flugmodus",
+    "d7": "Stabilisierungsmodus",
     "d7n": "Empfänger mit AS3X / SAFE",
     "d8": "Karte, Entfernung, Geschwindigkeit über Grund",
     "d8n": "Spektrum GPS-Telemetriesensor",
