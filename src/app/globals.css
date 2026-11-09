@@ -218,14 +218,16 @@ details.sessionlist[open] summary { margin-bottom: 8px; }
 
 /* map + 3D */
 .mapwrap { position: relative; height: 440px; border-radius: 8px; overflow: hidden; background: var(--sunken); }
-.mapwrap .tools { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 2; pointer-events: none; }
-.mapwrap .tools > * { pointer-events: auto; }
+.mapbox { position: relative; }
+.mapbox > .tools { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 2; pointer-events: none; }
+.mapbox > .tools > * { pointer-events: auto; }
 .mapselect { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink-2); font: inherit; font-weight: 600; font-size: 13.5px; padding: 4px 8px; cursor: pointer; }
 /* Map and replay; in full screen they fill the browser window. */
 .mapgroup { display: contents; }
 .mapgroup.full { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: flex; flex-direction: column; gap: 10px;
   padding: max(10px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
 .mapgroup.full > .chart:first-child { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.mapgroup.full .mapbox { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .mapgroup.full .mapwrap { flex: 1; height: auto; min-height: 200px; }
 .mapgroup .ch .btn { padding: 3px 10px; font-size: 13px; }
 .simbanner { display: flex; gap: 10px; align-items: center; border: 1.5px dashed var(--s-5); background: var(--sunken); border-radius: var(--radius); padding: 10px 14px; flex-wrap: wrap; }
@@ -300,6 +302,8 @@ body:not([data-details="on"]) .lv-more { display: none !important; }
   .shead h1 { font-size: 28px; }
   .navbtns { margin-left: 0; }
   .mapwrap { height: 340px; }
+  /* Phones: the map tools stand above the map instead of covering it. */
+  .mapbox > .tools { position: static; margin-bottom: 8px; pointer-events: auto; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .spinner { animation-duration: 2.4s; } }
 

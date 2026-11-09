@@ -321,6 +321,7 @@
     "marker": "Model in the replay",
     "marker_plane": "Aircraft",
     "marker_dot": "Dot",
+    "marker_stork": "Adebar",
     "shadow": "Ground shadow",
     "shadowHint": "The path projected onto the ground, to see where the model was over the terrain.",
     "follow": "Height · move here to follow the model",

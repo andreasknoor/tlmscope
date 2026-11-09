@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MlMap } from "maplibre-gl";
 import type { MapboxOverlay } from "@deck.gl/mapbox";
+import type { Layer } from "@deck.gl/core";
 import { attitudeFromPath, type Track } from "@/core/analysis";
 import { maxOf, minOf } from "@/core/analysis/grid";
 import { cssVar } from "../format";
-import { planeMesh } from "./plane-mesh";
+import { planeMesh, storkMeshes, STORK_SHOULDER, type Mesh, type V } from "./plane-mesh";
 
 /** Free vector tiles without an API key (decision D3: MapLibre). */
 export const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
@@ -16,8 +17,8 @@ export type LineStyle = "thin" | "thinDashed" | "thick" | "thickDashed";
 export const LINE_STYLES: LineStyle[] = ["thin", "thinDashed", "thick", "thickDashed"];
 const LINE_WIDTH = { thin: 2, thick: 4 };
 /** How the model is shown in the replay. */
-export type MarkerStyle = "plane" | "dot";
-export const MARKER_STYLES: MarkerStyle[] = ["plane", "dot"];
+export type MarkerStyle = "plane" | "dot" | "stork";
+export const MARKER_STYLES: MarkerStyle[] = ["plane", "dot", "stork"];
 /** Dash and gap length in pixels. */
 const DASH: [number, number] = [10, 7];
 
@@ -33,6 +34,8 @@ interface Props {
   markerStyle: MarkerStyle;
   /** Draw the path projected onto the ground. */
   shadow: boolean;
+  /** Seconds in which the stork flaps its wings (motor climbs); otherwise it glides. */
+  flapping?: boolean[];
   /** Thermal centres to mark: strength in m/s, `own` for this flight. */
   spots?: { lat: number; lon: number; climb: number; own: boolean }[];
   /** Shown when the map cannot be loaded. */
@@ -64,6 +67,14 @@ const PLANE_PX_MAX = 72;
 /** Growth per zoom level (1 would keep the real size; less keeps it readable when zoomed out). */
 const PLANE_GROWTH = 0.75;
 const PLANE_MIN_M = 1.5;
+/** Stork: wing beats per second, beat amplitude and the slight upward angle of the wings in a glide (degrees). */
+const FLAP_HZ = 1.8;
+const FLAP_AMP = 30;
+const GLIDE_DIHEDRAL = 5;
+/** How fast the stork switches between flapping and gliding (share per second). */
+const FLAP_BLEND_RATE = 2.5;
+/** A cursor jump of more than this many seconds moves the model at once instead of gliding there. */
+const MAX_GLIDE_JUMP = 5;
 const planePx = (zoom: number, fitZoom: number) =>
   Math.min(PLANE_PX_MAX, Math.max(PLANE_PX_MIN, PLANE_FIT_PX * 2 ** ((zoom - fitZoom) * PLANE_GROWTH)));
 /** Ground metres per screen pixel at the map centre (MapLibre uses 512 px tiles). */
@@ -71,6 +82,22 @@ const metresPerPixel = (lat: number, zoom: number) => (40_075_016.7 * Math.cos((
 
 /** The text colour, moved a quarter towards mid grey so the lighting can show the shape. */
 const planeColor = (ink: [number, number, number]): [number, number, number] => ink.map((c) => Math.round(c + (128 - c) * 0.25)) as [number, number, number];
+
+type M3 = [V, V, V];
+const rad = Math.PI / 180;
+/** Rotation matrix (columns) for deck.gl's [pitch, yaw, roll] in degrees, as SimpleMeshLayer builds it. */
+function rotation(pitch: number, yaw: number, roll: number): M3 {
+  const sp = Math.sin(pitch * rad), cp = Math.cos(pitch * rad), sw = Math.sin(yaw * rad), cw = Math.cos(yaw * rad), sr = Math.sin(roll * rad), cr = Math.cos(roll * rad);
+  return [[cw * cp, sw * cp, -sp], [-sw * cr + cw * sp * sr, cw * cr + sw * sp * sr, cp * sr], [sw * sr + cw * sp * cr, -cw * sr + sw * sp * cr, cp * cr]];
+}
+const apply = (m: M3, v: V): V => [0, 1, 2].map((k) => m[0][k] * v[0] + m[1][k] * v[1] + m[2][k] * v[2]) as V;
+/** m · (rotation about the x axis by `a` degrees). */
+function timesRotX(m: M3, a: number): M3 {
+  const c = Math.cos(a * rad), s = Math.sin(a * rad);
+  return [m[0], apply(m, [0, c, s]), apply(m, [0, -s, c])];
+}
+/** 4×4 column-major matrix from rotation columns and a translation in metres. */
+const mat4 = (m: M3, t: V) => [...m[0], 0, ...m[1], 0, ...m[2], 0, ...t, 1];
 
 const toRgb = (c: string): [number, number, number] => {
   const m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c);
@@ -81,7 +108,7 @@ const toRgb = (c: string): [number, number, number] => {
 };
 
 /** Map with the flight path in 3D. Libraries load only in the browser. */
-export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, markerStyle, shadow: showShadow, spots = [], failedText }: Props) {
+export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, markerStyle, shadow: showShadow, flapping, spots = [], failedText }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
@@ -89,7 +116,14 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
   const meshRef = useRef<typeof import("@deck.gl/mesh-layers") | null>(null);
   const extRef = useRef<typeof import("@deck.gl/extensions") | null>(null);
   const fitZoomRef = useRef<number | null>(null);
-  const [zoom, setZoom] = useState<number | null>(null);
+  /** Layers that do not move with the replay; the model layers are added on every frame. */
+  const staticRef = useRef<Layer[]>([]);
+  /** Shown position (fractional second), its glide towards the cursor, and the stork's wing beat. */
+  const anim = useRef({ shown: null as number | null, from: 0, to: 0, start: 0, dur: 0, lastChange: 0, blend: 0, phase: 0, prevT: 0, frame: 0 });
+  const drawRef = useRef<() => void>(() => {});
+  // The animation loop reads the latest props through refs, so it keeps running across renders.
+  const live = useRef({ markerStyle, flapping });
+  useEffect(() => { live.current = { markerStyle, flapping }; }, [markerStyle, flapping]);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -97,6 +131,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
     let cancelled = false;
     let map: MlMap | null = null;
     let resize: ResizeObserver | null = null;
+    const st = anim.current;
     Promise.all([import("maplibre-gl"), import("@deck.gl/mapbox"), import("@deck.gl/layers"), import("@deck.gl/mesh-layers"), import("@deck.gl/extensions")]).then(([ml, dm, layers, mesh, ext]) => {
       if (cancelled || !el.current) return;
       ml.setWorkerUrl(new URL("maplibre/maplibre-gl-worker.mjs", window.location.href).href);
@@ -133,8 +168,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
       meshRef.current = mesh;
       extRef.current = ext;
       // The model keeps about the same size on screen, so it follows the zoom.
-      setZoom(m.getZoom());
-      m.on("zoom", () => setZoom(m.getZoom()));
+      m.on("zoom", () => drawRef.current());
       setReady(true);
     }).catch((err: unknown) => {
       // Offline, blocked or no WebGL: show a note instead of breaking the page.
@@ -143,6 +177,8 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
     });
     return () => {
       cancelled = true;
+      cancelAnimationFrame(st.frame);
+      st.frame = 0;
       resize?.disconnect();
       map?.remove();
       mapRef.current = null;
@@ -177,47 +213,116 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
 
   const attitude = useMemo(() => attitudeFromPath(track.east, track.north, height), [track, height]);
   const mesh = useMemo(() => planeMesh(), []);
+  const stork = useMemo(() => storkMeshes(), []);
 
+  // Static layers: rebuilt when the path, its look or the thermals change.
   useEffect(() => {
-    const overlay = overlayRef.current, layers = layersRef.current, meshLayers = meshRef.current, ext = extRef.current;
-    if (!ready || !overlay || !layers || !meshLayers || !ext) return;
+    const layers = layersRef.current, ext = extRef.current;
+    if (!ready || !layers || !ext) return;
     const { lines, shadow } = pathData;
     const dashed = lineStyle === "thinDashed" || lineStyle === "thickDashed";
     const width = LINE_WIDTH[lineStyle.startsWith("thin") ? "thin" : "thick"];
-    const pos = (i: number): [number, number, number] | null =>
-      track.lat[i] === null || track.lon[i] === null ? null : [track.lon[i]!, track.lat[i]!, Math.max(0, height[i] ?? 0)];
-    const m = marker !== null ? pos(marker) : null;
-    overlay.setProps({
-      layers: [
-        // Ground shadow, kept faint so it does not read as a second path.
-        ...(showShadow ? [new layers.PathLayer({ id: "shadow", data: shadow, getPath: (d: { path: [number, number][] }) => d.path, getColor: [60, 70, 80, 55], getWidth: 1.5, widthUnits: "pixels" })] : []),
-        new layers.PathLayer({
-          // A new id when dashes are switched on or off: deck.gl cannot add or drop an extension on a live layer.
-          id: dashed ? "path-dashed" : "path", data: lines,
-          getPath: (d: (typeof lines)[number]) => d.path, getColor: (d: (typeof lines)[number]) => d.colors,
-          getWidth: width, widthUnits: "pixels", billboard: true, capRounded: !dashed, jointRounded: true,
-          ...(dashed ? { extensions: [new ext.PathStyleExtension({ dash: true, dashMode: "path" })], getDashArray: DASH, dashUnits: "pixels" } : {}),
-        }),
-        new layers.ScatterplotLayer({
-          id: "thermals", data: spots, getPosition: (d: (typeof spots)[number]) => [d.lon, d.lat, 0],
-          getFillColor: (d: (typeof spots)[number]) => [...toRgb(cssVar("--s-lift")), d.own ? 170 : 90] as [number, number, number, number],
-          getLineColor: toRgb(cssVar("--ink")), stroked: true, getLineWidth: (d: (typeof spots)[number]) => (d.own ? 2 : 0), lineWidthUnits: "pixels",
-          getRadius: (d: (typeof spots)[number]) => 12 + Math.max(0, d.climb) * 14, radiusUnits: "meters",
-        }),
-        new layers.ScatterplotLayer({ id: "home", data: [track.home], getPosition: (d: Track["home"]) => [d.lon, d.lat, 0], getFillColor: toRgb(cssVar("--ink")), getRadius: 6, radiusUnits: "pixels", billboard: true }),
-        // The model, turned along the path. deck.gl takes [pitch (nose down), yaw (from east, anticlockwise), roll (right wing down)].
-        // The dot faces the camera and is drawn on top of the path, so a flat view or the path never hides it.
-        ...(m && markerStyle === "dot" ? [new layers.ScatterplotLayer({ id: "marker", data: [m], getPosition: (d: [number, number, number]) => d, getFillColor: [255, 255, 255], getLineColor: toRgb(cssVar("--ink")), stroked: true, lineWidthUnits: "pixels", getLineWidth: 3, getRadius: 9, radiusUnits: "pixels", billboard: true, parameters: { depthCompare: "always" } })] : []),
-        ...(m && marker !== null && markerStyle === "plane" ? [new meshLayers.SimpleMeshLayer({
-          id: "plane", data: [m], mesh, getPosition: (d: [number, number, number]) => d,
-          getOrientation: [-attitude.climb[marker], 90 - attitude.heading[marker], attitude.bank[marker]],
-          sizeScale: Math.max(PLANE_MIN_M, planePx(zoom ?? 15, fitZoomRef.current ?? zoom ?? 15) * metresPerPixel(m[1], zoom ?? 15)),
-          getColor: planeColor(toRgb(cssVar("--ink"))),
-          material: { ambient: 0.45, diffuse: 0.75, shininess: 24, specularColor: [80, 80, 80] },
-        })] : []),
-      ],
-    });
-  }, [ready, track, height, pathData, marker, spots, attitude, mesh, zoom, lineStyle, markerStyle, showShadow]);
+    staticRef.current = [
+      // Ground shadow, kept faint so it does not read as a second path.
+      ...(showShadow ? [new layers.PathLayer({ id: "shadow", data: shadow, getPath: (d: { path: [number, number][] }) => d.path, getColor: [60, 70, 80, 55], getWidth: 1.5, widthUnits: "pixels" })] : []),
+      new layers.PathLayer({
+        // A new id when dashes are switched on or off: deck.gl cannot add or drop an extension on a live layer.
+        id: dashed ? "path-dashed" : "path", data: lines,
+        getPath: (d: (typeof lines)[number]) => d.path, getColor: (d: (typeof lines)[number]) => d.colors,
+        getWidth: width, widthUnits: "pixels", billboard: true, capRounded: !dashed, jointRounded: true,
+        ...(dashed ? { extensions: [new ext.PathStyleExtension({ dash: true, dashMode: "path" })], getDashArray: DASH, dashUnits: "pixels" } : {}),
+      }),
+      new layers.ScatterplotLayer({
+        id: "thermals", data: spots, getPosition: (d: (typeof spots)[number]) => [d.lon, d.lat, 0],
+        getFillColor: (d: (typeof spots)[number]) => [...toRgb(cssVar("--s-lift")), d.own ? 170 : 90] as [number, number, number, number],
+        getLineColor: toRgb(cssVar("--ink")), stroked: true, getLineWidth: (d: (typeof spots)[number]) => (d.own ? 2 : 0), lineWidthUnits: "pixels",
+        getRadius: (d: (typeof spots)[number]) => 12 + Math.max(0, d.climb) * 14, radiusUnits: "meters",
+      }),
+      new layers.ScatterplotLayer({ id: "home", data: [track.home], getPosition: (d: Track["home"]) => [d.lon, d.lat, 0], getFillColor: toRgb(cssVar("--ink")), getRadius: 6, radiusUnits: "pixels", billboard: true }),
+    ];
+    drawRef.current();
+  }, [ready, track, pathData, spots, lineStyle, showShadow]);
+
+  // The model layers for the shown (fractional) second, drawn together with the static layers.
+  useEffect(() => {
+    const draw = () => {
+      const overlay = overlayRef.current, layers = layersRef.current, meshLayers = meshRef.current, map = mapRef.current;
+      if (!ready || !overlay || !layers || !meshLayers || !map) return;
+      const t = anim.current.shown;
+      const model: Layer[] = [];
+      if (t !== null) {
+        // Position and attitude between two seconds, so the model moves smoothly.
+        const i0 = Math.floor(t), i1 = Math.min(track.lat.length - 1, i0 + 1), f = t - i0;
+        const ok = (i: number) => track.lat[i] !== null && track.lon[i] !== null;
+        const a = ok(i0) ? i0 : i1, b = ok(i1) ? i1 : a, k = a === b ? 0 : f;
+        if (ok(a)) {
+          const lerp = (x: number, y: number) => x + (y - x) * k;
+          const at: [number, number, number] = [lerp(track.lon[a]!, track.lon[b]!), lerp(track.lat[a]!, track.lat[b]!), lerp(Math.max(0, height[a] ?? 0), Math.max(0, height[b] ?? 0))];
+          const turn = ((attitude.heading[b] - attitude.heading[a] + 540) % 360) - 180;
+          const heading = attitude.heading[a] + turn * k, climb = lerp(attitude.climb[a], attitude.climb[b]), bank = lerp(attitude.bank[a], attitude.bank[b]);
+          // deck.gl takes [pitch (nose down), yaw (from east, anticlockwise), roll (right wing down)].
+          const orientation: V = [-climb, 90 - heading, bank];
+          const zoom = map.getZoom();
+          const size = Math.max(PLANE_MIN_M, planePx(zoom, fitZoomRef.current ?? zoom) * metresPerPixel(at[1], zoom));
+          const material = { ambient: 0.45, diffuse: 0.75, shininess: 24, specularColor: [80, 80, 80] as V };
+          if (markerStyle === "dot") {
+            // The dot faces the camera and is drawn on top of the path, so a flat view or the path never hides it.
+            model.push(new layers.ScatterplotLayer({ id: "marker", data: [at], getPosition: (d: V) => d, getFillColor: [255, 255, 255], getLineColor: toRgb(cssVar("--ink")), stroked: true, lineWidthUnits: "pixels", getLineWidth: 3, getRadius: 9, radiusUnits: "pixels", billboard: true, parameters: { depthCompare: "always" } }));
+          } else if (markerStyle === "plane") {
+            model.push(new meshLayers.SimpleMeshLayer({ id: "plane", data: [at], mesh, getPosition: (d: V) => d, getOrientation: orientation, sizeScale: size, getColor: planeColor(toRgb(cssVar("--ink"))), material }));
+          } else {
+            // Stork: the body follows the path; each wing turns about its shoulder by the wing-beat angle.
+            const r = rotation(...orientation);
+            const wingUp = GLIDE_DIHEDRAL + anim.current.blend * FLAP_AMP * Math.sin(anim.current.phase);
+            const s = size * 1.2;
+            const shoulder = (side: 1 | -1): V => apply(r, [STORK_SHOULDER[0] * s, side * STORK_SHOULDER[1] * s, STORK_SHOULDER[2] * s]);
+            const part = (id: string, m: Mesh, matrix: number[]) => new meshLayers.SimpleMeshLayer({ id, data: [at], mesh: m, getPosition: (d: V) => d, getTransformMatrix: matrix, sizeScale: s, getColor: [255, 255, 255], material });
+            model.push(
+              part("stork-body", stork.body, mat4(r, [0, 0, 0])),
+              part("stork-left", stork.left, mat4(timesRotX(r, wingUp), shoulder(1))),
+              part("stork-right", stork.right, mat4(timesRotX(r, -wingUp), shoulder(-1))),
+            );
+          }
+        }
+      }
+      overlay.setProps({ layers: [...staticRef.current, ...model] });
+    };
+    drawRef.current = draw;
+    draw();
+  }, [ready, track, height, attitude, mesh, stork, markerStyle]);
+
+  // Replay cursor: glide from the shown second to the new one over about the time between two updates.
+  useEffect(() => {
+    const st = anim.current;
+    const now = performance.now();
+    if (marker === null || st.shown === null || Math.abs(marker - st.shown) > MAX_GLIDE_JUMP) {
+      st.shown = marker; st.from = st.to = marker ?? 0; st.dur = 0;
+    } else {
+      st.from = st.shown; st.to = marker; st.start = now;
+      st.dur = Math.min(1000, Math.max(40, now - st.lastChange));
+    }
+    st.lastChange = now;
+    const tick = (time: number) => {
+      const dt = st.prevT ? Math.min(0.1, (time - st.prevT) / 1000) : 0;
+      st.prevT = time;
+      if (st.shown !== null && st.dur > 0) {
+        const k = Math.min(1, (time - st.start) / st.dur);
+        st.shown = st.from + (st.to - st.from) * k;
+        if (k >= 1) st.dur = 0;
+      }
+      const stork = live.current.markerStyle === "stork" && st.shown !== null;
+      if (stork) {
+        const flap = live.current.flapping?.[Math.round(st.shown!)] ? 1 : 0;
+        st.blend += Math.max(-FLAP_BLEND_RATE * dt, Math.min(FLAP_BLEND_RATE * dt, flap - st.blend));
+        st.phase = (st.phase + dt * 2 * Math.PI * FLAP_HZ) % (2 * Math.PI);
+      }
+      drawRef.current();
+      // Keep running while gliding to the cursor or while the stork is shown (its wings move even when paused).
+      st.frame = st.dur > 0 || stork ? requestAnimationFrame(tick) : 0;
+      if (!st.frame) st.prevT = 0;
+    };
+    if (!st.frame) st.frame = requestAnimationFrame(tick);
+  }, [marker, markerStyle, flapping]);
 
   if (failed) return <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>{failedText}</div>;
   return <div ref={el} style={{ position: "absolute", inset: 0 }} />;

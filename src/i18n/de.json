@@ -321,6 +321,7 @@
     "marker": "Modell in der Wiedergabe",
     "marker_plane": "Flugzeug",
     "marker_dot": "Punkt",
+    "marker_stork": "Adebar",
     "shadow": "Bodenschatten",
     "shadowHint": "Der Flugweg senkrecht auf den Boden projiziert, um zu sehen, wo über dem Gelände das Modell war.",
     "follow": "Höhe · hier fahren, um dem Modell zu folgen",

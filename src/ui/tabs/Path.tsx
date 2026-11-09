@@ -40,7 +40,7 @@ function GpsView() {
   const [pitch, setPitch] = useState(55);
   const [lineStyle, setLineStyle] = useState<LineStyle>("thin");
   const [markerStyle, setMarkerStyle] = useState<MarkerStyle>("plane");
-  const [shadow, setShadow] = useState(false);
+  const [shadow, setShadow] = useState(true);
   const [marker, setMarker] = useState<number | null>(null);
   // Full screen: map and replay fill the browser window. Esc closes; the page behind does not scroll.
   const [full, setFull] = useState(false);
@@ -62,6 +62,8 @@ function GpsView() {
     return cssVar(k === "glide" || k === "unpowered" || !k ? MAP_GLIDE : PHASE_COLOR[k]);
   }, [colourBy, alt, top, sig, p]);
   const hasHeight = p?.basis === "height";
+  // The stork flaps its wings in motor climbs and glides otherwise.
+  const flapping = useMemo(() => p?.phaseAt.map((k) => k === "motor") ?? [], [p]);
   const thrId = g.has("throttle_output") ? "throttle_output" : "throttle_command";
   // The chart to follow the model: height, or the throttle when there is no usable height.
   const followSeries = useMemo(() => hasHeight
@@ -83,8 +85,8 @@ function GpsView() {
         <div className="ch"><b>{t("path.map")}</b>
           <button className="btn" onClick={() => setFull(!full)} aria-pressed={full}>{full ? `✕ ${t("path.closeFull")}` : `⤢ ${t("path.full")}`}</button>
         </div>
-        <div className="mapwrap">
-          <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} markerStyle={markerStyle} shadow={shadow} spots={spots} failedText={t("path.mapFailed")} />
+        {/* The tools sit over the map on wide screens and above it on phones (CSS). */}
+        <div className="mapbox">
           <div className="tools">
             <div className="seg" role="group">
               <button aria-pressed={pitch > 0} onClick={() => setPitch(55)}>{t("path.view3d")}</button>
@@ -102,6 +104,9 @@ function GpsView() {
               {MARKER_STYLES.map((k) => <option key={k} value={k}>{t(`path.marker_${k}`)}</option>)}
             </select>
             <div className="seg"><button aria-pressed={shadow} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
+          </div>
+          <div className="mapwrap">
+            <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} markerStyle={markerStyle} shadow={shadow} flapping={flapping} spots={spots} failedText={t("path.mapFailed")} />
           </div>
         </div>
         {colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />
