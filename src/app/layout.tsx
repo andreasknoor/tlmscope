@@ -4,14 +4,11 @@ import { Barlow_Semi_Condensed, JetBrains_Mono, Source_Sans_3 } from "next/font/
 import "uplot/dist/uPlot.min.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
+import { DESCRIPTION, SHARE_TITLE, SITE_NAME, SITE_URL, structuredData, TITLE } from "@/seo/site";
 
 const display = Barlow_Semi_Condensed({ variable: "--font-display", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const body = Source_Sans_3({ variable: "--font-body", subsets: ["latin"] });
 const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], weight: ["400", "500"] });
-
-const SITE_URL = "https://tlmscope.andreasknoor.com";
-const TITLE = "TLMscope – Spektrum telemetry log viewer";
-const DESCRIPTION = "See what happened during your RC flights. Reads Spektrum telemetry logs (.TLM) in your browser: flight summaries, charts, map and 3D replay. Free, nothing uploaded.";
 
 // Link previews (Facebook, WhatsApp, X, Slack …) read the Open Graph and Twitter tags; the image
 // comes from app/opengraph-image.tsx and needs the absolute site address (metadataBase).
@@ -19,19 +16,20 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: TITLE,
   description: DESCRIPTION,
-  applicationName: "TLMscope",
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: "/",
-    siteName: "TLMscope",
-    title: TITLE,
+    siteName: SITE_NAME,
+    title: SHARE_TITLE,
     description: DESCRIPTION,
     locale: "en_US",
     alternateLocale: ["de_DE"],
   },
   twitter: {
     card: "summary_large_image",
-    title: TITLE,
+    title: SHARE_TITLE,
     description: DESCRIPTION,
   },
 };
@@ -48,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body>
         {children}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData()) }} />
         {/* Cookieless page-view counting (Umami Cloud). Only on the live domain; honours "Do Not Track";
             no URL hash or query. Allowed in the CSP in vercel.json and described on the privacy page. */}
         <Script

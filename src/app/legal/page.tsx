@@ -6,6 +6,7 @@ import { OPERATOR, PRIVACY_DATE, REPO_URL } from "@/legal/contact";
 export const metadata: Metadata = {
   title: "Impressum & Datenschutz · TLMscope",
   description: "Legal notice and privacy policy of TLMscope.",
+  alternates: { canonical: "/legal" },
 };
 
 const ext = (href: string, text: ReactNode = href) => <a href={href} target="_blank" rel="noopener noreferrer">{text}</a>;
