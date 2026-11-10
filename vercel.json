@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm test && npm run build",
+  "rewrites": [{ "source": "/google14e45ccf008eed4b.html", "destination": "/google14e45ccf008eed4b" }],
   "headers": [
     {
       "source": "/(.*)",
