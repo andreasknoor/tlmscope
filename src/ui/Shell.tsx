@@ -1,21 +1,22 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
 import { cssVar, clock, dayLabel, num, timeLabel } from "./format";
 import { Help } from "./views/Help";
 import { Batteries } from "./views/Batteries";
 import { Inventory } from "./views/Inventory";
 import { SessionView } from "./views/SessionView";
-import { Welcome } from "./views/Welcome";
+import { Start } from "./views/Start";
 import { useStore, type Entry, type Model } from "./store";
 import { useAirtime } from "./bits";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
 import { PHASE_COLOR } from "./charts/LineChart";
-import { RACE_CLICK_GAP_MS, RACE_CLICKS, StorkRace } from "./StorkRace";
+import { Logo, Wordmark } from "./brand";
+import { useLogoClicks } from "./StorkRace";
 
 export const KIND_COLOR: Record<string, string> = { flight: "var(--s-alt)", "ground-test": "var(--s-motor)", "powered-on": "var(--s-glide)", "transmitter-only": "var(--s-ground)" };
 
@@ -47,35 +48,12 @@ export function ModelSelect({ id, count }: { id: string; count?: (key: string | 
 /** major.minor, injected at build time from package.json. */
 export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
 
-export function Logo({ size = 28 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
-      <rect width="64" height="64" rx="14" fill="#0d6a83" />
-      <path d="M12 46H21L27 37L32 40L39 27L44 30L51 17" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="51" cy="17" r="5" fill="#fff" />
-    </svg>
-  );
-}
-
-export function Wordmark() {
-  return <span className="wordmark"><b>TLM</b>scope</span>;
-}
-
 function Header() {
   const t = useTranslations("app");
   const { view, go, settings, setSettings, openHelp, files } = useStore();
   // The sidebar sits right below the header; its height can change when the header wraps.
   const ref = useRef<HTMLElement>(null);
-  // Quick clicks on the logo.
-  const clicks = useRef({ n: 0, last: 0 });
-  const [race, setRace] = useState(0);
-  const endRace = useCallback(() => setRace(0), []);
-  const onLogo = () => {
-    const now = Date.now(), c = clicks.current;
-    c.n = now - c.last < RACE_CLICK_GAP_MS ? c.n + 1 : 1;
-    c.last = now;
-    if (c.n >= RACE_CLICKS) { c.n = 0; setRace(now); }
-  };
+  const { onLogo, extra } = useLogoClicks();
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -88,7 +66,7 @@ function Header() {
       <a className="brand" href="#sessions" onClick={(e) => { e.preventDefault(); onLogo(); go("sessions"); }}>
         <Logo /><Wordmark />
       </a>
-      {race > 0 && <StorkRace key={race} seed={race} onDone={endRace} />}
+      {extra}
       <span className="version" title={`TLMscope ${APP_VERSION}`}>v{APP_VERSION}</span>
       {files.length > 0 && (
         <nav className="nav" aria-label="Main">
@@ -253,12 +231,13 @@ function Sidebar() {
 
 function Footer() {
   const t = useTranslations("footer");
+  const { settings } = useStore();
   return (
     <footer className="foot">
-      <span>TLMscope {t("by", { name: OPERATOR.name })}</span>
+      <span>TLMscope {t("by", { name: OPERATOR.name })} (v{APP_VERSION})</span>
       <a href={REPO_URL} target="_blank" rel="noopener noreferrer">{t("source")}</a>
       <span>{t("notAffiliated")}</span>
-      <a href="legal">{t("legal")}</a>
+      <a href={`/legal#${settings.locale}`}>{t("legal")}</a>
     </footer>
   );
 }
@@ -303,10 +282,9 @@ export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLD
   );
   return (
     <>
-      <Header />
-      {files.length === 0 ? (
-        <div className="welcome">{notices}<Welcome /></div>
-      ) : (
+      {files.length === 0 ? <Start notices={notices} /> : (
+        <>
+        <Header />
         <div className="app">
           <Sidebar />
           <main className="main">
@@ -322,6 +300,7 @@ export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLD
             </ErrorBoundary>
           </main>
         </div>
+        </>
       )}
       <Footer />
       <Help dialogRef={helpRef} />

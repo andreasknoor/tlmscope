@@ -30,7 +30,7 @@ You can use TLMscope if you fly a model with a **Spektrum telemetry receiver** a
 | Transmitter | Where the logs are | Status |
 |---|---|---|
 | Spektrum NX6, NX8, NX10 (incl. “+” versions) | Internal storage: `<Model>.TLM` and the `AutoLog` folder. Copy via USB. | Tested (NX8+) |
-| Spektrum iX12, iX14, iX20 | Internal storage, copy via USB. | Expected to work, not tested yet |
+| Spektrum iX12, iX14, iX20 | Internal storage, copy via USB. | Tested |
 | Spektrum DX6 G2/G3, DX7 G2, DX8 G2, DX9, DX10t, DX18 (G2 and later), DX18t, DX20 | SD card, once telemetry logging is on. | Expected to work, not tested yet |
 
 ### What you can see, and what it needs
@@ -46,7 +46,7 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 | Loads (g) and rotation rates | Receiver with AS3X / SAFE | Tested |
 | Throttle stick position | Recent NX firmware (AutoLog files) | Tested |
 | Stabilization mode | Receiver with AS3X / SAFE | Partly understood |
-| Map, distance, speed over ground | Spektrum GPS telemetry sensor | Built from the specification, not tested yet |
+| Map, distance, speed over ground | Spektrum GPS telemetry sensor | Tested with one real GPS log |
 | Other sensors (airspeed, extra current or temperature sensors, …) | X-Bus / SRXL2 sensors | Shown as raw data for now |
 
 ### Not supported

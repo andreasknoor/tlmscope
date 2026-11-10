@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Impressum & Datenschutz · TLMscope",
   description: "Legal notice and privacy policy of TLMscope.",
   alternates: { canonical: "/legal" },
+  openGraph: { type: "website", url: "/legal", siteName: "TLMscope", title: "Impressum & Datenschutz · TLMscope", description: "Legal notice and privacy policy of TLMscope.", images: [{ url: "/og-en.png", width: 1200, height: 630 }] },
 };
 
 const ext = (href: string, text: ReactNode = href) => <a href={href} target="_blank" rel="noopener noreferrer">{text}</a>;

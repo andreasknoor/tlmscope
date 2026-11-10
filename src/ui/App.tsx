@@ -9,9 +9,10 @@ import de from "@/i18n/de.json";
 import en from "@/i18n/en.json";
 import { sizeBucket, track } from "./analytics";
 import { ErrorBoundary } from "./ErrorBoundary";
-import { batteryLetter } from "./format";
+import { batteryLetter, type Locale } from "./format";
 import { loadBuffer } from "./loader";
 import { Shell } from "./Shell";
+import { HOME_META } from "@/seo/site";
 import { StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
@@ -25,20 +26,24 @@ export const MAX_FILE_BYTES = 256 * 1024 * 1024;
 /** Badge colours of the models, in order of first session (repeats after six). */
 const MODEL_COLORS = ["--m1", "--m2", "--m3", "--m4", "--m5", "--m6"];
 
-/** Saved settings, each value checked: storage can hold anything, e.g. from an older version. */
-function readSettings(): Settings {
+/**
+ * Saved settings, each value checked: storage can hold anything, e.g. from an older version.
+ * The address decides the language: /de is German. On the English address, a saved German choice wins.
+ */
+function readSettings(initial: Locale): Settings {
+  const base: Settings = { ...DEFAULTS, locale: initial };
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return DEFAULTS;
+    if (!raw) return base;
     const saved = JSON.parse(raw) as Record<string, unknown> | null;
-    if (!saved || typeof saved !== "object") return DEFAULTS;
+    if (!saved || typeof saved !== "object") return base;
     // Older versions stored a detail level next to the details toggle; it is now part of the toggle.
     const details = typeof saved.details === "boolean" ? saved.details : typeof saved.level === "string" ? saved.level !== "simple" : DEFAULTS.details;
-    const locale = saved.locale === "en" || saved.locale === "de" ? saved.locale : DEFAULTS.locale;
+    const locale = initial === "de" || saved.locale === "de" ? "de" : "en";
     const filter = saved.filter === "flights" || saved.filter === "all" ? saved.filter : DEFAULTS.filter;
     return { details, locale, filter };
   } catch {
-    return DEFAULTS;
+    return base;
   }
 }
 
@@ -51,9 +56,9 @@ export interface LoadMessage {
   file?: { n: number; total: number; bytes?: number };
 }
 
-export function App() {
+export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const [files, setFiles] = useState<LogFile[]>([]);
-  const [settings, setSettingsState] = useState<Settings>(DEFAULTS);
+  const [settings, setSettingsState] = useState<Settings>({ ...DEFAULTS, locale: initialLocale });
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [modelChoice, setModelChoice] = useState<string | null>(null);
   const [view, setView] = useState<View>("sessions");
@@ -65,11 +70,17 @@ export function App() {
 
   // Browser-only storage can only be read after hydration; the server render uses the defaults.
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setSettingsState(readSettings()), []);
+  useEffect(() => setSettingsState(readSettings(initialLocale)), [initialLocale]);
   useEffect(() => {
     document.documentElement.lang = settings.locale;
     document.body.dataset.details = settings.details ? "on" : "off";
   }, [settings.locale, settings.details]);
+  // The address and the title follow the language, so a reload or a copied link opens the same language.
+  useEffect(() => {
+    const path = settings.locale === "de" ? "/de" : "/";
+    if ((location.pathname.replace(/\/+$/, "") || "/") !== path) history.replaceState(history.state, "", path + location.search + location.hash);
+    document.title = HOME_META[settings.locale].title;
+  }, [settings.locale]);
 
   const setSettings = useCallback((patch: Partial<Settings>) => {
     setSettingsState((s) => {

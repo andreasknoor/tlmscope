@@ -51,17 +51,6 @@
     "or": "or",
     "demoBanner": "Demo data: this flight is synthetic, made to show every view."
   },
-  "welcome": {
-    "title": "See what happened in your flights",
-    "lead": "TLMscope reads the telemetry logs your Spektrum transmitter saves and explains each flight: height, motor climbs, lift, battery, radio link and more.",
-    "drop": "Drop .TLM files here",
-    "choose": "or click to choose files",
-    "private": "Your files are read in this browser and never uploaded. Only the map on the Flight path tab loads map images from OpenFreeMap, which shows that service roughly where you flew.",
-    "where": "Where are my logs? NX and iX transmitters: connect by USB and open the internal storage, then copy the .TLM files (also from the AutoLog folder). DX transmitters: on the SD card.",
-    "whoFor": "Who is this for?",
-    "demo": "Load demo flight",
-    "demoHint": "The demo is a synthetic flight made for this app. It includes GPS and a thermal, so every view has something to show."
-  },
   "kind": {
     "flight": "Flight",
     "ground-test": "Ground test",
@@ -503,7 +492,8 @@
       "exp": "Expected to work, not tested yet",
       "spec": "Built from the specification, not tested yet",
       "raw": "Shown as raw data for now",
-      "part": "Partly understood"
+      "part": "Partly understood",
+      "gps": "Tested with one real GPS log"
     },
     "notSupported": "Not supported",
     "n1": "EdgeTX / OpenTX logs (CSV, e.g. RadioMaster, FrSky, ExpressLRS, Crossfire): <b>planned</b>, not available yet.",

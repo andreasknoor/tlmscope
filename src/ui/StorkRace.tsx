@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /** Clicks on the logo, each within this time of the last. */
 export const RACE_CLICKS = 5;
@@ -67,4 +67,18 @@ export function StorkRace({ seed, onDone }: { seed: number; onDone: () => void }
       ))}
     </div>
   );
+}
+
+/** Quick clicks on a logo: `onLogo` counts them, `extra` is what to render next to it. */
+export function useLogoClicks() {
+  const clicks = useRef({ n: 0, last: 0 });
+  const [race, setRace] = useState(0);
+  const endRace = useCallback(() => setRace(0), []);
+  const onLogo = useCallback(() => {
+    const now = Date.now(), c = clicks.current;
+    c.n = now - c.last < RACE_CLICK_GAP_MS ? c.n + 1 : 1;
+    c.last = now;
+    if (c.n >= RACE_CLICKS) { c.n = 0; setRace(now); }
+  }, []);
+  return { onLogo, extra: race > 0 ? <StorkRace key={race} seed={race} onDone={endRace} /> : null };
 }

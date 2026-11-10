@@ -1,0 +1,92 @@
+import { existsSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import { CONTENT } from "./content/index.ts";
+import type { Block, Guide } from "./content/types.ts";
+import { LANGS, PAGE_IDS } from "./pages.ts";
+import { SCREENSHOTS } from "./images.ts";
+import { LINK, plain, resolveTarget } from "./markup.ts";
+
+const blocksOf = (g: Guide) => g.sections.flatMap((s) => s.blocks);
+const strings = (lang: (typeof LANGS)[number]): string[] => {
+  const c = CONTENT[lang];
+  const out: string[] = [c.home.h1, c.home.sub, ...c.home.facts.map((f) => f.text), ...c.home.tiles.flatMap((t) => [t.label, t.title, ...t.body.flatMap(blockStrings)])];
+  for (const id of PAGE_IDS) {
+    const g = c.guides[id];
+    out.push(g.h1, g.lead, ...(g.faq ?? []).flatMap((f) => [f.q, f.a]));
+    for (const s of g.sections) {
+      out.push(s.h2);
+      for (const b of s.blocks) {
+        if (b.t === "p" || b.t === "note") out.push(b.text);
+        else if (b.t === "ul" || b.t === "ol") out.push(...b.items);
+        else if (b.t === "table") out.push(...b.head, ...b.rows.flat());
+        else out.push(b.alt, b.caption);
+      }
+    }
+  }
+  return out;
+};
+const blockStrings = (b: Block): string[] => (b.t === "p" || b.t === "note" ? [b.text] : b.t === "ul" || b.t === "ol" ? b.items : b.t === "table" ? [...b.head, ...b.rows.flat()] : [b.alt, b.caption]);
+const shape = (b: Block) => (b.t === "ul" || b.t === "ol" ? `${b.t}${b.items.length}` : b.t === "table" ? `table${b.head.length}x${b.rows.length}` : b.t === "img" ? `img:${b.name}` : b.t);
+
+describe("guide pages", () => {
+  it("has every guide in both languages, with titles and descriptions that fit in search results", () => {
+    const titles = new Set<string>();
+    for (const lang of LANGS) {
+      for (const id of PAGE_IDS) {
+        const g = CONTENT[lang].guides[id];
+        expect(g.title.length, `${lang}/${id} title`).toBeLessThanOrEqual(60);
+        expect(g.description.length, `${lang}/${id} description`).toBeLessThanOrEqual(160);
+        expect(g.description.length, `${lang}/${id} description`).toBeGreaterThanOrEqual(70);
+        expect(titles.has(g.title), `duplicate title ${g.title}`).toBe(false);
+        titles.add(g.title);
+        expect(CONTENT[lang].chrome.nav[id]).toBeTruthy();
+      }
+    }
+  });
+
+  it("has the same structure in English and German", () => {
+    const [en, de] = [CONTENT.en, CONTENT.de];
+    expect(en.home.facts.map((f) => f.icon)).toEqual(de.home.facts.map((f) => f.icon));
+    expect(en.home.tiles.map((t) => [t.id, t.icon, t.page, t.body.map(shape)])).toEqual(de.home.tiles.map((t) => [t.id, t.icon, t.page, t.body.map(shape)]));
+    for (const id of PAGE_IDS) {
+      expect(en.guides[id].sections.map((s) => s.blocks.map(shape)), id).toEqual(de.guides[id].sections.map((s) => s.blocks.map(shape)));
+      expect(en.guides[id].faq?.length, `${id} faq`).toBe(de.guides[id].faq?.length);
+    }
+  });
+
+  it("only links to pages and addresses that exist, and closes all markup", () => {
+    for (const lang of LANGS) {
+      for (const text of strings(lang)) {
+        for (const m of text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) expect(resolveTarget(lang, m[1]), `${lang}: ${m[1]}`).not.toBeNull();
+        const bare = text.replace(new RegExp(LINK.source.slice(1, -1), "g"), "x");
+        expect((bare.match(/\*\*/g) ?? []).length % 2, text).toBe(0);
+        expect((bare.match(/`/g) ?? []).length % 2, text).toBe(0);
+      }
+    }
+  });
+
+  it("gives search engines answers as plain text", () => {
+    for (const lang of LANGS) for (const id of PAGE_IDS) for (const f of CONTENT[lang].guides[id].faq ?? []) expect(plain(f.a)).not.toMatch(/[[\]`]|\*\*/);
+  });
+
+  it("points every start page topic to a page that exists, and every guide is reachable from the start page", () => {
+    for (const lang of LANGS) {
+      const linked = new Set(CONTENT[lang].home.tiles.map((t) => t.page));
+      for (const t of CONTENT[lang].home.tiles) expect(PAGE_IDS, t.id).toContain(t.page);
+      expect(linked.size).toBe(CONTENT[lang].home.tiles.length);
+    }
+  });
+
+  it("uses screenshots that exist, in both languages", () => {
+    for (const lang of LANGS) {
+      for (const id of PAGE_IDS) {
+        for (const b of blocksOf(CONTENT[lang].guides[id])) {
+          if (b.t !== "img") continue;
+          expect(SCREENSHOTS[b.name], b.name).toBeDefined();
+          expect(existsSync(`public/img/${b.name}-${lang}.jpg`), `public/img/${b.name}-${lang}.jpg`).toBe(true);
+          expect(b.alt.length).toBeGreaterThan(20);
+        }
+      }
+    }
+  });
+});

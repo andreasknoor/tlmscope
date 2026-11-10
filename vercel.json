@@ -17,7 +17,7 @@
       ]
     },
     {
-      "source": "/(opengraph-image|apple-icon)",
+      "source": "/apple-icon",
       "headers": [{ "key": "Content-Type", "value": "image/png" }]
     }
   ]

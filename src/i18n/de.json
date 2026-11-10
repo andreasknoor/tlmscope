@@ -51,17 +51,6 @@
     "or": "oder",
     "demoBanner": "Demo-Daten: Dieser Flug ist synthetisch und zeigt alle Ansichten."
   },
-  "welcome": {
-    "title": "Sieh, was bei deinen Flügen passiert ist",
-    "lead": "TLMscope liest die Telemetrie-Logs deines Spektrum-Senders und erklärt jeden Flug: Höhe, Motorsteigflüge, Aufwind, Akku, Funkverbindung und mehr.",
-    "drop": ".TLM-Dateien hier ablegen",
-    "choose": "oder klicken, um Dateien auszuwählen",
-    "private": "Deine Dateien werden in diesem Browser gelesen und nie hochgeladen. Nur die Karte im Tab Flugweg lädt Kartenbilder von OpenFreeMap; dieser Dienst sieht dadurch ungefähr, wo du geflogen bist.",
-    "where": "Wo liegen meine Logs? NX- und iX-Sender: per USB anschließen, den internen Speicher öffnen und die .TLM-Dateien kopieren (auch aus dem Ordner AutoLog). DX-Sender: auf der SD-Karte.",
-    "whoFor": "Für wen ist das?",
-    "demo": "Demo-Flug laden",
-    "demoHint": "Der Demo-Flug ist synthetisch und für diese App erzeugt. Er enthält GPS und Thermik, damit jede Ansicht etwas zeigt."
-  },
   "kind": {
     "flight": "Flug",
     "ground-test": "Bodentest",
@@ -503,7 +492,8 @@
       "exp": "Sollte funktionieren, noch ungetestet",
       "spec": "Nach Spezifikation gebaut, noch ungetestet",
       "raw": "Vorerst als Rohdaten",
-      "part": "Teilweise verstanden"
+      "part": "Teilweise verstanden",
+      "gps": "Mit einem echten GPS-Log getestet"
     },
     "notSupported": "Nicht unterstützt",
     "n1": "Logs von EdgeTX / OpenTX (CSV, z. B. RadioMaster, FrSky, ExpressLRS, Crossfire): <b>geplant</b>, noch nicht verfügbar.",

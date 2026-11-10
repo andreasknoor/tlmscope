@@ -1,9 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
-export const alt = "TLMscope: logo and name above a flight path in 3D over a ground grid, coloured by motor climb, glide and thermal.";
-export const dynamic = "force-static";
+export const OG_SIZE = { width: 1200, height: 630 };
 
 // Phase colours as in the app (light theme).
 const MOTOR = "#eb6834";
@@ -48,7 +45,7 @@ function flight() {
 }
 
 /** Preview image for links shared on social networks and in messengers. */
-export default function OpengraphImage() {
+export function renderOgImage(tagline: string) {
   const f = flight();
   const all = [...f.climb, ...f.glide, ...f.thermal, ...f.out];
   // The ground grid runs out to the sides, so the wide image is filled while the centre carries the content.
@@ -88,10 +85,10 @@ export default function OpengraphImage() {
           </div>
         </div>
         <div style={{ position: "absolute", left: 0, right: 0, bottom: 30, display: "flex", justifyContent: "center", fontSize: 27, fontWeight: 600 }}>
-          See what happened during your RC flights.
+          {tagline}
         </div>
       </div>
     ),
-    size,
+    OG_SIZE,
   );
 }

@@ -13,8 +13,8 @@ export function Help({ dialogRef }: { dialogRef: RefObject<HTMLDialogElement | n
   const tf = useTranslations("footer");
   const rich = useRich();
   const st = (k: string) => <span className="st"><span className="kdot" style={{ background: ST_COLOR[k] }} />{t(`st.${k}`)}</span>;
-  const radios: [string, string, string][] = [["r1", "r1w", "ok"], ["r2", "r2w", "exp"], ["r3", "r3w", "exp"]];
-  const data: [string, string, string][] = [["d1", "d1n", "ok"], ["d2", "d2n", "ok"], ["d3", "d3n", "ok"], ["d4", "d4n", "ok"], ["d5", "d5n", "ok"], ["d6", "d6n", "ok"], ["d7", "d7n", "part"], ["d8", "d8n", "spec"], ["d9", "d9n", "raw"]];
+  const radios: [string, string, string][] = [["r1", "r1w", "ok"], ["r2", "r2w", "ok"], ["r3", "r3w", "exp"]];
+  const data: [string, string, string][] = [["d1", "d1n", "ok"], ["d2", "d2n", "ok"], ["d3", "d3n", "ok"], ["d4", "d4n", "ok"], ["d5", "d5n", "ok"], ["d6", "d6n", "ok"], ["d7", "d7n", "part"], ["d8", "d8n", "gps"], ["d9", "d9n", "raw"]];
   return (
     <dialog className="helpdlg" ref={dialogRef} aria-labelledby="helpTitle" onClick={(e) => { if (e.target === e.currentTarget) dialogRef.current?.close(); }}>
       <div className="hd"><h2 id="helpTitle">{t("title")}</h2><button className="btn" onClick={() => dialogRef.current?.close()}>{ta("close")}</button></div>
