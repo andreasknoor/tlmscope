@@ -374,9 +374,9 @@ export const en: Content = {
 
     compare: {
       title: "Spektrum TLM Viewers Compared: Browser vs Desktop",
-      description: "TLMscope in the browser compared with the TLM Viewer desktop app and developer tools for Spektrum telemetry logs: platforms, features and when to use which.",
+      description: "TLMscope in the browser compared with TLM Viewer and Log Explorer for Spektrum telemetry logs: platforms, price, features and when to use which.",
       h1: "Spektrum TLM viewers compared",
-      lead: "There are a few ways to look at a Spektrum telemetry log. This is a fair overview, with the strengths of each option. Facts about other tools come from their own pages as of November 2026 and can change.",
+      lead: "There are a few ways to look at a Spektrum telemetry log. This is a fair overview, with the strengths of each option. Facts about other tools come from their own product pages and release notes as of November 2026, and can change. We have not installed or tested the other programs ourselves.",
       sections: [
         {
           h2: "The options",
@@ -384,6 +384,7 @@ export const en: Content = {
             { t: "table", head: ["Option", "How it runs", "Platforms", "Good to know"], rows: [
               ["**TLMscope**", "In the browser, nothing to install", "Any current browser: Windows, macOS, Linux, Android, iOS", "Free, no account, files stay on your device. English and German. Plain-language summaries and ratings, charts, GPS map with 3D replay, battery ageing across flights. Reads Spektrum logs only. No export."],
               ["**[TLM Viewer](https://www.tlmviewer.com)**", "Desktop program, download", "Windows; on a Mac only through a Windows emulator, not on Android, according to its documentation", "A long-standing free tool. Graphs, raw sensor data, session editing, export to CSV, KML (Google Earth) and TLM. Reads old and damaged log formats. English only."],
+              ["**[Log Explorer](https://phaedradg.itch.io/ethos-log-explorer)**", "Desktop program for Windows, paid, with an Android companion app", "Windows and Android; macOS and Linux are claimed on the product page", "From $10 (pay what you want), with a license key tied to the Windows hardware ID. Reads FrSky Ethos and OpenTX logs and, according to its release notes since v3.0, Spektrum and Jeti logs. Keeps a library per model with notes and tags, compares flights, tracks battery resistance over time, links video files and can export a transparent overlay video. Also covers cost tracking, weather and model setup files, which are outside TLMscope."],
               ["Code libraries and small projects", "Code for developers", "Depends", "For example a Ruby gem and an Android reader on GitHub. Useful to build your own tools; the Android project describes itself as being in early development."],
             ] },
           ],
@@ -394,6 +395,7 @@ export const en: Content = {
             { t: "ul", items: [
               "Pick **TLMscope** if you want a quick, readable answer to “what happened in this flight” on any device, without installing anything or uploading data.",
               "Pick **TLM Viewer** if you work on Windows and need to export data (CSV, KML) or to edit and save logs again.",
+              "Pick **Log Explorer** if you fly several radio systems, want a library of flights per model with notes, compare flights side by side or make overlay videos. Its price and the Windows license are the cost.",
               "Use both: they read the same files. Both are independent projects; neither is made by Spektrum.",
             ] },
           ],
@@ -416,6 +418,8 @@ export const en: Content = {
             { t: "ul", items: [
               "Only logs from NX and iX transmitters have been tested so far. See [Supported transmitters and sensors](page:radios).",
               "There is no export to CSV or KML yet.",
+              "There is no flight comparison, no library of flights across visits and no notes or tags. Log Explorer has all of these.",
+              "Log Explorer reads more radio systems. Its Spektrum support is newer than its FrSky support, and we have not compared the two programs on the same log file.",
               "It reads Spektrum logs only; EdgeTX logs are planned.",
             ] },
           ],

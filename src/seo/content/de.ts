@@ -374,9 +374,9 @@ export const de: Content = {
 
     compare: {
       title: "Spektrum TLM Viewer im Vergleich: Browser oder Desktop",
-      description: "TLMscope im Browser im Vergleich mit dem Desktop-Programm TLM Viewer und Entwickler-Werkzeugen für Spektrum-Logs: Plattformen, Funktionen, Einsatz.",
+      description: "TLMscope im Browser im Vergleich mit TLM Viewer und Log Explorer für Spektrum-Logs: Plattformen, Preis, Funktionen, Einsatz.",
       h1: "Spektrum-TLM-Viewer im Vergleich",
-      lead: "Es gibt mehrere Wege, ein Spektrum-Telemetrie-Log anzusehen. Das ist ein fairer Überblick mit den Stärken jeder Möglichkeit. Angaben zu anderen Werkzeugen stammen von deren eigenen Seiten, Stand November 2026, und können sich ändern.",
+      lead: "Es gibt mehrere Wege, ein Spektrum-Telemetrie-Log anzusehen. Das ist ein fairer Überblick mit den Stärken jeder Möglichkeit. Angaben zu anderen Werkzeugen stammen von deren eigenen Produktseiten und Versionshinweisen, Stand November 2026, und können sich ändern. Die anderen Programme haben wir nicht selbst installiert und getestet.",
       sections: [
         {
           h2: "Die Möglichkeiten",
@@ -384,6 +384,7 @@ export const de: Content = {
             { t: "table", head: ["Möglichkeit", "Wie es läuft", "Plattformen", "Gut zu wissen"], rows: [
               ["**TLMscope**", "Im Browser, nichts zu installieren", "Jeder aktuelle Browser: Windows, macOS, Linux, Android, iOS", "Kostenlos, kein Konto, die Dateien bleiben auf deinem Gerät. Deutsch und Englisch. Verständliche Zusammenfassungen und Bewertungen, Diagramme, GPS-Karte mit 3D-Wiedergabe, Akku-Alterung über mehrere Flüge. Liest nur Spektrum-Logs. Kein Export."],
               ["**[TLM Viewer](https://www.tlmviewer.com)**", "Desktop-Programm zum Herunterladen", "Windows; auf dem Mac nur über einen Windows-Emulator, nicht auf Android, laut seiner Dokumentation", "Ein langjähriges kostenloses Werkzeug. Diagramme, Rohdaten der Sensoren, Bearbeiten von Sitzungen, Export als CSV, KML (Google Earth) und TLM. Liest alte und beschädigte Log-Formate. Nur auf Englisch."],
+              ["**[Log Explorer](https://phaedradg.itch.io/ethos-log-explorer)**", "Desktop-Programm für Windows, kostenpflichtig, mit Android-Begleit-App", "Windows und Android; macOS und Linux nennt die Produktseite", "Ab 10 $ (zahle, was du willst), mit einem Lizenzschlüssel, der an die Windows-Hardware-ID gebunden ist. Liest FrSky-Ethos- und OpenTX-Logs und laut Versionshinweisen seit v3.0 auch Spektrum- und Jeti-Logs. Führt eine Bibliothek je Modell mit Notizen und Tags, vergleicht Flüge, verfolgt den Akku-Innenwiderstand über die Zeit, verknüpft Videodateien und exportiert ein Overlay-Video mit Transparenz. Außerdem Kostenverwaltung, Wetter und Modelldateien, was nicht zu TLMscope gehört."],
               ["Code-Bibliotheken und kleine Projekte", "Code für Entwickler", "Unterschiedlich", "Zum Beispiel ein Ruby-Paket und ein Android-Reader auf GitHub. Nützlich, um eigene Werkzeuge zu bauen; das Android-Projekt beschreibt sich selbst als in früher Entwicklung."],
             ] },
           ],
@@ -394,6 +395,7 @@ export const de: Content = {
             { t: "ul", items: [
               "Nimm **TLMscope**, wenn du schnell eine verständliche Antwort auf „Was ist in diesem Flug passiert?“ willst, auf jedem Gerät, ohne etwas zu installieren oder Daten hochzuladen.",
               "Nimm **TLM Viewer**, wenn du unter Windows arbeitest und Daten exportieren (CSV, KML) oder Logs bearbeiten und wieder speichern willst.",
+              "Nimm **Log Explorer**, wenn du mehrere Funksysteme fliegst, eine Bibliothek mit Flügen je Modell und Notizen führen, Flüge nebeneinander vergleichen oder Overlay-Videos machen willst. Preis und Windows-Lizenz sind die Kosten.",
               "Nutze beide: Sie lesen dieselben Dateien. Beides sind unabhängige Projekte; keines stammt von Spektrum.",
             ] },
           ],
@@ -416,6 +418,8 @@ export const de: Content = {
             { t: "ul", items: [
               "Bisher sind nur Logs von NX- und iX-Sendern getestet. Siehe [Unterstützte Sender und Sensoren](page:radios).",
               "Einen Export als CSV oder KML gibt es noch nicht.",
+              "Es gibt keinen Flugvergleich, keine Bibliothek über mehrere Besuche hinweg und keine Notizen oder Tags. Log Explorer hat all das.",
+              "Log Explorer liest mehr Funksysteme. Seine Spektrum-Unterstützung ist neuer als die für FrSky, und wir haben beide Programme nicht mit derselben Logdatei verglichen.",
               "Es liest nur Spektrum-Logs; EdgeTX-Logs sind geplant.",
             ] },
           ],
