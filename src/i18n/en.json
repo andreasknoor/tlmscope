@@ -319,7 +319,12 @@
     "distFromStart": "Distance from start",
     "away": "{d} away",
     "mapFailed": "The map could not be loaded. It needs an internet connection and a browser with WebGL.",
-    "noFlight": "No flight in this session."
+    "noFlight": "No flight in this session.",
+    "pathMode": "Path during replay",
+    "pathModeHint": "During the replay, show the whole path or only the part flown so far. Before the replay starts the whole path is shown.",
+    "pathMode_full": "Whole path",
+    "pathMode_trail": "Trail only",
+    "pathMode_trailRest": "Trail, rest faint"
   },
   "energy": {
     "motorCurrent": "Motor current",

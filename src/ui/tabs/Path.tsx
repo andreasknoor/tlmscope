@@ -4,7 +4,7 @@ import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Legend, Tile, useLevelWord } from "../bits";
-import { FlightMap, LINE_STYLES, MARKER_STYLES, type LineStyle, type MarkerStyle } from "../charts/FlightMap";
+import { FlightMap, LINE_STYLES, MARKER_STYLES, PATH_MODES, type LineStyle, type MarkerStyle, type PathMode } from "../charts/FlightMap";
 import { Replay } from "../charts/Replay";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
@@ -40,6 +40,7 @@ function GpsView() {
   const [colourBy, setColourBy] = useState<ColourBy>("phase");
   const [pitch, setPitch] = useState(55);
   const [lineStyle, setLineStyle] = useState<LineStyle>("thin");
+  const [pathMode, setPathMode] = useState<PathMode>("full");
   const [markerStyle, setMarkerStyle] = useState<MarkerStyle>("plane");
   const [shadow, setShadow] = useState(true);
   const [marker, setMarker] = useState<number | null>(null);
@@ -102,13 +103,16 @@ function GpsView() {
             <select className="mapselect" aria-label={t("path.line")} value={lineStyle} onChange={(ev) => setLineStyle(ev.target.value as LineStyle)}>
               {LINE_STYLES.map((l) => <option key={l} value={l}>{t(`path.line_${l}`)}</option>)}
             </select>
+            <select className="mapselect" aria-label={t("path.pathMode")} title={t("path.pathModeHint")} value={pathMode} onChange={(ev) => setPathMode(ev.target.value as PathMode)}>
+              {PATH_MODES.map((m) => <option key={m} value={m}>{t(`path.pathMode_${m}`)}</option>)}
+            </select>
             <select className="mapselect" aria-label={t("path.marker")} value={markerStyle} onChange={(ev) => setMarkerStyle(ev.target.value as MarkerStyle)}>
               {MARKER_STYLES.map((k) => <option key={k} value={k}>{t(`path.marker_${k}`)}</option>)}
             </select>
             <div className="seg"><button aria-pressed={shadow} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
           </div>
           <div className="mapwrap">
-            <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} failedText={t("path.mapFailed")} />
+            <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} failedText={t("path.mapFailed")} />
           </div>
         </div>
         {colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />

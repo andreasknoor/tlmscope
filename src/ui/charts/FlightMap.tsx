@@ -8,6 +8,7 @@ import { attitudeFromPath, type Track } from "@/core/analysis";
 import { maxOf, minOf } from "@/core/analysis/grid";
 import { cssVar } from "../format";
 import { ADEBAR_LANDED } from "./sync";
+import { trailUpTo, type PathLine, type Rgba } from "./trail";
 import { NEST_TOP, planeMesh, storkMeshes, STORK_BEAK_HINGE, STORK_SHOULDER, type Mesh, type V } from "./plane-mesh";
 
 /** Free vector tiles without an API key (decision D3: MapLibre). */
@@ -17,6 +18,11 @@ export const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 export type LineStyle = "thin" | "thinDashed" | "thick" | "thickDashed";
 export const LINE_STYLES: LineStyle[] = ["thin", "thinDashed", "thick", "thickDashed"];
 const LINE_WIDTH = { thin: 2, thick: 4 };
+/** How much of the path is drawn during the replay: all of it, only the part flown so far, or that part with the rest faint. */
+export type PathMode = "full" | "trail" | "trailRest";
+export const PATH_MODES: PathMode[] = ["full", "trail", "trailRest"];
+/** Opacity of the part still to come in "trailRest". */
+const REST_ALPHA = 60;
 /** How the model is shown in the replay. */
 export type MarkerStyle = "plane" | "dot" | "stork";
 export const MARKER_STYLES: MarkerStyle[] = ["plane", "dot", "stork"];
@@ -32,6 +38,8 @@ interface Props {
   marker: number | null;
   pitch: number;
   lineStyle: LineStyle;
+  /** Without a replay position the whole path is always drawn. */
+  pathMode: PathMode;
   markerStyle: MarkerStyle;
   /** Draw the path projected onto the ground. */
   shadow: boolean;
@@ -144,7 +152,7 @@ const toRgb = (c: string): [number, number, number] => {
 };
 
 /** Map with the flight path in 3D. Libraries load only in the browser. */
-export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, markerStyle, shadow: showShadow, flapping, air, spots = [], failedText }: Props) {
+export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pathMode, markerStyle, shadow: showShadow, flapping, air, spots = [], failedText }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
@@ -154,6 +162,10 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
   const fitZoomRef = useRef<number | null>(null);
   /** Layers that do not move with the replay; the model layers are added on every frame. */
   const staticRef = useRef<Layer[]>([]);
+  /** Builds a path layer in the chosen line style (set with the static layers, used by the replay for the trail). */
+  const pathLayerRef = useRef<((id: string, data: PathLine[]) => Layer) | null>(null);
+  /** The trail up to a whole second, kept while the replay stays within that second. */
+  const trailRef = useRef<{ lines: PathLine[] | null; sec: number; data: PathLine[] }>({ lines: null, sec: -1, data: [] });
   /** Shown position (fractional second), its glide towards the cursor, and the stork's wing beat. */
   const anim = useRef({ shown: null as number | null, from: 0, to: 0, start: 0, dur: 0, lastChange: 0, blend: 0, phase: 0, prevT: 0, frame: 0, fold: 0, launchAt: 0, landAt: 0, prevShown: null as number | null });
   const drawRef = useRef<() => void>(() => {});
@@ -229,22 +241,25 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
   // Path data changes rarely; keeping it stable lets the replay move the marker without re-uploading the path.
   // One line per stretch with a fix, coloured per point, so dashes run on along the whole line.
   const pathData = useMemo(() => {
-    const lines: { path: [number, number, number][]; colors: [number, number, number][] }[] = [];
+    const lines: PathLine[] = [];
     const shadow: [number, number][] = [];
     let cur: (typeof lines)[number] | null = null;
     for (let i = 0; i < track.lat.length; i++) {
       if (track.lat[i] === null || track.lon[i] === null) { cur = null; continue; }
       const p: [number, number, number] = [track.lon[i]!, track.lat[i]!, Math.max(0, height[i] ?? 0)];
       shadow.push([p[0], p[1]]);
-      if (!cur) { cur = { path: [], colors: [] }; lines.push(cur); }
+      if (!cur) { cur = { path: [], colors: [], secs: [] }; lines.push(cur); }
       // Skip a point that repeats the last one (the model standing on the ground): deck.gl's
       // dashed billboard lines divide by the segment length and throw zero-length segments off to infinity.
       const last = cur.path[cur.path.length - 1];
       if (last && last[0] === p[0] && last[1] === p[1] && Math.abs(last[2] - p[2]) < 0.01) continue;
       cur.path.push(p);
       cur.colors.push(toRgb(colorAt(i)));
+      cur.secs.push(i);
     }
-    return { lines: lines.filter((l) => l.path.length > 1), shadow: [{ path: shadow }] };
+    const kept = lines.filter((l) => l.path.length > 1);
+    const rest = kept.map((l) => ({ ...l, colors: l.colors.map(([r, g, b]) => [r, g, b, REST_ALPHA] as Rgba) }));
+    return { lines: kept, rest, shadow: [{ path: shadow }] };
   }, [track, height, colorAt]);
 
   const attitude = useMemo(() => attitudeFromPath(track.east, track.north, height), [track, height]);
@@ -255,19 +270,23 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
   useEffect(() => {
     const layers = layersRef.current, ext = extRef.current;
     if (!ready || !layers || !ext) return;
-    const { lines, shadow } = pathData;
+    const { lines, rest, shadow } = pathData;
     const dashed = lineStyle === "thinDashed" || lineStyle === "thickDashed";
     const width = LINE_WIDTH[lineStyle.startsWith("thin") ? "thin" : "thick"];
+    const pathLayer = (id: string, data: PathLine[]) => new layers.PathLayer({
+      // A new id when dashes are switched on or off: deck.gl cannot add or drop an extension on a live layer.
+      id: dashed ? `${id}-dashed` : id, data,
+      getPath: (d: PathLine) => d.path, getColor: (d: PathLine) => d.colors,
+      getWidth: width, widthUnits: "pixels", billboard: true, capRounded: !dashed, jointRounded: true,
+      ...(dashed ? { extensions: [new ext.PathStyleExtension({ dash: true, dashMode: "path" })], getDashArray: DASH, dashUnits: "pixels" } : {}),
+    });
+    pathLayerRef.current = pathLayer;
+    trailRef.current = { lines: null, sec: -1, data: [] };
     staticRef.current = [
       // Ground shadow, kept faint so it does not read as a second path.
       ...(showShadow ? [new layers.PathLayer({ id: "shadow", data: shadow, getPath: (d: { path: [number, number][] }) => d.path, getColor: [60, 70, 80, 55], getWidth: 1.5, widthUnits: "pixels" })] : []),
-      new layers.PathLayer({
-        // A new id when dashes are switched on or off: deck.gl cannot add or drop an extension on a live layer.
-        id: dashed ? "path-dashed" : "path", data: lines,
-        getPath: (d: (typeof lines)[number]) => d.path, getColor: (d: (typeof lines)[number]) => d.colors,
-        getWidth: width, widthUnits: "pixels", billboard: true, capRounded: !dashed, jointRounded: true,
-        ...(dashed ? { extensions: [new ext.PathStyleExtension({ dash: true, dashMode: "path" })], getDashArray: DASH, dashUnits: "pixels" } : {}),
-      }),
+      // In the trail modes the replay draws the flown part (see draw); the rest is faint or left out.
+      ...(pathMode === "full" ? [pathLayer("path", lines)] : pathMode === "trailRest" ? [pathLayer("path-rest", rest)] : []),
       new layers.ScatterplotLayer({
         id: "thermals", data: spots, getPosition: (d: (typeof spots)[number]) => [d.lon, d.lat, 0],
         getFillColor: (d: (typeof spots)[number]) => [...toRgb(cssVar("--s-lift")), d.own ? 170 : 90] as [number, number, number, number],
@@ -277,7 +296,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
       new layers.ScatterplotLayer({ id: "home", data: [track.home], getPosition: (d: Track["home"]) => [d.lon, d.lat, 0], getFillColor: toRgb(cssVar("--ink")), getRadius: 6, radiusUnits: "pixels", billboard: true }),
     ];
     drawRef.current();
-  }, [ready, track, pathData, spots, lineStyle, showShadow]);
+  }, [ready, track, pathData, spots, lineStyle, showShadow, pathMode]);
 
   // The model layers for the shown (fractional) second, drawn together with the static layers.
   useEffect(() => {
@@ -379,11 +398,21 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, ma
           }
         }
       }
-      overlay.setProps({ layers: [...staticRef.current, ...model] });
+      const path: Layer[] = [];
+      if (pathMode !== "full" && pathLayerRef.current) {
+        // Before the replay starts the whole path shows; then only the part flown so far.
+        if (st.shown === null) path.push(pathLayerRef.current("path", pathData.lines));
+        else {
+          const sec = Math.floor(st.shown), tc = trailRef.current;
+          if (tc.lines !== pathData.lines || tc.sec !== sec) trailRef.current = { lines: pathData.lines, sec, data: trailUpTo(pathData.lines, sec) };
+          path.push(pathLayerRef.current("path-trail", trailRef.current.data));
+        }
+      }
+      overlay.setProps({ layers: [...staticRef.current, ...path, ...model] });
     };
     drawRef.current = draw;
     draw();
-  }, [ready, track, height, attitude, mesh, stork, markerStyle, spots, air]);
+  }, [ready, track, height, attitude, mesh, stork, markerStyle, spots, air, pathMode, pathData]);
 
   // Replay cursor: glide from the shown second to the new one over about the time between two updates.
   useEffect(() => {

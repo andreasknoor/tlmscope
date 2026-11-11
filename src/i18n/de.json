@@ -319,7 +319,12 @@
     "distFromStart": "Entfernung vom Start",
     "away": "{d} entfernt",
     "mapFailed": "Die Karte konnte nicht geladen werden. Sie braucht eine Internetverbindung und einen Browser mit WebGL.",
-    "noFlight": "In dieser Sitzung wurde nicht geflogen."
+    "noFlight": "In dieser Sitzung wurde nicht geflogen.",
+    "pathMode": "Flugweg bei der Wiedergabe",
+    "pathModeHint": "Bei der Wiedergabe den ganzen Flugweg zeigen oder nur den bisher geflogenen Teil. Vor dem Start der Wiedergabe ist der ganze Flugweg zu sehen.",
+    "pathMode_full": "Ganzer Flugweg",
+    "pathMode_trail": "Nur Spur",
+    "pathMode_trailRest": "Spur, Rest blass"
   },
   "energy": {
     "motorCurrent": "Motorstrom",
