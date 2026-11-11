@@ -4,7 +4,7 @@ import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import type { SessionAnalysis } from "@/core/analysis";
 import { catalogue } from "@/core/model/catalogue";
-import { RatingCard, useLevelWord } from "../bits";
+import { RatingCard, useLevelWord, useRich } from "../bits";
 import { num } from "../format";
 import { useStore, useUnits } from "../store";
 
@@ -47,12 +47,13 @@ export function SignalCard({ a }: { a: SessionAnalysis }) {
 export function UsedCard({ a }: { a: SessionAnalysis }) {
   const t = useTranslations("rating");
   const word = useLevelWord();
+  const rich = useRich();
   const loc = useStore().settings.locale;
   const u = v(a.batteryUse);
   const c = v(a.charge);
   const hint = !u ? "" : u.capacityMah
     ? t("usedHint", { used: num(loc, u.usedMah, 0), capacity: u.capacityMah, source: u.capacitySource === "user" ? t("yourCapacity") : "" })
-    : t("usedNoCapacity", { used: num(loc, u.usedMah, 0) });
+    : rich("rating.usedNoCapacity", { used: num(loc, u.usedMah, 0) });
   return (
     <RatingCard name={t("used")} level={u?.level ?? null} word={word("used", u?.level ?? null)} hint={hint}
       rows={u ? [[t("usedByMotor"), `${num(loc, u.usedMah, 0)} mAh`], [t("cellStart"), `${num(loc, c?.startCellV, 2)} V`], [t("cellEnd"), `${num(loc, c?.endCellV, 2)} V`]] : null} />

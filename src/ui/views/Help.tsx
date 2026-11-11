@@ -31,7 +31,7 @@ export function Help({ dialogRef }: { dialogRef: RefObject<HTMLDialogElement | n
         <h3>{t("notSupported")}</h3>
         <ul>{["n1", "n2", "n3", "n4", "n5", "n6", "n7"].map((k) => <li key={k}>{rich(`help.${k}`)}</li>)}</ul>
         <h3>{t("private")}</h3>
-        <p>{t("privateText")}</p>
+        <p>{rich("help.privateText")}</p>
         <h3>{t("getLogs")}</h3>
         <ul><li>{rich("help.g1")}</li><li>{rich("help.g2")}</li></ul>
         <h3>{t("about")}</h3>

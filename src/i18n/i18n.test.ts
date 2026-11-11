@@ -22,6 +22,19 @@ describe("translations", () => {
     const deMap = new Map(flat(de));
     for (const [k, v] of flat(en)) expect(placeholders(deMap.get(k) ?? ""), k).toEqual(placeholders(v));
   });
+
+  it("use the same markup in both languages, and only tags the UI knows", async () => {
+    const { TAB_TAGS } = await import("../ui/tab-tags.ts");
+    const known = new Set(["b", "code", ...Object.keys(TAB_TAGS)]);
+    const tags = (s: string) => [...s.matchAll(/<(\w+)>/g)].map((m) => m[1]).sort();
+    const flat = (o: Record<string, unknown>, p = ""): [string, string][] =>
+      Object.entries(o).flatMap(([k, v]) => (typeof v === "string" ? [[p + k, v] as [string, string]] : v && typeof v === "object" && !Array.isArray(v) ? flat(v as Record<string, unknown>, `${p}${k}.`) : []));
+    const deMap = new Map(flat(de));
+    for (const [k, v] of flat(en)) {
+      expect(tags(deMap.get(k) ?? ""), k).toEqual(tags(v));
+      for (const tag of tags(v)) expect(known.has(tag), `${k}: <${tag}>`).toBe(true);
+    }
+  });
 });
 
 describe("German sensor texts", () => {

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState, type RefObject } from "react";
+import { useRich } from "../bits";
 import { isCapacity, useStore } from "../store";
 import { THEMES } from "../theme";
 import { UNIT_SYSTEMS } from "../units";
@@ -11,6 +12,7 @@ export function SettingsDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogE
   const t = useTranslations("settings");
   const ta = useTranslations("app");
   const { settings, setSettings, models } = useStore();
+  const rich = useRich();
   const nameOf = (key: string) => models.find((m) => m.key === key)?.name ?? (key || ta("unknownModel"));
   const capacities = Object.entries(settings.capacities).sort(([a], [b]) => a.localeCompare(b));
   const removeCapacity = (key: string) => {
@@ -53,7 +55,7 @@ export function SettingsDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogE
         </div>
 
         <h3>{t("batteries")}</h3>
-        <p className="hint">{t("batteriesHint")}</p>
+        <p className="hint">{rich("settings.batteriesHint")}</p>
         {/* Keyed by the saved value, so the field shows it once the settings are read from storage. */}
         <DefaultCapacity key={settings.defaultCapacityMah ?? "none"} />
         {capacities.length > 0 ? (

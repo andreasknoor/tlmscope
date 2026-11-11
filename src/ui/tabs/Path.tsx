@@ -83,7 +83,7 @@ function GpsView() {
         <Tile label={t("path.typicalSpeed")} value={U.n("speed", tr.medianSpeed ?? 0)} unit={` ${U.u("speed")}`} sub={t("path.overGround")} />
         <Tile label={t("path.topSpeed")} value={U.n("speed", tr.maxSpeed ?? 0)} unit={` ${U.u("speed")}`} sub={t("path.overGround")} />
       </div>
-      <div className={`mapgroup${full ? " full" : ""}`} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("path.map") : undefined}>
+      <div id="map" className={`mapgroup${full ? " full" : ""}`} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("path.map") : undefined}>
       <div className="chart">
         <div className="ch"><b>{t("path.map")}</b>
           <button className="btn" onClick={() => setFull(!full)} aria-pressed={full}>{full ? `✕ ${t("path.closeFull")}` : `⤢ ${t("path.full")}`}</button>

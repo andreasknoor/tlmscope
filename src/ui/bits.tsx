@@ -8,6 +8,7 @@ import { catalogue } from "@/core/model/catalogue";
 import type { FlightProfile } from "@/core/analysis/flight";
 import { clock } from "./format";
 import { useStore } from "./store";
+import { TAB_TAGS, type LinkTarget } from "./tab-tags";
 
 export const LEVEL_COLOR: Record<Level, string> = { 4: "var(--good)", 3: "var(--good)", 2: "var(--warn)", 1: "var(--crit)" };
 
@@ -22,11 +23,42 @@ export function Meter({ level, neutral = false }: { level: Level; neutral?: bool
   );
 }
 
-/** A rich message with <b> and <code> tags. */
+/** After switching tabs, scrolls to the anchor once it is rendered, focuses its first field and briefly highlights it. */
+function revealAnchor(id: string) {
+  let tries = 0;
+  const look = () => {
+    const el = document.getElementById(id);
+    if (!el) { if (++tries < 60) requestAnimationFrame(look); return; }
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.querySelector<HTMLElement>("input, select, button")?.focus({ preventScroll: true });
+    el.classList.remove("flash");
+    void el.offsetWidth;
+    el.classList.add("flash");
+  };
+  requestAnimationFrame(look);
+}
+
+/** Opens a place in the selected session (closing a dialog it sits in); just bold text when no session is open. */
+function TabLink({ to, children }: { to: LinkTarget; children: ReactNode }) {
+  const { selected, select } = useStore();
+  if (!selected) return <b>{children}</b>;
+  return (
+    <button type="button" className="linkbtn inline" onClick={(ev) => {
+      ev.currentTarget.closest("dialog")?.close();
+      select(selected.key, to.tab);
+      if (to.anchor) revealAnchor(to.anchor);
+    }}>
+      {children}
+    </button>
+  );
+}
+
+/** A rich message with <b>, <code> and tab links (see TAB_TAGS). */
 export function useRich() {
   const t = useTranslations();
+  const tabs = Object.fromEntries(Object.entries(TAB_TAGS).map(([tag, to]) => [tag, (c: ReactNode) => <TabLink to={to}>{c}</TabLink>]));
   return (key: string, values: Record<string, string | number> = {}) =>
-    t.rich(key, { ...values, b: (c) => <b>{c}</b>, code: (c) => <code>{c}</code> });
+    t.rich(key, { ...values, ...tabs, b: (c) => <b>{c}</b>, code: (c) => <code>{c}</code> });
 }
 
 /** Word for a level on one of the scales in the messages ("levels.link" etc.). */

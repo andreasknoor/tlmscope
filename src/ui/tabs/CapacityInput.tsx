@@ -27,7 +27,7 @@ export function CapacityInput() {
   };
 
   return (
-    <div className="card capacity">
+    <div className="card capacity" id="capacity">
       <h3>{t("title")}</h3>
       <p className="hint">{saved ? t("savedHint", { mah: saved }) : settings.defaultCapacityMah ? t("defaultHint", { mah: settings.defaultCapacityMah }) : t("hint")}</p>
       <form className="capform" onSubmit={(ev) => { ev.preventDefault(); if (valid) save(value); }}>
