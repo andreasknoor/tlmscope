@@ -2,7 +2,7 @@
 
 # TLMscope
 
-TLMscope shows what happened during your RC flights. It reads the telemetry logs your transmitter saves and turns them into flight summaries, charts and simple ratings, with the exact values one click away.
+TLMscope is a free, browser-based viewer and analyzer for Spektrum .TLM telemetry logs. It runs on Windows, macOS, Linux, Android and iOS without installing anything, and the files stay on your device. It shows what happened during your RC flights: flight summaries, charts and simple ratings, with the exact values one click away. A free alternative to desktop TLM viewers, see [how it compares](https://tlmscope.andreasknoor.com/compare).
 
 Files are read in your browser and never uploaded. Only the map for GPS logs loads map tiles from [OpenFreeMap](https://openfreemap.org), which sees roughly where the flight was.
 

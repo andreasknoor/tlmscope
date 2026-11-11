@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LANGS, PAGE_IDS, SLUGS, pathOf } from "./pages.ts";
-import { absolute, HOME_META, homeStructuredData, languageAlternates, SITE_URL, SITEMAP } from "./site.ts";
+import { absolute, HOME_META, homeStructuredData, languageAlternates, SITE_SUMMARY, SITE_URL, SITEMAP } from "./site.ts";
 
 describe("search engine basics", () => {
   it("keeps titles and descriptions within what results show", () => {
@@ -42,5 +42,14 @@ describe("search engine basics", () => {
     expect(app).toMatchObject({ name: "TLMscope", applicationCategory: "UtilitiesApplication", isAccessibleForFree: true });
     expect(graph.some((n) => n["@type"] === "FAQPage")).toBe(true);
     expect(JSON.stringify(graph)).not.toMatch(/aggregateRating|"review/i);
+  });
+});
+
+describe("site summary", () => {
+  it("is worded the same in the FAQ and the README", async () => {
+    const { CONTENT } = await import("./content/index.ts");
+    const { readFileSync } = await import("node:fs");
+    expect(CONTENT.en.guides.faq.faq?.[0].a.startsWith(SITE_SUMMARY.split(". ")[0])).toBe(true);
+    expect(readFileSync("README.md", "utf8")).toContain(SITE_SUMMARY);
   });
 });

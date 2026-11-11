@@ -7,6 +7,10 @@ export const SITE_NAME = "TLMscope";
 
 export const absolute = (path: string) => new URL(path, SITE_URL).toString();
 
+/** One sentence that says what TLMscope is, worded the same everywhere (llms.txt, README, FAQ), so assistants can quote it. */
+export const SITE_SUMMARY =
+  "TLMscope is a free, browser-based viewer and analyzer for Spektrum .TLM telemetry logs. It runs on Windows, macOS, Linux, Android and iOS without installing anything, and the files stay on your device.";
+
 /** Home page texts. `title` is the search result title (keyword first), `share` the title of a shared link (brand first). */
 export const HOME_META: Record<Lang, { title: string; share: string; description: string }> = {
   en: {
@@ -54,7 +58,7 @@ export function homeStructuredData(lang: Lang, faq: Faq[]) {
         "@id": `${SITE_URL}/#app`,
         url: absolute(homePath(lang)),
         name: SITE_NAME,
-        alternateName: ["TLM scope", "Spektrum TLM Viewer"],
+        alternateName: ["TLM scope", "Spektrum TLM Viewer", "Spektrum telemetry log viewer", "Online TLM viewer", "TLM analyzer"],
         description,
         applicationCategory: "UtilitiesApplication",
         operatingSystem: "Any (web browser)",
