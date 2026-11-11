@@ -298,7 +298,7 @@ export const de: Content = {
               "Wähle links in der Liste eine Sitzung. Auf dem Handy ist die Liste eine Auswahl oben. Jeder Start des Empfängers ist eine Sitzung.",
               "„Flüge“ zeigt nur echte Flüge, „Alle“ auch Bodentests und kurze Einschaltphasen. Sind mehrere Modelle geladen, kannst du die Liste auf ein Modell beschränken.",
             ] },
-            { t: "img", name: "overview", alt: "TLMscope-Übersicht eines Demo-Flugs: Zusammenfassung, Kennzahlen, Höhenprofil mit Motorsteigflügen und Aufwind sowie die Bewertungen im Bereich „Zustand“", caption: "Die Übersicht eines Flugs: Zusammenfassung, Kennzahlen, Höhenprofil und Zustand." },
+            { t: "img", name: "overview", alt: "TLMscope-Übersicht eines Demo-Flugs: Zusammenfassung, Kennzahlen und Höhenprofil mit Motorsteigflügen, Aufwind und Gleitflug", caption: "Die Übersicht eines Flugs: Zusammenfassung, Kennzahlen und Höhenprofil." },
           ],
         },
         {

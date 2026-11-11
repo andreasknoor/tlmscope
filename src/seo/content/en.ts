@@ -298,7 +298,7 @@ export const en: Content = {
               "Pick a session in the list on the left. On a phone the list is a picker at the top. Each power-up of the receiver is one session.",
               "“Flights” shows real flights only, “All” also ground tests and short power-ups. With several models loaded, you can limit the list to one model.",
             ] },
-            { t: "img", name: "overview", alt: "TLMscope overview of a demo flight: summary sentence, key numbers, height profile with motor climbs and lift, and the health check ratings", caption: "The overview of a flight: summary, key numbers, height profile and health check." },
+            { t: "img", name: "overview", alt: "TLMscope overview of a demo flight: summary sentence, key numbers and the height profile with motor climbs, lift and gliding", caption: "The overview of a flight: summary, key numbers and height profile." },
           ],
         },
         {

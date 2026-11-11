@@ -8,7 +8,7 @@ Files are read in your browser and never uploaded. Only the map for GPS logs loa
 
 **Open the app: [tlmscope.andreasknoor.com](https://tlmscope.andreasknoor.com)**, or try it with the built-in demo flight.
 
-![TLMscope showing the demo flight: summary sentence, key numbers, height profile with motor climbs, lift and gliding, and the health check](docs/images/overview.jpg)
+![TLMscope showing the demo flight: summary sentence, key numbers and the height profile with motor climbs, lift and gliding](docs/images/overview.jpg)
 
 > **Status:** working app, published on Vercel; every push to `main` goes live (see [the plan](docs/implementation-plan.md)). More screenshots are at the end of this page.
 
@@ -275,4 +275,4 @@ Sources: Spektrum `spektrumTelemetrySensors.h` structure layouts, the project's 
 
 All screenshots show the synthetic demo flight, not real pilot data. The overview is at the top of this page.
 
-![Flight path: map with the 3D path coloured by phase, distance and speed, and a height chart that moves the marker on the map](docs/images/flight-path.jpg)
+![Flight path: map with the 3D path coloured by phase, thermal centres, and the replay controls below](docs/images/flight-path.jpg)
