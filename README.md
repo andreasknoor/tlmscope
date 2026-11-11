@@ -148,7 +148,7 @@ Analyses work only on canonical channels, resampled to a 1-second grid, so they 
 | Thermals | flight profile; circles with `rotation_rate.pitch/yaw`; centre and drift with GPS | per lift phase: gain, average and best 10 s climb, circles and height per circle, drift, motor time and mAh saved |
 | Radio link | `frame_losses` or `link_quality` | level per second, overall level, frame losses per minute, holds in the air, fades |
 | Signal strength | `signal_dbm` | level per second, overall level, weakest moment |
-| Battery used | `consumed_mah` | mAh and percent of capacity (reported or assumed) |
+| Battery used | `consumed_mah` | mAh, and percent of capacity when the battery reports it or you entered it |
 | Battery condition | `pack_voltage`, `motor_current` | internal resistance per cell from voltage sag |
 | Battery ageing | battery condition of several flights of one smart battery; `temperature.battery` if present | resistance trend per pack and charge cycles until 15 mΩ per cell (needs 5 flights over 2 weeks; cold flights below 15 °C and flights with stuck data are left out) |
 | Charge estimate | `pack_voltage` | state of charge at start and end, from resting voltage |

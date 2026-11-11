@@ -142,6 +142,11 @@ kbd { font: 500 11px var(--code); border: 1px solid var(--line); border-bottom-w
 .btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-weight: 600; color: var(--ink-2); }
 .btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .btn:disabled { opacity: .4; cursor: default; }
+.capform { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-top: 8px; }
+.capform label { display: grid; gap: 4px; font-size: 13px; color: var(--ink-2); }
+.capfield { display: flex; align-items: center; gap: 6px; }
+.capfield input, .setting input { width: 8em; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.capfield input[aria-invalid="true"] { border-color: var(--crit); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
 .btn.primary:hover:not(:disabled) { color: var(--surface); filter: brightness(1.1); }
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--sunken); border: 1px solid var(--line); color: var(--ink-2); }

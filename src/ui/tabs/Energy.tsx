@@ -10,6 +10,7 @@ import { axisNum, clock, num } from "../format";
 import { useStore } from "../store";
 import { rate, THRESHOLDS } from "@/core/analysis";
 import { PhaseLegend } from "./Overview";
+import { CapacityInput } from "./CapacityInput";
 import { ConsumptionCard, EfficiencyCard } from "./ratings";
 
 function Gauge({ pct }: { pct: number }) {
@@ -51,13 +52,14 @@ export function EnergyTab() {
             <div className="top3"><span className="lbl">{t("rating.used")}</span><Meter level={u.level!} /></div>
             <div className="word">{word("used", u.level)}</div>
             <Gauge pct={u.usedPct} />
-            <div className="hint">{t("energy.usedText", { used: num(loc, u.usedMah, 0), capacity: u.capacityMah! })}{u.capacityAssumed ? t("rating.assumed") : ""}</div>
+            <div className="hint">{t("energy.usedText", { used: num(loc, u.usedMah, 0), capacity: u.capacityMah! })}{u.capacitySource === "user" ? t("rating.yourCapacity") : ""}</div>
           </div>
         ) : <Tile label={t("rating.used")} value={u ? num(loc, u.usedMah, 0) : "–"} unit={u ? " mAh" : ""} />}
         {flight && a.consumption ? <ConsumptionCard a={a} /> : <Tile label={t("rating.consumption")} value={p?.mahPerMin != null ? num(loc, p.mahPerMin, 0) : "–"} unit={p?.mahPerMin != null ? " mAh/min" : ""} sub={flight ? undefined : t("energy.onlyFlights")} />}
         {flight && a.efficiency ? <EfficiencyCard a={a} /> : <Tile label={t("rating.efficiency")} value="–" sub={flight && p.basis !== "height" ? t("energy.needsHeight") : t("energy.onlyFlights")} />}
         <Tile label={t("overview.motorTime")} value={clock(p?.motorSecs ?? 0)} unit=" min" sub={`max ${num(loc, maxA, 1)} A`} />
       </div>
+      {u && u.capacitySource !== "battery" && <CapacityInput key={e!.model.key} />}
       {thr[0].data.some((x) => x !== null) && (
         <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thr} phases={flight ? p.phases : null} height={150} yMax={100}
           yFormat={(x) => `${axisNum(loc, x)} %`} extra={flight ? <PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} /> : null} />

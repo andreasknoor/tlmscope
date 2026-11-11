@@ -35,7 +35,14 @@ export interface Settings {
   details: boolean;
   locale: Locale;
   filter: "flights" | "all";
+  /** Battery capacity (mAh) per model, keyed by `modelKey()`, for batteries that do not report one. */
+  capacities: Record<string, number>;
+  /** Capacity for models without their own entry; null for none. */
+  defaultCapacityMah: number | null;
 }
+
+/** A plausible battery capacity in mAh. */
+export const isCapacity = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v >= 50 && v <= 100000;
 
 export interface Store {
   files: LogFile[];

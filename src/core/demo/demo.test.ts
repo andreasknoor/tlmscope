@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseLog } from "../adapters/registry.ts";
-import { analyseLogs, type Result } from "../analysis/index.ts";
+import { analyseLogs, batteryUse, withCapacities, type Result } from "../analysis/index.ts";
 import { DEMO_HOME, demoFlightTlm } from "./demo-flight.ts";
 
 const value = <T>(r: Result<T>): T => {
@@ -63,5 +63,31 @@ describe("synthetic demo flight (end-to-end, including GPS)", () => {
   it("rates the healthy demo battery as good and finds no data problems", () => {
     expect(value(a.batteryCondition).level).toBe(4);
     expect(a.issues).toEqual([]);
+  });
+
+  describe("battery capacity", () => {
+    const noReport = { ...a.session, battery: undefined };
+
+    it("prefers the capacity the battery reports over the user's", () => {
+      expect(value(batteryUse(a.session, 5000))).toMatchObject({ capacityMah: 2200, capacitySource: "battery" });
+    });
+
+    it("rates nothing without a capacity, and uses the user's when given", () => {
+      const none = value(batteryUse(noReport));
+      expect(none).toMatchObject({ capacityMah: null, capacitySource: null, usedPct: null, level: null });
+      expect(none.usedMah).toBeGreaterThan(0);
+      const user = value(batteryUse(noReport, 4000));
+      expect(user).toMatchObject({ capacityMah: 4000, capacitySource: "user" });
+      expect(user.usedPct).toBeCloseTo((none.usedMah / 4000) * 100, 6);
+      expect(user.level).not.toBeNull();
+    });
+
+    it("applies user capacities without analysing again", () => {
+      const logs = analyseLogs([{ ...log, sessions: [noReport] }]);
+      const rated = withCapacities(logs, () => 3000);
+      expect(value(rated.sessions[0].batteryUse).capacitySource).toBe("user");
+      expect(rated.sessions[0].grid).toBe(logs.sessions[0].grid);
+      expect(value(logs.sessions[0].batteryUse).capacitySource).toBeNull();
+    });
   });
 });

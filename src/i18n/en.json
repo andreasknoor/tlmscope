@@ -192,9 +192,8 @@
     "levels": "Levels",
     "levelsSignal": "≥ −70 high · ≥ −80 normal · ≥ −85 weak (from the sample flights)",
     "used": "Battery used",
-    "usedHint": "{used} of {capacity} mAh{assumed}. Rule of thumb: stay below 80 %.",
-    "usedNoCapacity": "{used} mAh. The battery did not report its capacity.",
-    "assumed": " (capacity assumed)",
+    "usedHint": "{used} of {capacity} mAh{source}. Rule of thumb: stay below 80 %.",
+    "usedNoCapacity": "{used} mAh. The battery did not report its capacity. Enter it under Motor & energy to see the share.",
     "usedByMotor": "Charge used by motor",
     "cellStart": "Per cell at start (rest)",
     "cellEnd": "Per cell at end (rest)",
@@ -235,7 +234,8 @@
     "mahPerMin": "{v} mAh per minute",
     "balance": "Cell balance",
     "balanceHint": "Largest difference between cells: {mv} mV.",
-    "balanceFrozen": "Not judged: battery data stuck."
+    "balanceFrozen": "Not judged: battery data stuck.",
+    "yourCapacity": " (capacity you entered)"
   },
   "issue": {
     "frozen": "Battery data stuck",
@@ -332,7 +332,18 @@
     "note": "A climb that ends in a turn or a dive shows lower efficiency even with the same motor and propeller.",
     "onlyFlights": "Only for flights.",
     "needsHeight": "Needs height data.",
-    "usedText": "{used} of {capacity} mAh used by the motor."
+    "usedText": "{used} of {capacity} mAh used by the motor.",
+    "capacity": {
+      "title": "Battery capacity",
+      "hint": "This battery did not report its capacity. Enter it to see how much of the pack was used. It is saved in this browser for this model.",
+      "savedHint": "Using the {mah} mAh you entered for this model. It is saved in this browser.",
+      "defaultHint": "Using your default of {mah} mAh. Enter a capacity to use for this model only.",
+      "label": "Capacity for {model}",
+      "labelNoModel": "Capacity",
+      "save": "Save",
+      "remove": "Remove",
+      "invalid": "Enter a value between 50 and 100000 mAh."
+    }
   },
   "battery": {
     "which": "Which battery",

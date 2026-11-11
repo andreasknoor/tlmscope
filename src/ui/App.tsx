@@ -2,7 +2,7 @@
 
 import { NextIntlClientProvider } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { analyseLogs } from "@/core/analysis";
+import { analyseLogs, withCapacities } from "@/core/analysis";
 import { modelKey } from "@/core/model/model-name";
 import type { LogFile } from "@/core/model/types";
 import de from "@/i18n/de.json";
@@ -13,13 +13,11 @@ import { batteryLetter, type Locale } from "./format";
 import { loadBuffer } from "./loader";
 import { Shell } from "./Shell";
 import { HOME_META } from "@/seo/site";
-import { StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
+import { isCapacity, StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
-const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights" };
+const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", capacities: {}, defaultCapacityMah: null };
 const SETTINGS_KEY = "tlmscope.settings";
-/** Capacity assumed for batteries that do not report one (the most common Spektrum Smart 3S size). */
-const ASSUMED_CAPACITY = 2200;
 export const DEMO_FILE = "demo-flight.TLM";
 /** Larger files are refused: real logs are a few MB, and parsing needs several times the file size in memory. */
 export const MAX_FILE_BYTES = 256 * 1024 * 1024;
@@ -41,7 +39,12 @@ function readSettings(initial: Locale): Settings {
     const details = typeof saved.details === "boolean" ? saved.details : typeof saved.level === "string" ? saved.level !== "simple" : DEFAULTS.details;
     const locale = initial === "de" || saved.locale === "de" ? "de" : "en";
     const filter = saved.filter === "flights" || saved.filter === "all" ? saved.filter : DEFAULTS.filter;
-    return { details, locale, filter };
+    const capacities: Record<string, number> = {};
+    if (saved.capacities && typeof saved.capacities === "object") {
+      for (const [k, v] of Object.entries(saved.capacities as Record<string, unknown>)) if (isCapacity(v)) capacities[k] = v;
+    }
+    const defaultCapacityMah = isCapacity(saved.defaultCapacityMah) ? saved.defaultCapacityMah : null;
+    return { details, locale, filter, capacities, defaultCapacityMah };
   } catch {
     return base;
   }
@@ -90,7 +93,13 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     });
   }, []);
 
-  const analysis = useMemo(() => (files.length ? analyseLogs(files, { assumedCapacityMah: ASSUMED_CAPACITY }) : null), [files]);
+  const analysed = useMemo(() => (files.length ? analyseLogs(files) : null), [files]);
+  // Capacities the user entered only change the charge share, so they are applied without analysing again.
+  const { capacities, defaultCapacityMah } = settings;
+  const analysis = useMemo(
+    () => analysed && withCapacities(analysed, (s) => capacities[modelKey(s.modelName)] ?? defaultCapacityMah),
+    [analysed, capacities, defaultCapacityMah],
+  );
 
   const { entries, models } = useMemo<{ entries: Entry[]; models: Model[] }>(() => {
     if (!analysis) return { entries: [], models: [] };

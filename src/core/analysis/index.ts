@@ -40,8 +40,8 @@ export interface SessionAnalysis {
 }
 
 export interface AnalysisOptions {
-  /** Capacity to assume for batteries that do not report one. */
-  assumedCapacityMah?: number;
+  /** Capacity entered by the user for a session whose battery does not report one. */
+  capacityFor?: CapacityFor;
   /** True when a missing smart battery is worth reporting. */
   batteryExpected?: boolean;
 }
@@ -64,7 +64,7 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
     track: tr,
     thermals: p && kind === "flight" ? thermals(p, grid, val(circ), val(tr)) : null,
     link, signal,
-    batteryUse: batteryUse(session, opts.assumedCapacityMah),
+    batteryUse: batteryUse(session, opts.capacityFor?.(session)),
     batteryCondition: batteryCondition(session, grid),
     charge: chargeEstimate(session, p, grid),
     cellBalance: cellBalance(session, grid),
@@ -78,6 +78,17 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
     consumption: null,
     sinkComparison: null,
   };
+}
+
+/** Capacity (mAh) the user entered for the battery of a session, if any. */
+export type CapacityFor = (session: Session) => number | null | undefined;
+
+/**
+ * The same analysis with battery use worked out again for user-entered capacities. Cheap: only the
+ * charge share changes, so the UI can apply new capacities without analysing the files again.
+ */
+export function withCapacities(logs: LogsAnalysis, capacityFor: CapacityFor): LogsAnalysis {
+  return { ...logs, sessions: logs.sessions.map((a) => ({ ...a, batteryUse: batteryUse(a.session, capacityFor(a.session)) })) };
 }
 
 /** Usual values of one model: medians over its flights in the loaded files. */
@@ -144,6 +155,7 @@ export function analyseLogs(logs: LogFile[], opts: Omit<AnalysisOptions, "batter
 
 export * from "./thresholds.ts";
 export { attitudeFromPath, type Attitude } from "./attitude.ts";
+export { batteryUse } from "./battery.ts";
 export { batteryAgeing, AGEING, type Ageing, type AgeingPoint } from "./ageing.ts";
 export type { Thermal, Thermals, ThermalCircle } from "./thermals.ts";
 export type { SessionKind, FlightProfile, Circling, Track, LinkAnalysis, SignalAnalysis, BatteryUse, BatteryCondition, ChargeEstimate, CellBalance, Temperatures, ReceiverPower, Loads, DataIssue, Moment, Result };

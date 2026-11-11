@@ -51,7 +51,7 @@ export function UsedCard({ a }: { a: SessionAnalysis }) {
   const u = v(a.batteryUse);
   const c = v(a.charge);
   const hint = !u ? "" : u.capacityMah
-    ? t("usedHint", { used: num(loc, u.usedMah, 0), capacity: u.capacityMah, assumed: u.capacityAssumed ? t("assumed") : "" })
+    ? t("usedHint", { used: num(loc, u.usedMah, 0), capacity: u.capacityMah, source: u.capacitySource === "user" ? t("yourCapacity") : "" })
     : t("usedNoCapacity", { used: num(loc, u.usedMah, 0) });
   return (
     <RatingCard name={t("used")} level={u?.level ?? null} word={word("used", u?.level ?? null)} hint={hint}

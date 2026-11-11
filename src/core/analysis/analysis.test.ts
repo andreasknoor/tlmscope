@@ -8,7 +8,7 @@ const value = <T>(r: Result<T>): T => {
   if (!r.available) throw new Error(`not available, missing ${JSON.stringify(r.missing)}`);
   return r.value;
 };
-const logs = () => analyseLogs([loadSample(MAIN_SAMPLE)], { assumedCapacityMah: 2200 });
+const logs = () => analyseLogs([loadSample(MAIN_SAMPLE)]);
 const flight = (index: number): SessionAnalysis => logs().sessions.find((a) => a.session.index === index)!;
 const FLIGHTS = [3, 15, 29, 31, 32];
 
@@ -70,10 +70,10 @@ describe.skipIf(!hasSamples)("battery", () => {
     expect(r.map((x) => x.level)).toEqual([4, 4, 1, 2, 1]);
   });
 
-  it("uses the reported capacity, or marks an assumed one", () => {
-    expect(value(flight(15).batteryUse)).toMatchObject({ capacityMah: 2200, capacityAssumed: false });
+  it("uses the reported capacity, and does not guess one", () => {
+    expect(value(flight(15).batteryUse)).toMatchObject({ capacityMah: 2200, capacitySource: "battery" });
     expect(Math.round(value(flight(15).batteryUse).usedPct!)).toBe(33);
-    expect(value(flight(31).batteryUse).capacityAssumed).toBe(true);
+    expect(value(flight(31).batteryUse)).toMatchObject({ capacityMah: null, capacitySource: null, usedPct: null, level: null });
   });
 
   it("estimates charge from the resting voltage", () => {

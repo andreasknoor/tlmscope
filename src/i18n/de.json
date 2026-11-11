@@ -192,9 +192,8 @@
     "levels": "Stufen",
     "levelsSignal": "≥ −70 hoch · ≥ −80 normal · ≥ −85 schwach (aus den Beispielflügen)",
     "used": "Akku verbraucht",
-    "usedHint": "{used} von {capacity} mAh{assumed}. Faustregel: unter 80 % bleiben.",
-    "usedNoCapacity": "{used} mAh. Der Akku hat seine Kapazität nicht gemeldet.",
-    "assumed": " (Kapazität angenommen)",
+    "usedHint": "{used} von {capacity} mAh{source}. Faustregel: unter 80 % bleiben.",
+    "usedNoCapacity": "{used} mAh. Der Akku hat seine Kapazität nicht gemeldet. Trag sie unter Motor & Energie ein, um den Anteil zu sehen.",
     "usedByMotor": "Vom Motor verbraucht",
     "cellStart": "Pro Zelle am Start (Ruhe)",
     "cellEnd": "Pro Zelle am Ende (Ruhe)",
@@ -235,7 +234,8 @@
     "mahPerMin": "{v} mAh pro Minute",
     "balance": "Zellbalance",
     "balanceHint": "Größter Unterschied zwischen den Zellen: {mv} mV.",
-    "balanceFrozen": "Nicht bewertet: Akkudaten eingefroren."
+    "balanceFrozen": "Nicht bewertet: Akkudaten eingefroren.",
+    "yourCapacity": " (deine Angabe)"
   },
   "issue": {
     "frozen": "Akkudaten eingefroren",
@@ -332,7 +332,18 @@
     "note": "Ein Steigflug, der in einer Kurve oder einem Sturzflug endet, zeigt auch bei gleichem Motor und Propeller eine geringere Effizienz.",
     "onlyFlights": "Nur bei Flügen.",
     "needsHeight": "Braucht Höhendaten.",
-    "usedText": "{used} von {capacity} mAh vom Motor verbraucht."
+    "usedText": "{used} von {capacity} mAh vom Motor verbraucht.",
+    "capacity": {
+      "title": "Akkukapazität",
+      "hint": "Dieser Akku hat seine Kapazität nicht gemeldet. Trag sie ein, um zu sehen, wie viel vom Akku verbraucht wurde. Sie wird in diesem Browser für dieses Modell gespeichert.",
+      "savedHint": "Verwendet werden die {mah} mAh, die du für dieses Modell eingetragen hast. Gespeichert in diesem Browser.",
+      "defaultHint": "Verwendet wird dein Standardwert von {mah} mAh. Trag eine Kapazität ein, die nur für dieses Modell gilt.",
+      "label": "Kapazität für {model}",
+      "labelNoModel": "Kapazität",
+      "save": "Speichern",
+      "remove": "Entfernen",
+      "invalid": "Gib einen Wert zwischen 50 und 100000 mAh ein."
+    }
   },
   "battery": {
     "which": "Welcher Akku",

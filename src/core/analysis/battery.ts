@@ -26,8 +26,8 @@ export function lipoChargePct(cellV: number | null): number | null {
 export interface BatteryUse {
   usedMah: number;
   capacityMah: number | null;
-  /** True when the capacity was not reported by the battery but assumed. */
-  capacityAssumed: boolean;
+  /** Where the capacity comes from: reported by the battery, entered by the user, or unknown. */
+  capacitySource: "battery" | "user" | null;
   usedPct: number | null;
   level: Level | null;
 }
@@ -67,14 +67,20 @@ export function cellCount(session: Session, g = new Grid(session)): number | nul
   return vmax === null ? null : Math.max(1, Math.ceil(vmax / 4.25));
 }
 
-export function batteryUse(session: Session, assumedCapacityMah?: number): Result<BatteryUse> {
+/**
+ * Charge drawn in the session, as a share of the capacity when one is known. A capacity reported by the
+ * battery wins over one entered by the user; without either there is no share and no rating, never a guess.
+ */
+export function batteryUse(session: Session, userCapacityMah?: number | null): Result<BatteryUse> {
   return withNeeds(session, ["consumed_mah"], () => {
     const ch = session.channels.get("consumed_mah")!;
     const usedMah = ch.v[ch.v.length - 1];
-    const reported = session.battery?.capacityMah ?? null;
-    const capacityMah = reported ?? assumedCapacityMah ?? null;
+    const reported = session.battery?.capacityMah || null;
+    const user = userCapacityMah && userCapacityMah > 0 ? userCapacityMah : null;
+    const capacityMah = reported ?? user;
+    const capacitySource = reported ? "battery" : user ? "user" : null;
     const usedPct = capacityMah ? (usedMah / capacityMah) * 100 : null;
-    return { usedMah, capacityMah, capacityAssumed: reported === null && capacityMah !== null, usedPct, level: rate(usedPct, THRESHOLDS.batteryUsedPct) };
+    return { usedMah, capacityMah, capacitySource, usedPct, level: rate(usedPct, THRESHOLDS.batteryUsedPct) };
   });
 }
 
