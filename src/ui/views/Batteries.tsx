@@ -2,12 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { medianOf } from "@/core/analysis/grid";
-import { batteryAgeing, rate, THRESHOLDS, type AgeingPoint } from "@/core/analysis";
+import { AGEING, batteryAgeing, rate, THRESHOLDS, type AgeingPoint } from "@/core/analysis";
 import { AgeingChart } from "../charts/AgeingChart";
 import { Meter, RatingCard, Tile, useLevelWord } from "../bits";
 import { dateShort, num, timeLabel } from "../format";
 import { ModelBadge, useModelName } from "../Shell";
-import { useStore, type Entry } from "../store";
+import { useStore, useUnits, type Entry } from "../store";
 
 export function Batteries() {
   const t = useTranslations();
@@ -15,6 +15,7 @@ export function Batteries() {
   const { entries, settings, select, models } = useStore();
   const modelName = useModelName();
   const loc = settings.locale;
+  const U = useUnits();
   const groups = new Map<string, Entry[]>();
   for (const e of entries) {
     const id = e.a.session.battery?.id;
@@ -71,7 +72,7 @@ export function Batteries() {
             <div className="ageing">
               <p><b>{ageingText}</b>{ageing.enough && ageing.current !== null && <span className="lv-more"> {t("batteries.ageingNow", { now: num(loc, ageing.current, 1), change: ageing.perTenCycles === null ? "–" : num(loc, ageing.perTenCycles, 2) })}</span>}</p>
               {ageing.points.length >= 2 && <AgeingChart ageing={ageing} title={t("batteries.ageingTitle")} note={t("batteries.ageingNote")} />}
-              {ageing.points.some((p) => !p.used) && <p className="hint">{t("batteries.ageingCold")}</p>}
+              {ageing.points.some((p) => !p.used) && <p className="hint">{t("batteries.ageingCold", { t: U.fmt("temp", AGEING.minTempC) })}</p>}
             </div>
             <details className="more sessionlist">
               <summary>{t("batteries.sessionList", { n: list.length })}</summary>

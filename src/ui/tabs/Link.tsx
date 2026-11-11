@@ -8,7 +8,7 @@ import { LineChart } from "../charts/LineChart";
 import { Scatter } from "../charts/Scatter";
 import { Strip } from "../charts/Strip";
 import { axisNum, cssVar, withAlpha } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 import { LinkCard, SignalCard } from "./ratings";
 
 export function levelColor(l: Level | null): string | null {
@@ -23,22 +23,23 @@ export function LinkTab() {
   const { selected: e, settings } = useStore();
   const a = e!.a;
   const loc = settings.locale;
+  const U = useUnits();
   const g = a.grid;
   const p = a.profile.available ? a.profile.value : null;
   const link = a.link.available ? a.link.value : null;
   const sig = a.signal.available ? a.signal.value : null;
   const dbm = useMemo(() => [{ data: g.get("signal_dbm"), color: "--s-alt", unit: "dBm", digits: 0, width: 1.5 }], [g]);
   const fl = useMemo(() => [{ data: g.get("frame_losses", "increase"), color: "--s-motor", unit: "/s", digits: 0, bars: true, fill: 0.9, width: 0 }], [g]);
-  const alt = useMemo(() => [{ data: g.get("altitude"), color: "--s-alt", unit: "m", fill: 0.1 }], [g]);
+  const alt = useMemo(() => [{ data: U.series("height", g.get("altitude")), color: "--s-alt", unit: U.u("height"), fill: 0.1 }], [g, U]);
   const linkColor = useCallback((i: number) => levelColor(link?.levels[i] ?? null), [link]);
   const sigColor = useCallback((i: number) => levelColor(sig?.levels[i] ?? null), [sig]);
   const sigVsHeight = useMemo(() => {
     const h = g.get("altitude"), s = g.get("signal_dbm");
     const out: [number, number][] = [];
     if (!p || p.airStart === null) return out;
-    for (let i = p.airStart; i <= p.airEnd!; i++) if (h[i] !== null && s[i] !== null) out.push([h[i]!, s[i]!]);
+    for (let i = p.airStart; i <= p.airEnd!; i++) if (h[i] !== null && s[i] !== null) out.push([U.v("height", h[i])!, s[i]!]);
     return out;
-  }, [g, p]);
+  }, [g, p, U]);
   const lw = (l: Level) => word("signal", l);
 
   return (
@@ -51,8 +52,8 @@ export function LinkTab() {
       {sig && <div className="lv-more"><LineChart syncKey={e!.key} title={t("link.dbm")} series={dbm} height={160} yMin={-100} yMax={-30}
         bands={[{ from: -100, to: -85, color: "--crit" }, { from: -85, to: -80, color: "--warn" }]} /></div>}
       {g.has("frame_losses") && <div className="lv-more"><LineChart syncKey={e!.key} title={t("link.fl")} series={fl} height={130} /></div>}
-      {g.has("altitude") && <LineChart syncKey={e!.key} title={t("link.heightCompare")} series={alt} phases={a.kind === "flight" ? p?.phases : null} height={130} yFormat={(x) => `${axisNum(loc, x)} m`} />}
-      {sigVsHeight.length > 0 && <div className="lv-more"><Scatter title={t("link.sigVsHeight")} note={t("link.dot")} points={sigVsHeight} xLabel={`${t("overview.height")} (m)`} yLabel="dBm" color="--s-alt" /></div>}
+      {g.has("altitude") && <LineChart syncKey={e!.key} title={t("link.heightCompare")} series={alt} phases={a.kind === "flight" ? p?.phases : null} height={130} yFormat={(x) => `${axisNum(loc, x)} ${U.u("height")}`} />}
+      {sigVsHeight.length > 0 && <div className="lv-more"><Scatter title={t("link.sigVsHeight")} note={t("link.dot")} points={sigVsHeight} xLabel={`${t("overview.height")} (${U.u("height")})`} yLabel="dBm" color="--s-alt" /></div>}
       <p className="note">{t("link.note")}</p>
     </>
   );

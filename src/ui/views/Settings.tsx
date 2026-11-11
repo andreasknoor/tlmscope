@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState, type RefObject } from "react";
 import { isCapacity, useStore } from "../store";
 import { THEMES } from "../theme";
+import { UNIT_SYSTEMS } from "../units";
 
 /** "My settings": everything the user can set, kept in this browser only. */
 export function SettingsDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElement | null> }) {
@@ -29,6 +30,12 @@ export function SettingsDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogE
           <span>{t("theme")}</span>
           <div className="seg" role="group" aria-label={t("theme")}>
             {THEMES.map((th) => <button key={th} aria-pressed={settings.theme === th} onClick={() => setSettings({ theme: th })}>{t(`theme_${th}`)}</button>)}
+          </div>
+        </div>
+        <div className="setting">
+          <span>{t("units")}</span>
+          <div className="seg" role="group" aria-label={t("units")}>
+            {UNIT_SYSTEMS.map((u) => <button key={u} aria-pressed={settings.units === u} onClick={() => setSettings({ units: u })}>{t(`units_${u}`)}</button>)}
           </div>
         </div>
         <div className="setting">

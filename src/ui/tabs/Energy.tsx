@@ -7,7 +7,7 @@ import { Meter, Tile, useLevelWord, LEVEL_COLOR } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { jumpTo } from "../charts/sync";
 import { axisNum, clock, num } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 import { rate, THRESHOLDS } from "@/core/analysis";
 import { PhaseLegend } from "./Overview";
 import { CapacityInput } from "./CapacityInput";
@@ -35,6 +35,7 @@ export function EnergyTab() {
   const { selected: e, settings } = useStore();
   const a = e!.a;
   const loc = settings.locale;
+  const U = useUnits();
   const g = a.grid;
   const p = a.profile.available ? a.profile.value : null;
   const u = a.batteryUse.available ? a.batteryUse.value : null;
@@ -72,7 +73,7 @@ export function EnergyTab() {
         <div className="card">
           <h3>{t("energy.eachClimb")}</h3>
           <div className="scroll"><table className="tbl">
-            <thead><tr><th>{t("height.start")}</th><th className="r">{t("height.duration")}</th><th className="r">{t("energy.gained")}</th><th className="r">{t("energy.chargeUsed")}</th><th>{t("energy.efficiency")}</th><th className="r lv-more">m / 100 mAh</th></tr></thead>
+            <thead><tr><th>{t("height.start")}</th><th className="r">{t("height.duration")}</th><th className="r">{t("energy.gained")}</th><th className="r">{t("energy.chargeUsed")}</th><th>{t("energy.efficiency")}</th><th className="r lv-more">{U.u("height")} / 100 mAh</th></tr></thead>
             <tbody>
               {p.climbs.map((c) => {
                 const lvl = c.mPer100mAh !== null && a.baseline?.efficiency ? rate(c.mPer100mAh / a.baseline.efficiency, THRESHOLDS.efficiencyRatio) : null;
@@ -80,10 +81,10 @@ export function EnergyTab() {
                   <tr key={c.start} className="clickable" onClick={() => jumpTo(e!.key, c.start)}>
                     <td className="num">{clock(c.start)}</td>
                     <td className="r num">{c.end - c.start + 1} s</td>
-                    <td className="r num">+{num(loc, c.gainM, 0)} m</td>
+                    <td className="r num">+{U.fmt("height", c.gainM)}</td>
                     <td className="r num">{c.mah === null ? "–" : `${num(loc, c.mah, 0)} mAh`}</td>
                     <td>{lvl ? <><Meter level={lvl} /> {word("efficiency", lvl)}</> : <span style={{ color: "var(--ink-3)" }}>{t("energy.tooShort")}</span>}</td>
-                    <td className="r num lv-more">{num(loc, c.mPer100mAh, 0)}</td>
+                    <td className="r num lv-more">{U.n("height", c.mPer100mAh)}</td>
                   </tr>
                 );
               })}

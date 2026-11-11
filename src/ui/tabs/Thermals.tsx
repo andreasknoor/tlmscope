@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import type { Thermal, Thermals } from "@/core/analysis";
 import { jumpTo } from "../charts/sync";
 import { clock, num } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 
 const DIRS = ["n", "ne", "e", "se", "s", "sw", "w", "nw"] as const;
 
@@ -28,6 +28,7 @@ export function ThermalsCard({ thermals }: { thermals: Thermals }) {
   const t = useTranslations("thermals");
   const { selected: e, settings } = useStore();
   const loc = settings.locale;
+  const U = useUnits();
   const list = thermals.list;
   if (!list.length) return null;
   const strongest = list.reduce((a, b) => (b.avgClimb > a.avgClimb ? b : a));
@@ -40,8 +41,8 @@ export function ThermalsCard({ thermals }: { thermals: Thermals }) {
     <div className="card">
       <h3>{t("title")}</h3>
       <p className="sentence">
-        {t("summary", { n: list.length, gain: num(loc, thermals.totalGainM, 0), time: clock(thermals.totalSecs) })}{" "}
-        {t("strongest", { n: list.length, avg: num(loc, strongest.avgClimb, 1), best: num(loc, strongest.best10s, 1) })}{" "}
+        {t("summary", { n: list.length, gain: U.fmt("height", thermals.totalGainM), time: clock(thermals.totalSecs) })}{" "}
+        {t("strongest", { n: list.length, avg: U.fmt("vspeed", strongest.avgClimb, 1), best: U.fmt("vspeed", strongest.best10s, 1) })}{" "}
         {circles.length > 0 && avgSecs !== null && <>{t("circles", { n: circles.length, secs: num(loc, avgSecs, 0) })} </>}
         {thermals.savedMotorS !== null && (thermals.savedMah !== null
           ? t("saved", { secs: num(loc, thermals.savedMotorS, 0), mah: num(loc, thermals.savedMah, 0) })
@@ -55,12 +56,12 @@ export function ThermalsCard({ thermals }: { thermals: Thermals }) {
         <tbody>{list.map((x) => (
           <tr key={x.start} className="clickable" onClick={() => jumpTo(e!.key, x.start)}>
             <td className="num">{clock(x.start)}</td>
-            <td className="r num">{x.gainM >= 0 ? "+" : ""}{num(loc, x.gainM, 0)} m</td>
+            <td className="r num">{x.gainM >= 0 ? "+" : ""}{U.fmt("height", x.gainM)}</td>
             <td className="r num">{clock(x.durationS)}</td>
-            <td className="r num">{num(loc, x.avgClimb, 1)} m/s</td>
-            <td className="r num lv-more">{num(loc, x.best10s, 1)} m/s</td>
+            <td className="r num">{U.fmt("vspeed", x.avgClimb, 1)}</td>
+            <td className="r num lv-more">{U.fmt("vspeed", x.best10s, 1)}</td>
             <td className="num">{x.circles.length || "–"}<span className="lv-more"><CircleBars th={x} /></span></td>
-            {hasDrift && <td className="num lv-more">{x.drift ? t("driftValue", { d: num(loc, x.drift.distanceM, 0), dir: t(DIRS[Math.round(x.drift.bearingDeg / 45) % 8]) }) : "–"}</td>}
+            {hasDrift && <td className="num lv-more">{x.drift ? t("driftValue", { d: U.fmt("distance", x.drift.distanceM), dir: t(DIRS[Math.round(x.drift.bearingDeg / 45) % 8]) }) : "–"}</td>}
             <td className="r num">{x.savedMah !== null ? `${num(loc, x.savedMah, 0)} mAh` : x.savedMotorS !== null ? `${num(loc, x.savedMotorS, 0)} s` : "–"}</td>
           </tr>
         ))}</tbody>

@@ -9,7 +9,7 @@ import { Replay } from "../charts/Replay";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
 import { axisNum, clock, cssVar, mix, num, withAlpha } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 import { levelColor } from "./Link";
 import { PhaseLegend } from "./Overview";
 
@@ -23,6 +23,7 @@ function GpsView() {
   const { selected: e, settings, entries } = useStore();
   const a = e!.a;
   const loc = settings.locale;
+  const U = useUnits();
   const g = a.grid;
   const tr = a.track.available ? a.track.value : null;
   // Thermal centres of every loaded flight within a few kilometres of this launch point.
@@ -68,18 +69,18 @@ function GpsView() {
   const thrId = g.has("throttle_output") ? "throttle_output" : "throttle_command";
   // The chart to follow the model: height, or the throttle when there is no usable height.
   const followSeries = useMemo(() => hasHeight
-    ? [{ data: alt, color: "--s-alt", unit: "m", fill: 0.12 }]
-    : [{ data: g.get(thrId), color: "--s-motor", unit: "%", fill: 0.15 }], [hasHeight, alt, g, thrId]);
-  const distSeries = useMemo(() => [{ data: tr?.distance ?? [], color: "--s-5", unit: "m", digits: 0, fill: 0.1 }], [tr]);
+    ? [{ data: U.series("height", alt), color: "--s-alt", unit: U.u("height"), fill: 0.12 }]
+    : [{ data: g.get(thrId), color: "--s-motor", unit: "%", fill: 0.15 }], [hasHeight, alt, g, thrId, U]);
+  const distSeries = useMemo(() => [{ data: U.series("distance", tr?.distance ?? []), color: "--s-5", unit: U.u("distance"), digits: 0, fill: 0.1 }], [tr, U]);
   if (!tr) return null;
 
   return (
     <>
       <div className="grid g4">
-        <Tile label={t("path.farthest")} value={num(loc, tr.maxDistanceM, 0)} unit=" m" />
-        <Tile label={t("path.distance")} value={num(loc, tr.pathLengthM / 1000, 2)} unit=" km" />
-        <Tile label={t("path.typicalSpeed")} value={num(loc, (tr.medianSpeed ?? 0) * 3.6, 0)} unit=" km/h" sub={t("path.overGround")} />
-        <Tile label={t("path.topSpeed")} value={num(loc, (tr.maxSpeed ?? 0) * 3.6, 0)} unit=" km/h" sub={t("path.overGround")} />
+        <Tile label={t("path.farthest")} value={U.n("distance", tr.maxDistanceM)} unit={` ${U.u("distance")}`} />
+        <Tile label={t("path.distance")} value={U.n("longDistance", tr.pathLengthM, 2)} unit={` ${U.u("longDistance")}`} />
+        <Tile label={t("path.typicalSpeed")} value={U.n("speed", tr.medianSpeed ?? 0)} unit={` ${U.u("speed")}`} sub={t("path.overGround")} />
+        <Tile label={t("path.topSpeed")} value={U.n("speed", tr.maxSpeed ?? 0)} unit={` ${U.u("speed")}`} sub={t("path.overGround")} />
       </div>
       <div className={`mapgroup${full ? " full" : ""}`} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("path.map") : undefined}>
       <div className="chart">
@@ -111,16 +112,16 @@ function GpsView() {
           </div>
         </div>
         {colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />
-          : colourBy === "height" ? <Legend items={[[`linear-gradient(90deg, var(--h-low), var(--h-high))`, `0 – ${num(loc, top, 0)} m`]]} />
+          : colourBy === "height" ? <Legend items={[[`linear-gradient(90deg, var(--h-low), var(--h-high))`, `0 – ${U.fmt("height", top)}`]]} />
           : <Legend items={[[cssVar("--good"), word("signal", 4)], [withAlpha(cssVar("--good"), 0.45), word("signal", 3)], [cssVar("--warn"), word("signal", 2)], [cssVar("--crit"), word("signal", 1)]]} />}
       </div>
       {spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
       <Replay a={a} syncKey={e!.key} clatter={markerStyle === "stork"} />
       </div>
       <LineChart syncKey={e!.key} title={t(hasHeight ? "path.follow" : "path.followThrottle")} series={followSeries} phases={p?.phases} height={150}
-        yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? "m" : "%"}`}
-        readout={(i) => `${num(loc, followSeries[0].data[i], 0)} ${hasHeight ? "m" : "%"} · ${t("path.away", { d: num(loc, tr.distance[i], 0) })}`} onCursor={setMarker} />
-      <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)} m`} onCursor={setMarker} /></div>
+        yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? U.u("height") : "%"}`}
+        readout={(i) => `${num(loc, followSeries[0].data[i], 0)} ${hasHeight ? U.u("height") : "%"} · ${t("path.away", { d: U.fmt("distance", tr.distance[i]) })}`} onCursor={setMarker} />
+      <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)} ${U.u("distance")}`} onCursor={setMarker} /></div>
     </>
   );
 }
@@ -130,13 +131,14 @@ function NoGpsView() {
   const { selected: e, settings } = useStore();
   const a = e!.a;
   const loc = settings.locale;
+  const U = useUnits();
   const p = a.profile.available ? a.profile.value : null;
   const c = a.circling.available ? a.circling.value : null;
   const hasHeight = p?.basis === "height";
   // Height, or the throttle when there is no usable height.
   const series = useMemo(() => hasHeight
-    ? [{ data: a.grid.get("altitude"), color: "--s-alt", unit: "m", fill: 0.12 }]
-    : [{ data: a.grid.get(a.grid.has("throttle_output") ? "throttle_output" : "throttle_command"), color: "--s-motor", unit: "%", fill: 0.15 }], [a, hasHeight]);
+    ? [{ data: U.series("height", a.grid.get("altitude")), color: "--s-alt", unit: U.u("height"), fill: 0.12 }]
+    : [{ data: a.grid.get(a.grid.has("throttle_output") ? "throttle_output" : "throttle_command"), color: "--s-motor", unit: "%", fill: 0.15 }], [a, hasHeight, U]);
   const circleColor = useCallback((i: number) => {
     if (!c) return null;
     const period = c.periods.find((x) => i >= x.start && i <= x.end);
@@ -160,7 +162,7 @@ function NoGpsView() {
             right={<Legend style={{ padding: 0 }} items={[["var(--s-alt)", t("path.oneWay")], ["var(--s-4)", t("path.otherWay")], [withAlpha(cssVar("--s-glide"), 0.7), t("path.partialTurn")]]} />} />
           <Replay a={a} syncKey={e!.key} />
           <LineChart syncKey={e!.key} title={t(hasHeight ? "overview.height" : "overview.throttle")} series={series} phases={p.phases} height={170}
-            yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? "m" : "%"}`}
+            yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? U.u("height") : "%"}`}
             extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} />
           <p className="note">{t("path.circlingNote")}</p>
         </>

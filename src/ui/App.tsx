@@ -13,11 +13,12 @@ import { batteryLetter, type Locale } from "./format";
 import { loadBuffer } from "./loader";
 import { Shell } from "./Shell";
 import { applyTheme, THEMES, type Theme } from "./theme";
+import { defaultUnits, UNIT_SYSTEMS, type UnitSystem } from "./units";
 import { HOME_META } from "@/seo/site";
 import { isCapacity, StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
-const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", theme: "system", capacities: {}, defaultCapacityMah: null };
+const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null };
 const SETTINGS_KEY = "tlmscope.settings";
 export const DEMO_FILE = "demo-flight.TLM";
 /** Larger files are refused: real logs are a few MB, and parsing needs several times the file size in memory. */
@@ -33,7 +34,7 @@ function readSettings(initial: Locale): Settings {
   const base: Settings = { ...DEFAULTS, locale: initial };
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return base;
+    if (!raw) return { ...base, units: defaultUnits(navigator.language) };
     const saved = JSON.parse(raw) as Record<string, unknown> | null;
     if (!saved || typeof saved !== "object") return base;
     // Older versions stored a detail level next to the details toggle; it is now part of the toggle.
@@ -46,7 +47,8 @@ function readSettings(initial: Locale): Settings {
     }
     const defaultCapacityMah = isCapacity(saved.defaultCapacityMah) ? saved.defaultCapacityMah : null;
     const theme = THEMES.includes(saved.theme as Theme) ? (saved.theme as Theme) : DEFAULTS.theme;
-    return { details, locale, filter, theme, capacities, defaultCapacityMah };
+    const units = UNIT_SYSTEMS.includes(saved.units as UnitSystem) ? (saved.units as UnitSystem) : defaultUnits(navigator.language);
+    return { details, locale, filter, theme, units, capacities, defaultCapacityMah };
   } catch {
     return base;
   }

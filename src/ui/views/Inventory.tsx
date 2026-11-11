@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import type { RawFieldStat, RawStream } from "@/core/model/types";
 import { Tile } from "../bits";
 import { dateShort, duration, num, timeLabel } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 import { StreamTable } from "../tabs/Raw";
 
 /** Merges the raw streams of all sessions of a file into one inventory. */
@@ -38,6 +38,7 @@ export function Inventory() {
   const t = useTranslations();
   const { files, entries, settings, select } = useStore();
   const loc = settings.locale;
+  const U = useUnits();
   return (
     <>
       <div className="sectionhead"><h2 style={{ fontSize: 28 }}>{t("inv.title")}</h2><p>{t("inv.hint")}</p></div>
@@ -68,7 +69,7 @@ export function Inventory() {
                       <td className="num">{e.startMs !== null ? `${dateShort(loc, e.startMs)} ${timeLabel(loc, e.startMs)}` : "–"}</td>
                       <td>{t(`kind.${e.a.kind}`)}</td>
                       <td className="r num">{duration(loc, e.a.session.durationS)}</td>
-                      <td className="r num">{p?.maxAltitudeM != null ? `${num(loc, p.maxAltitudeM, 1)} m` : "–"}</td>
+                      <td className="r num">{p?.maxAltitudeM != null ? U.fmt("height", p.maxAltitudeM, 1) : "–"}</td>
                       <td className="r num">{String(e.a.session.meta.records ?? "–")}</td>
                     </tr>
                   );

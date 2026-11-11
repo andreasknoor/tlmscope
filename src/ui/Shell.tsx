@@ -10,7 +10,7 @@ import { Batteries } from "./views/Batteries";
 import { Inventory } from "./views/Inventory";
 import { SessionView } from "./views/SessionView";
 import { Start } from "./views/Start";
-import { useStore, type Entry, type Model } from "./store";
+import { useStore, useUnits, type Entry, type Model } from "./store";
 import { SettingsButton, useAirtime } from "./bits";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
@@ -156,6 +156,7 @@ function Sidebar() {
   }, [selected?.key, settings.filter, modelFilter]);
   const input = useRef<HTMLInputElement>(null);
   const loc = settings.locale;
+  const U = useUnits();
   const dayOf = (e: Entry) => (e.startMs !== null ? dayLabel(loc, e.startMs) : "?");
   return (
     <aside className="side">
@@ -207,7 +208,7 @@ function Sidebar() {
           const d = dayOf(e);
           const head = k === 0 || dayOf(newestFirst[k - 1]) !== d ? <div className="sday">{d}</div> : null;
           const p = e.a.profile.available ? e.a.profile.value : null;
-          const meta = e.a.kind === "flight" && p ? (p.maxAltitudeM !== null ? `${num(loc, p.maxAltitudeM, 0)} m · ${airtime(p)}` : airtime(p)) : e.a.kind === "transmitter-only" ? "" : clock(e.a.session.durationS);
+          const meta = e.a.kind === "flight" && p ? (p.maxAltitudeM !== null ? `${U.fmt("height", p.maxAltitudeM)} · ${airtime(p)}` : airtime(p)) : e.a.kind === "transmitter-only" ? "" : clock(e.a.session.durationS);
           return (
             <div key={e.key} style={{ display: "contents" }}>
               {head}

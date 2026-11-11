@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SessionAnalysis } from "@/core/analysis";
 import { clock, cssVar, num, withAlpha } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 import { PHASE_COLOR } from "./LineChart";
 import { ADEBAR_LANDED, moveAll, onCursorMove } from "./sync";
 import { useThemeVersion } from "./useTheme";
@@ -92,6 +92,7 @@ export function Replay({ a, syncKey, clatter = false }: { a: SessionAnalysis; sy
   const t = useTranslations();
   const { settings } = useStore();
   const loc = settings.locale;
+  const U = useUnits();
   const theme = useThemeVersion();
   const g = a.grid;
   const n = g.n;
@@ -211,8 +212,8 @@ export function Replay({ a, syncKey, clatter = false }: { a: SessionAnalysis; sy
   const ph = p?.phaseAt[i];
   const hasHeight = p?.basis === "height";
   const hud: [string, string][] = [
-    ...(hasHeight ? [[t("overview.height"), val(g.get("altitude")[i], 0, "m")], [t("replay.vario"), val(climb, 1, "m/s")]] as [string, string][] : []),
-    ...(tr ? [[t("replay.speed"), val(tr.speed[i] !== null ? tr.speed[i]! * 3.6 : null, 0, "km/h")] as [string, string]] : []),
+    ...(hasHeight ? [[t("overview.height"), U.fmt("height", g.get("altitude")[i])], [t("replay.vario"), U.fmt("vspeed", climb, 1)]] as [string, string][] : []),
+    ...(tr ? [[t("replay.speed"), U.fmt("speed", tr.speed[i])] as [string, string]] : []),
     ...(g.has("motor_current") ? [[t("replay.motor"), val(g.get("motor_current", "max")[i] ?? 0, 0, "A")] as [string, string]] : []),
     ...(g.has("signal_dbm") ? [[t("replay.signal"), val(g.get("signal_dbm", "min")[i], 0, "dBm")] as [string, string]] : []),
     [t("height.phase"), ph ? t(`phase.${ph}`) : "–"],

@@ -6,7 +6,7 @@ import { CATALOGUE } from "@/core/model/catalogue";
 import type { Unit } from "@/core/model/types";
 import { jumpTo } from "../charts/sync";
 import { clock, num } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 
 const DIGITS: Partial<Record<Unit, number>> = { V: 2, A: 1, "°C": 0, m: 1, "m/s": 1, dBm: 0, "%": 0, g: 1, "1/min": 0, mAh: 0, count: 0, "°/s": 0, "°": 0 };
 
@@ -15,6 +15,7 @@ export function MinMaxCard({ a, syncKey }: { a: SessionAnalysis; syncKey: string
   const t = useTranslations("minmax");
   const { settings } = useStore();
   const loc = settings.locale;
+  const U = useUnits();
   const g = a.grid;
   // The vario also reports the climb rate averaged over 0.25–3 s; only the standard one is listed.
   const rows = CATALOGUE.filter((c) => c.kind !== "categorical" && !c.id.startsWith("climb_rate.") && g.has(c.id)).map((c) => {
@@ -28,11 +29,15 @@ export function MinMaxCard({ a, syncKey }: { a: SessionAnalysis; syncKey: string
   }).filter((r) => r.max !== null);
   if (!rows.length) return null;
   const unit = (u: Unit) => (u === "count" || u === "" || u === "?" ? "" : ` ${u}`);
-  const cell = (v: number | null, at: number, u: Unit) => (v === null ? <td className="r">–</td> : (
-    <td className="r num clickable" onClick={() => jumpTo(syncKey, at)} title={clock(at)}>
-      {num(loc, v, DIGITS[u] ?? 1)}{unit(u)} <span className="hint">{clock(at)}</span>
-    </td>
-  ));
+  const cell = (si: number | null, at: number, u: Unit) => {
+    if (si === null) return <td className="r">–</td>;
+    const shown = U.byUnit(u, si);
+    return (
+      <td className="r num clickable" onClick={() => jumpTo(syncKey, at)} title={clock(at)}>
+        {num(loc, shown.value, DIGITS[u] ?? 1)}{unit(shown.unit as Unit)} <span className="hint">{clock(at)}</span>
+      </td>
+    );
+  };
 
   return (
     <div className="card lv-more">

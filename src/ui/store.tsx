@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 import type { LogsAnalysis, SessionAnalysis } from "@/core/analysis";
 import type { LogFile } from "@/core/model/types";
 import type { Locale } from "./format";
 import type { Theme } from "./theme";
+import { makeUnits, type UnitSystem, type Units } from "./units";
 
 export type View = "sessions" | "batteries" | "inventory";
 export type Tab = "overview" | "height" | "path" | "energy" | "battery" | "link" | "aircraft" | "raw";
@@ -37,6 +38,7 @@ export interface Settings {
   locale: Locale;
   filter: "flights" | "all";
   theme: Theme;
+  units: UnitSystem;
   /** Battery capacity (mAh) per model, keyed by `modelKey()`, for batteries that do not report one. */
   capacities: Record<string, number>;
   /** Capacity for models without their own entry; null for none. */
@@ -83,4 +85,10 @@ export function useStore(): Store {
   const s = useContext(StoreContext);
   if (!s) throw new Error("useStore outside of StoreContext");
   return s;
+}
+
+/** Unit conversion and formatting for the chosen unit system and language. */
+export function useUnits(): Units {
+  const { settings } = useStore();
+  return useMemo(() => makeUnits(settings.units, settings.locale), [settings.units, settings.locale]);
 }

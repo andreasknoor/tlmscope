@@ -6,7 +6,7 @@ import { Legend, Tile } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
 import { axisNum, cssVar, num } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 import { RxCard, StyleCard, TempCard } from "./ratings";
 
 const MODE_COLORS = ["--s-alt", "--s-motor", "--s-4", "--s-lift", "--s-5"];
@@ -17,13 +17,14 @@ export function AircraftTab() {
   const { selected: e, settings } = useStore();
   const a = e!.a;
   const loc = settings.locale;
+  const U = useUnits();
   const g = a.grid;
   const p = a.profile.available ? a.profile.value : null;
   const temps = useMemo(() => [
     { id: "temperature.esc", color: "--s-motor", label: t("aircraft.controller") },
     { id: "temperature.bec", color: "--s-alt", label: t("aircraft.bec") },
     { id: "temperature.battery", color: "--s-lift", label: t("aircraft.battery") },
-  ].filter((s) => g.has(s.id)).map((s) => ({ data: g.filled(s.id), color: s.color, unit: "°C", digits: 0, label: s.label })), [g, t]);
+  ].filter((s) => g.has(s.id)).map((s) => ({ data: U.series("temp", g.filled(s.id)), color: s.color, unit: U.u("temp"), digits: 0, label: s.label })), [g, t, U]);
   const power = useMemo(() => [
     { id: "rx_voltage", color: "--s-alt", label: t("aircraft.receiver") },
     { id: "bec_voltage", color: "--s-motor", label: t("aircraft.becOut") },
@@ -44,7 +45,7 @@ export function AircraftTab() {
         <TempCard a={a} /><RxCard a={a} /><StyleCard a={a} />
         <Tile label={t("aircraft.flightMode")} value={modes.length ? t("aircraft.modes", { list: modes.map((m) => m + 1).join(", ") }) : t("aircraft.disabled")} sub={t("aircraft.flightModeHint")} />
       </div>
-      {temps.length > 0 && <LineChart syncKey={e!.key} title={t("rating.temps")} series={temps} height={160} yMin={0} yFormat={(x) => `${axisNum(loc, x)} °C`}
+      {temps.length > 0 && <LineChart syncKey={e!.key} title={t("rating.temps")} series={temps} height={160} yMin={U.v("temp", 0)!} yFormat={(x) => `${axisNum(loc, x)} ${U.u("temp")}`}
         extra={<Legend items={temps.map((s) => [`var(${s.color})`, s.label, true])} />} />}
       {power.length > 0 && <div className="lv-more"><LineChart syncKey={e!.key} title={t("rating.rx")} series={power} height={140} yMin={4} yMax={6.5}
         yFormat={(x) => `${num(loc, x, 1)} V`} bands={[{ from: 4, to: 4.8, color: "--crit", alpha: 0.1 }]}

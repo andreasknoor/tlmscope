@@ -8,7 +8,7 @@ import { Legend, Tile, useAirtime, useLevelWord, useRich } from "../bits";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { jumpTo } from "../charts/sync";
 import { axisNum, clock, duration, num } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 import { ConditionCard, DataCard, IssueAlerts, LinkCard, RxCard, SignalCard, StyleCard, TempCard, UsedCard } from "./ratings";
 import { MinMaxCard } from "./MinMax";
 
@@ -29,10 +29,11 @@ export function OverviewTab() {
   const { selected: e, settings } = useStore();
   const a = e!.a;
   const loc = settings.locale;
+  const U = useUnits();
   const p = a.profile.available ? a.profile.value : null;
   const g = a.grid;
 
-  const altSeries = useMemo(() => [{ data: g.get("altitude"), color: "--s-alt", unit: "m", fill: 0.12 }], [g]);
+  const altSeries = useMemo(() => [{ data: U.series("height", g.get("altitude")), color: "--s-alt", unit: U.u("height"), fill: 0.12 }], [g, U]);
   const thrSeries = useMemo(() => [{ data: g.get(g.has("throttle_output") ? "throttle_output" : "throttle_command"), color: "--s-motor", unit: "%", fill: 0.15 }], [g]);
 
   let summary: React.ReactNode;
@@ -43,10 +44,10 @@ export function OverviewTab() {
     const minutes = num(loc, p.airtimeS / 60, 1);
     summary = (
       <>
-        {height ? rich("overview.flightAir", { minutes, height: num(loc, p.maxAltitudeM, 0) })
+        {height ? rich("overview.flightAir", { minutes, height: U.fmt("height", p.maxAltitudeM) })
           : rich(p.basis === "motion" ? "overview.flightAirApprox" : "overview.flightAirNoHeight", { minutes })}{" "}
         {rich("overview.flightMotor", { count: height ? p.climbs.length : runsOf(p), time: clock(p.motorSecs) })}{" "}
-        {!height ? null : p.lifts.length ? rich("overview.flightLift", { count: p.lifts.length, gain: num(loc, p.liftGainM, 0) }) : t("overview.flightNoLift")}{" "}
+        {!height ? null : p.lifts.length ? rich("overview.flightLift", { count: p.lifts.length, gain: U.fmt("height", p.liftGainM) }) : t("overview.flightNoLift")}{" "}
         {link && rich("overview.flightLink", { link: word("link", link.level).toLowerCase() })}{" "}
         {used !== null && rich("overview.flightBattery", { pct: num(loc, used, 0) })}
       </>
@@ -60,8 +61,8 @@ export function OverviewTab() {
 
   const momentValue = (kind: string, value: number) => {
     switch (kind) {
-      case "highest": return `${num(loc, value, 1)} m`;
-      case "best-lift": return `+${num(loc, value, 0)} m`;
+      case "highest": return U.fmt("height", value, 1);
+      case "best-lift": return `+${U.fmt("height", value)}`;
       case "longest-circling": return t("overview.circlesN", { n: value });
       case "hardest-load": return `${num(loc, value, 1)} g`;
       case "weakest-signal": return `${num(loc, value, 0)} dBm`;
@@ -92,15 +93,15 @@ export function OverviewTab() {
         <>
           <div className="grid g4">
             <Tile label={t("overview.airtime")} value={airtime(p)} unit=" min" />
-            <Tile label={t("overview.highest")} value={num(loc, p.maxAltitudeM, 0)} unit=" m" />
+            <Tile label={t("overview.highest")} value={U.n("height", p.maxAltitudeM)} unit={` ${U.u("height")}`} />
             <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit=" min" sub={t("overview.climbs", { n: p.climbs.length })} />
-            <Tile label={t("overview.lift")} value={p.lifts.length ? `+${num(loc, p.liftGainM, 0)}` : "0"} unit={p.lifts.length ? " m" : ""}
+            <Tile label={t("overview.lift")} value={p.lifts.length ? `+${U.n("height", p.liftGainM)}` : "0"} unit={p.lifts.length ? ` ${U.u("height")}` : ""}
               sub={p.lifts.length ? `${p.lifts.length}× · ${clock(p.liftSecs)} min` : t("overview.noThermals")} />
           </div>
           <LineChart syncKey={e!.key} title={t("overview.height")} series={altSeries} phases={p.phases} height={210}
-            extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)} m`}
-            rest={`max ${num(loc, p.maxAltitudeM, 1)} m`}
-            readout={(i) => `${num(loc, altSeries[0].data[i], 1)} m · ${p.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} />
+            extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)} ${U.u("height")}`}
+            rest={`max ${U.fmt("height", p.maxAltitudeM, 1)}`}
+            readout={(i) => `${num(loc, altSeries[0].data[i], 1)} ${U.u("height")} · ${p.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} />
         </>
       ) : (
         thrSeries[0].data.some((x) => x !== null) && <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thrSeries} yMax={100} yFormat={(x) => `${axisNum(loc, x)} %`} />

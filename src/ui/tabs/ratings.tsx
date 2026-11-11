@@ -6,7 +6,7 @@ import type { SessionAnalysis } from "@/core/analysis";
 import { catalogue } from "@/core/model/catalogue";
 import { RatingCard, useLevelWord } from "../bits";
 import { num } from "../format";
-import { useStore } from "../store";
+import { useStore, useUnits } from "../store";
 
 const v = <T,>(r: { available: true; value: T } | { available: false }): T | null => (r.available ? r.value : null);
 
@@ -80,11 +80,11 @@ export function ConditionCard({ a }: { a: SessionAnalysis }) {
 export function TempCard({ a }: { a: SessionAnalysis }) {
   const t = useTranslations("rating");
   const word = useLevelWord();
-  const loc = useStore().settings.locale;
+  const U = useUnits();
   const x = v(a.temperatures);
   return (
     <RatingCard name={t("temps")} level={x?.level ?? null} word={word("temp", x?.level ?? null)} hint={x ? t("tempsHint") : ""}
-      rows={x ? [[t("escMax"), `${num(loc, x.escMaxC, 0)} °C`], [t("becMax"), `${num(loc, x.becMaxC, 0)} °C`], [t("battMax"), `${num(loc, x.batteryMaxC, 0)} °C`]] : null} />
+      rows={x ? [[t("escMax"), U.fmt("temp", x.escMaxC)], [t("becMax"), U.fmt("temp", x.becMaxC)], [t("battMax"), U.fmt("temp", x.batteryMaxC)]] : null} />
   );
 }
 
@@ -120,12 +120,12 @@ export function DataCard({ a }: { a: SessionAnalysis }) {
 export function EfficiencyCard({ a }: { a: SessionAnalysis }) {
   const t = useTranslations("rating");
   const word = useLevelWord();
-  const { settings } = useStore();
+  const U = useUnits();
   const p = v(a.profile);
   const e = a.efficiency;
   return (
     <RatingCard name={t("efficiency")} level={e?.level ?? null} word={word("efficiency", e?.level ?? null)} hint={e ? t("efficiencyHint") : ""}
-      rows={e && p ? [[t("thisFlight"), t("mPer100", { v: num(settings.locale, p.mPer100mAh, 0) })], [t("yourUsual"), t("mPer100", { v: num(settings.locale, a.baseline?.efficiency, 0) })]] : null} />
+      rows={e && p ? [[t("thisFlight"), t("mPer100", { v: U.n("height", p.mPer100mAh), u: U.u("height") })], [t("yourUsual"), t("mPer100", { v: U.n("height", a.baseline?.efficiency), u: U.u("height") })]] : null} />
   );
 }
 
