@@ -120,10 +120,13 @@ export function Batteries() {
       {packs.length === 0 && <div className="card empty">{t(groups.size === 0 ? "batteries.none" : "batteries.noneForModel")}</div>}
       {packs.length > 0 && <p className="note">{t(grouped ? "batteries.namingGrouped" : "batteries.naming")}</p>}
       {byModel.map(({ m, packs: inModel }) => (
-        <section key={m.key} className="stack">
-          {grouped && <h3 className="modelhead"><ModelBadge model={m} large />{modelName(m)}</h3>}
-          {inModel.map(({ list, others }) => card(list, others))}
-        </section>
+        grouped ? (
+          // One foldable group per model, open at first.
+          <details key={m.key} className="modelgroup" open>
+            <summary className="modelhead"><ModelBadge model={m} large />{modelName(m)}<span className="hint">{t("batteries.count", { n: inModel.length })}</span></summary>
+            <div className="stack">{inModel.map(({ list, others }) => card(list, others))}</div>
+          </details>
+        ) : <section key={m.key} className="stack">{inModel.map(({ list, others }) => card(list, others))}</section>
       ))}
       {unknown.length > 0 && (
         <div className="card">

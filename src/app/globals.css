@@ -124,7 +124,13 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .kdot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
 /* Model badge: a rounded square, so it never reads as the round dot of the session kind. */
 .mbadge { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
-.modelhead { display: flex; align-items: center; gap: 10px; font-size: 20px; margin-top: 8px; }
+.modelhead { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 600; font-family: var(--display); margin-top: 8px; }
+.modelgroup > summary { cursor: pointer; list-style: none; padding: 4px 0; }
+.modelgroup > summary::-webkit-details-marker { display: none; }
+.modelgroup > summary::before { content: "▸"; color: var(--ink-3); font-size: 14px; width: 12px; transition: transform .15s; }
+.modelgroup[open] > summary::before { transform: rotate(90deg); }
+.modelgroup[open] > summary { margin-bottom: 12px; }
+.modelgroup > summary .hint { font-family: var(--text); font-weight: 400; font-size: 13.5px; }
 .alsoin { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0 0 10px; }
 .alsoin-m { display: inline-flex; align-items: center; gap: 6px; }
 .mbadge.lg { width: 18px; height: 18px; border-radius: 5px; }

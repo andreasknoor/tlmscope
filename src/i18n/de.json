@@ -452,7 +452,8 @@
     "resistance": "Widerstand pro Zelle",
     "alsoIn": "Auch geflogen in:",
     "noneForModel": "Keine Smart-Akkus in den Flügen dieses Modells.",
-    "namingGrouped": "Akkus heißen A, B, … in der Reihenfolge ihrer ersten Nutzung in den geladenen Dateien. Jeder steht bei dem Modell, in dem er am häufigsten geflogen wurde."
+    "namingGrouped": "Akkus heißen A, B, … in der Reihenfolge ihrer ersten Nutzung in den geladenen Dateien. Jeder steht bei dem Modell, in dem er am häufigsten geflogen wurde.",
+    "count": "{n, plural, one {1 Akku} other {# Akkus}}"
   },
   "inv": {
     "title": "Dateninventar",

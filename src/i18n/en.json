@@ -452,7 +452,8 @@
     "resistance": "Resistance per cell",
     "alsoIn": "Also flown in:",
     "noneForModel": "No smart batteries in the flights of this model.",
-    "namingGrouped": "Batteries are named A, B, … in order of first use in the loaded files. Each one is listed under the model it flew most often."
+    "namingGrouped": "Batteries are named A, B, … in order of first use in the loaded files. Each one is listed under the model it flew most often.",
+    "count": "{n, plural, one {1 battery} other {# batteries}}"
   },
   "inv": {
     "title": "Data inventory",
