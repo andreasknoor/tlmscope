@@ -4,6 +4,7 @@ import { createContext, useContext } from "react";
 import type { LogsAnalysis, SessionAnalysis } from "@/core/analysis";
 import type { LogFile } from "@/core/model/types";
 import type { Locale } from "./format";
+import type { Theme } from "./theme";
 
 export type View = "sessions" | "batteries" | "inventory";
 export type Tab = "overview" | "height" | "path" | "energy" | "battery" | "link" | "aircraft" | "raw";
@@ -35,6 +36,7 @@ export interface Settings {
   details: boolean;
   locale: Locale;
   filter: "flights" | "all";
+  theme: Theme;
   /** Battery capacity (mAh) per model, keyed by `modelKey()`, for batteries that do not report one. */
   capacities: Record<string, number>;
   /** Capacity for models without their own entry; null for none. */
@@ -71,6 +73,7 @@ export interface Store {
   /** Closes all files and returns to the start screen. */
   closeAll(): void;
   openHelp(): void;
+  openSettings(): void;
   visible: Entry[];
 }
 

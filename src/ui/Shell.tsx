@@ -5,12 +5,13 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
 import { cssVar, clock, dayLabel, num, timeLabel } from "./format";
 import { Help } from "./views/Help";
+import { SettingsDialog } from "./views/Settings";
 import { Batteries } from "./views/Batteries";
 import { Inventory } from "./views/Inventory";
 import { SessionView } from "./views/SessionView";
 import { Start } from "./views/Start";
 import { useStore, type Entry, type Model } from "./store";
-import { useAirtime } from "./bits";
+import { SettingsButton, useAirtime } from "./bits";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
@@ -50,7 +51,7 @@ export const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
 
 function Header() {
   const t = useTranslations("app");
-  const { view, go, settings, setSettings, openHelp, files } = useStore();
+  const { view, go, settings, setSettings, openHelp, openSettings, files } = useStore();
   // The sidebar sits right below the header; its height can change when the header wraps.
   const ref = useRef<HTMLElement>(null);
   const { onLogo, extra } = useLogoClicks();
@@ -89,6 +90,7 @@ function Header() {
             <button key={l} aria-pressed={settings.locale === l} onClick={() => setSettings({ locale: l })}>{l.toUpperCase()}</button>
           ))}
         </div>
+        <SettingsButton onClick={openSettings} label={t("settings")} />
         <button className="helpbtn" aria-label={t("help")} onClick={openHelp}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>
       </div>
     </header>
@@ -267,7 +269,7 @@ function LoadCard({ m }: { m: LoadMessage }) {
   );
 }
 
-export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
+export function Shell({ helpRef, settingsRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; settingsRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
   const t = useTranslations();
   const { files, view, selected, tab } = useStore();
   const notices = messages.length > 0 && (
@@ -304,6 +306,7 @@ export function Shell({ helpRef, messages, dismiss }: { helpRef: RefObject<HTMLD
       )}
       <Footer />
       <Help dialogRef={helpRef} />
+      <SettingsDialog dialogRef={settingsRef} />
     </>
   );
 }

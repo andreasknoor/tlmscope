@@ -49,7 +49,8 @@
     "transmitterOnlyText": "Der Sender war mit diesem Modell eingeschaltet, aber es kamen keine Empfängerdaten an. Meist war das Modell nicht eingeschaltet.",
     "missingNeeds": "Nicht verfügbar: In diesem Log fehlt {channels}.",
     "or": "oder",
-    "demoBanner": "Demo-Daten: Dieser Flug ist synthetisch und zeigt alle Ansichten."
+    "demoBanner": "Demo-Daten: Dieser Flug ist synthetisch und zeigt alle Ansichten.",
+    "settings": "Meine Einstellungen"
   },
   "kind": {
     "flight": "Flug",
@@ -580,5 +581,29 @@
     "value": "Messwert",
     "min": "Tiefster",
     "max": "Höchster"
+  },
+  "settings": {
+    "title": "Meine Einstellungen",
+    "intro": "Diese Einstellungen gelten für alles, was du in TLMscope öffnest.",
+    "appearance": "Anzeige",
+    "theme": "Farben",
+    "theme_system": "Wie mein System",
+    "theme_light": "Hell",
+    "theme_dark": "Dunkel",
+    "language": "Sprache",
+    "details": "Werte",
+    "detailsSimple": "Einfach",
+    "detailsAll": "Mit Details",
+    "batteries": "Akkukapazität",
+    "batteriesHint": "Spektrum-Smart-Akkus melden ihre Kapazität. Für andere Akkus trägst du sie ein, damit TLMscope zeigen kann, wie viel vom Akku verbraucht wurde. Eine Kapazität pro Modell trägst du unter Motor & Energie ein.",
+    "defaultCapacity": "Für alle anderen Modelle",
+    "none": "keine",
+    "save": "Speichern",
+    "invalid": "Gib einen Wert zwischen 50 und 100000 mAh ein oder lass das Feld leer.",
+    "model": "Modell",
+    "capacity": "Kapazität",
+    "remove": "Entfernen",
+    "noCapacities": "Noch keine Kapazitäten für einzelne Modelle eingetragen.",
+    "local": "Die Einstellungen werden nur in diesem Browser gespeichert. Sie verlassen dein Gerät nie."
   }
 }

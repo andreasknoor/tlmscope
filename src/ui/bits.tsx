@@ -129,3 +129,13 @@ export function Missing({ missing }: { missing: Need[] }) {
   const parts = missing.map((n) => (Array.isArray(n) ? n.map(name).join(` ${t("or")} `) : name(n)));
   return <div className="card empty">{t("missingNeeds", { channels: parts.join(", ") })}</div>;
 }
+
+/** Opens "My settings"; the gear stays, the label hides on narrow screens like the help button's. */
+export function SettingsButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button className="helpbtn setbtn" aria-label={label} title={label} onClick={onClick}>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.5 7.5 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.5 7.5 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.5 7.5 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.5 7.5 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)" /></svg>
+      <span className="long">{label}</span>
+    </button>
+  );
+}

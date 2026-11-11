@@ -12,11 +12,12 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { batteryLetter, type Locale } from "./format";
 import { loadBuffer } from "./loader";
 import { Shell } from "./Shell";
+import { applyTheme, THEMES, type Theme } from "./theme";
 import { HOME_META } from "@/seo/site";
 import { isCapacity, StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
-const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", capacities: {}, defaultCapacityMah: null };
+const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", theme: "system", capacities: {}, defaultCapacityMah: null };
 const SETTINGS_KEY = "tlmscope.settings";
 export const DEMO_FILE = "demo-flight.TLM";
 /** Larger files are refused: real logs are a few MB, and parsing needs several times the file size in memory. */
@@ -44,7 +45,8 @@ function readSettings(initial: Locale): Settings {
       for (const [k, v] of Object.entries(saved.capacities as Record<string, unknown>)) if (isCapacity(v)) capacities[k] = v;
     }
     const defaultCapacityMah = isCapacity(saved.defaultCapacityMah) ? saved.defaultCapacityMah : null;
-    return { details, locale, filter, capacities, defaultCapacityMah };
+    const theme = THEMES.includes(saved.theme as Theme) ? (saved.theme as Theme) : DEFAULTS.theme;
+    return { details, locale, filter, theme, capacities, defaultCapacityMah };
   } catch {
     return base;
   }
@@ -70,6 +72,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const setTab = useCallback((t: Tab) => { setTabState(t); track({ name: "tab-opened", tab: t }); }, []);
   const [messages, setMessages] = useState<LoadMessage[]>([]);
   const helpRef = useRef<HTMLDialogElement>(null);
+  const settingsRef = useRef<HTMLDialogElement>(null);
 
   // Browser-only storage can only be read after hydration; the server render uses the defaults.
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -78,6 +81,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     document.documentElement.lang = settings.locale;
     document.body.dataset.details = settings.details ? "on" : "off";
   }, [settings.locale, settings.details]);
+  useEffect(() => applyTheme(settings.theme), [settings.theme]);
   // The address and the title follow the language, so a reload or a copied link opens the same language.
   useEffect(() => {
     const path = settings.locale === "de" ? "/de" : "/";
@@ -264,7 +268,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   // keyboard: arrows step through sessions
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (view !== "sessions" || helpRef.current?.open) return;
+      if (view !== "sessions" || helpRef.current?.open || settingsRef.current?.open) return;
       if ((e.target as HTMLElement).closest("input,select,textarea")) return;
       if (e.key === "ArrowLeft") step(-1);
       if (e.key === "ArrowRight") step(1);
@@ -278,13 +282,14 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     demo: files.some((f) => f.fileName === DEMO_FILE),
     setTab, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll,
     openHelp: () => helpRef.current?.showModal(),
+    openSettings: () => settingsRef.current?.showModal(),
   };
 
   return (
     <ErrorBoundary fallback={() => <PageError />} onError={() => track({ name: "view-error", view: "page" })}>
       <NextIntlClientProvider locale={settings.locale} messages={MESSAGES[settings.locale]} timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}>
         <StoreContext.Provider value={store}>
-          <Shell helpRef={helpRef} messages={messages} dismiss={(i) => setMessages((m) => m.filter((_, k) => k !== i))} />
+          <Shell helpRef={helpRef} settingsRef={settingsRef} messages={messages} dismiss={(i) => setMessages((m) => m.filter((_, k) => k !== i))} />
         </StoreContext.Provider>
       </NextIntlClientProvider>
     </ErrorBoundary>

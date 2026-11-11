@@ -4,6 +4,7 @@ import "uplot/dist/uPlot.min.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "../app/globals.css";
 import type { Lang } from "./pages.ts";
+import { THEME_SCRIPT } from "../ui/theme.ts";
 
 const display = Barlow_Semi_Condensed({ variable: "--font-display", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const body = Source_Sans_3({ variable: "--font-body", subsets: ["latin"] });
@@ -12,8 +13,11 @@ const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], weigh
 /** The <html> element of a language. English and German pages are separate root layouts, so each page has the right `lang`. */
 export function RootShell({ lang, children }: { lang: Lang; children: React.ReactNode }) {
   return (
-    <html lang={lang} className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    // The theme script sets data-theme on <html> before React hydrates, hence suppressHydrationWarning.
+    <html lang={lang} className={`${display.variable} ${body.variable} ${mono.variable}`} suppressHydrationWarning>
       <body>
+        {/* First in <body>: runs before anything is painted, so a saved light or dark choice never flashes the other scheme. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         {children}
         {/* Cookieless page-view counting (Umami Cloud). Only on the live domain; honours "Do Not Track";
             no URL hash or query. Allowed in the CSP in vercel.json and described on the privacy page. */}

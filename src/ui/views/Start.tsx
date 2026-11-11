@@ -11,6 +11,7 @@ import { homePath, pagePath, PAGE_IDS } from "@/seo/pages";
 import { Logo, Wordmark } from "../brand";
 import { Icon } from "../icons";
 import { useLogoClicks } from "../StorkRace";
+import { SettingsButton } from "../bits";
 import { useStore } from "../store";
 
 /** The flight of the demo: motor climbs, glides and a thermal, in the colours of the app. Drawn once when the page opens. */
@@ -71,7 +72,7 @@ function TileLink({ tile, lang, dialog }: { tile: Tile; lang: "en" | "de"; dialo
  */
 export function Start({ notices }: { notices: ReactNode }) {
   const t = useTranslations("app");
-  const { addFiles, loadDemo, settings, setSettings, openHelp } = useStore();
+  const { addFiles, loadDemo, settings, setSettings, openHelp, openSettings } = useStore();
   const lang = settings.locale;
   const c = CONTENT[lang];
   const h = c.home;
@@ -92,6 +93,7 @@ export function Start({ notices }: { notices: ReactNode }) {
                 <button key={l} aria-pressed={lang === l} onClick={() => setSettings({ locale: l })}>{l.toUpperCase()}</button>
               ))}
             </div>
+            <SettingsButton onClick={openSettings} label={t("settings")} />
             <button className="helpbtn" aria-label={t("help")} onClick={openHelp}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>
           </div>
           <div className="st-grid">
