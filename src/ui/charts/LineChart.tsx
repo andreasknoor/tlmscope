@@ -54,6 +54,18 @@ export function axis(fmt: ((v: number) => string) | null, opts: { size?: number;
   };
 }
 
+
+/**
+ * Y axis range. `yMin` / `yMax` are the range a chart shows at least (e.g. -100 to -30 dBm); data beyond
+ * them widens the axis with a little headroom instead of being cut off at the edge.
+ */
+export function yRange(lo: number | null, hi: number | null, yMin?: number, yMax?: number): [number, number] {
+  if (lo == null || hi == null) return [yMin ?? 0, yMax ?? 1];
+  const bottom0 = yMin ?? (lo < 0 ? lo : 0);
+  const top0 = yMax ?? (hi === lo ? hi + 1 : hi + (hi - lo) * 0.06);
+  const pad = (Math.max(hi, top0) - Math.min(lo, bottom0)) * 0.05;
+  return [lo < bottom0 ? lo - pad : bottom0, hi > top0 ? hi + pad : top0];
+}
 export function LineChart(props: Props) {
   const { settings } = useStore();
   const plotRef = useRef<HTMLDivElement>(null);
@@ -89,7 +101,7 @@ export function LineChart(props: Props) {
         cursor: { sync: { key: p.syncKey }, points: { size: 7, width: 2, fill: cssVar("--surface") }, drag: { x: false, y: false } },
         scales: {
           x: { time: false },
-          y: { range: (_u, lo, hi) => (lo == null || hi == null ? [p.yMin ?? 0, p.yMax ?? 1] : [p.yMin ?? (lo < 0 ? lo : 0), p.yMax ?? (hi === lo ? hi + 1 : hi + (hi - lo) * 0.06)]) },
+          y: { range: (_u, lo, hi) => yRange(lo, hi, p.yMin, p.yMax) },
         },
         axes: [axis((v) => clock(v), { size: 26 }), axis(yfmt, { size: 50 })],
         series: [
