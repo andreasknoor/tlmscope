@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Alert, useAirtime } from "../bits";
 import { dayLabel, duration, timeLabel } from "../format";
 import { KIND_COLOR, ModelBadge, ModelSelect, useModelName } from "../Shell";
-import { useStore, type Tab } from "../store";
+import { useBatteryName, useStore, type Tab } from "../store";
 import { AircraftTab } from "../tabs/Aircraft";
 import { BatteryTab } from "../tabs/Battery";
 import { EnergyTab } from "../tabs/Energy";
@@ -19,6 +19,7 @@ const TABS: Tab[] = ["overview", "height", "path", "energy", "battery", "link", 
 export function SessionView() {
   const t = useTranslations();
   const { selected: e, visible, entries, models, modelFilter, setModelFilter, step, select, tab, setTab, settings, demo } = useStore();
+  const batteryName = useBatteryName();
   const modelName = useModelName();
   const airtime = useAirtime();
   if (!e) return null;
@@ -60,7 +61,7 @@ export function SessionView() {
             <span className="pill">
               {e.a.kind === "flight" && p ? t("app.airtime", { time: airtime(p) }) : t("app.sessionDuration", { time: duration(loc, s.durationS) })}
             </span>
-            {e.batteryLetter ? <span className="pill">{t("battery.name", { letter: e.batteryLetter })} · {t("app.cycles", { n: s.battery?.chargeCycles ?? "?" })}</span>
+            {e.batteryLetter ? <span className="pill">{batteryName(e)} · {t("app.cycles", { n: s.battery?.chargeCycles ?? "?" })}</span>
               : e.a.kind !== "transmitter-only" ? <span className="pill">{t("app.batteryNotIdentified")}</span> : null}
             {multi && modelFilter !== e.model.key && <button className="linkbtn" onClick={() => setModelFilter(e.model.key)}>{t("app.onlyModel", { name: modelName(e.model) })}</button>}
             <span className="lv-more mono">{e.file.fileName} · #{s.index} · {t("app.records", { n: Number(s.meta.records ?? 0) })}{s.meta.modelNameSource ? ` · ${t("app.nameFromFile")}` : ""}</span>

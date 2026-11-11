@@ -419,7 +419,7 @@
   "batteries": {
     "title": "Batteries",
     "hint": "Smart batteries report their own ID and charge cycles, so every session can be linked to the pack that powered it.",
-    "naming": "Batteries are named A, B, … in order of first use in the loaded files.",
+    "naming": "Batteries are named A, B, … in order of first use in the loaded files. Give them your own names, ideally the one written on the pack: names stay with the battery's ID in every file.",
     "chargeCycles": "Charge cycles",
     "asReported": "as reported by the pack",
     "flights": "Flights",
@@ -452,8 +452,16 @@
     "resistance": "Resistance per cell",
     "alsoIn": "Also flown in:",
     "noneForModel": "No smart batteries in the flights of this model.",
-    "namingGrouped": "Batteries are named A, B, … in order of first use in the loaded files. Each one is listed under the model it flew most often.",
-    "count": "{n, plural, one {1 battery} other {# batteries}}"
+    "namingGrouped": "Batteries are named A, B, … in order of first use in the loaded files, and listed under the model each flew most often. Give them your own names, ideally the one written on the pack: names stay with the battery's ID in every file.",
+    "count": "{n, plural, one {1 battery} other {# batteries}}",
+    "nameLabel": "Name for this battery",
+    "giveName": "Give it a name",
+    "rename": "Rename",
+    "save": "Save",
+    "cancel": "Cancel",
+    "copy": "Copy",
+    "copyId": "Copy the battery ID",
+    "copied": "Copied"
   },
   "inv": {
     "title": "Data inventory",
@@ -616,6 +624,9 @@
     "capacity": "Capacity",
     "remove": "Remove",
     "noCapacities": "No capacities entered for single models yet.",
+    "batteryNames": "Battery names",
+    "batteryNamesHint": "Your names for smart batteries. Name a battery on the Batteries page.",
+    "noBatteryNames": "No battery names yet.",
     "local": "Settings are saved in this browser only. They never leave your device."
   }
 }

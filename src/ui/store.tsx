@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { createContext, useContext, useMemo } from "react";
 import type { LogsAnalysis, SessionAnalysis } from "@/core/analysis";
 import type { LogFile } from "@/core/model/types";
@@ -43,7 +44,12 @@ export interface Settings {
   capacities: Record<string, number>;
   /** Capacity for models without their own entry; null for none. */
   defaultCapacityMah: number | null;
+  /** The user's own names for smart batteries, keyed by battery ID. */
+  batteryNames: Record<string, string>;
 }
+
+/** Longest battery name accepted. */
+export const MAX_BATTERY_NAME = 40;
 
 /** A plausible battery capacity in mAh. */
 export const isCapacity = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v >= 50 && v <= 100000;
@@ -91,4 +97,15 @@ export function useStore(): Store {
 export function useUnits(): Units {
   const { settings } = useStore();
   return useMemo(() => makeUnits(settings.units, settings.locale), [settings.units, settings.locale]);
+}
+
+/** Name of an entry's battery: the user's own name, else "Battery A" (letter by first use); null without an identified battery. */
+export function useBatteryName(): (e: Entry) => string | null {
+  const { settings } = useStore();
+  const t = useTranslations("battery");
+  return (e) => {
+    const id = e.a.session.battery?.id;
+    if (!id || !e.batteryLetter) return null;
+    return settings.batteryNames[id] ?? t("name", { letter: e.batteryLetter });
+  };
 }

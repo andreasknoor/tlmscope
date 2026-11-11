@@ -419,7 +419,7 @@
   "batteries": {
     "title": "Akkus",
     "hint": "Smart-Akkus melden ihre eigene ID und Ladezyklen. So lässt sich jede Sitzung dem Akku zuordnen, der sie versorgt hat.",
-    "naming": "Akkus heißen A, B, … in der Reihenfolge ihrer ersten Nutzung in den geladenen Dateien.",
+    "naming": "Akkus heißen A, B, … in der Reihenfolge ihrer ersten Nutzung in den geladenen Dateien. Gib ihnen eigene Namen, am besten den, der auf dem Akku steht: Namen hängen an der ID des Akkus und gelten in jeder Datei.",
     "chargeCycles": "Ladezyklen",
     "asReported": "laut Akku",
     "flights": "Flüge",
@@ -452,8 +452,16 @@
     "resistance": "Widerstand pro Zelle",
     "alsoIn": "Auch geflogen in:",
     "noneForModel": "Keine Smart-Akkus in den Flügen dieses Modells.",
-    "namingGrouped": "Akkus heißen A, B, … in der Reihenfolge ihrer ersten Nutzung in den geladenen Dateien. Jeder steht bei dem Modell, in dem er am häufigsten geflogen wurde.",
-    "count": "{n, plural, one {1 Akku} other {# Akkus}}"
+    "namingGrouped": "Akkus heißen A, B, … in der Reihenfolge ihrer ersten Nutzung in den geladenen Dateien und stehen bei dem Modell, in dem sie am häufigsten geflogen wurden. Gib ihnen eigene Namen, am besten den, der auf dem Akku steht: Namen hängen an der ID des Akkus und gelten in jeder Datei.",
+    "count": "{n, plural, one {1 Akku} other {# Akkus}}",
+    "nameLabel": "Name für diesen Akku",
+    "giveName": "Namen geben",
+    "rename": "Umbenennen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "copy": "Kopieren",
+    "copyId": "Akku-ID kopieren",
+    "copied": "Kopiert"
   },
   "inv": {
     "title": "Dateninventar",
@@ -616,6 +624,9 @@
     "capacity": "Kapazität",
     "remove": "Entfernen",
     "noCapacities": "Noch keine Kapazitäten für einzelne Modelle eingetragen.",
+    "batteryNames": "Akku-Namen",
+    "batteryNamesHint": "Deine Namen für Smart-Akkus. Einen Akku benennst du auf der Seite Akkus.",
+    "noBatteryNames": "Noch keine Akku-Namen.",
     "local": "Die Einstellungen werden nur in diesem Browser gespeichert. Sie verlassen dein Gerät nie."
   }
 }

@@ -15,10 +15,10 @@ import { Shell } from "./Shell";
 import { applyTheme, THEMES, type Theme } from "./theme";
 import { defaultUnits, UNIT_SYSTEMS, type UnitSystem } from "./units";
 import { HOME_META } from "@/seo/site";
-import { isCapacity, StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
+import { isCapacity, MAX_BATTERY_NAME, StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
-const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null };
+const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null, batteryNames: {} };
 const SETTINGS_KEY = "tlmscope.settings";
 export const DEMO_FILE = "demo-flight.TLM";
 /** Larger files are refused: real logs are a few MB, and parsing needs several times the file size in memory. */
@@ -48,7 +48,13 @@ function readSettings(initial: Locale): Settings {
     const defaultCapacityMah = isCapacity(saved.defaultCapacityMah) ? saved.defaultCapacityMah : null;
     const theme = THEMES.includes(saved.theme as Theme) ? (saved.theme as Theme) : DEFAULTS.theme;
     const units = UNIT_SYSTEMS.includes(saved.units as UnitSystem) ? (saved.units as UnitSystem) : defaultUnits(navigator.language);
-    return { details, locale, filter, theme, units, capacities, defaultCapacityMah };
+    const batteryNames: Record<string, string> = {};
+    if (saved.batteryNames && typeof saved.batteryNames === "object") {
+      for (const [k, v] of Object.entries(saved.batteryNames as Record<string, unknown>)) {
+        if (typeof v === "string" && v.trim()) batteryNames[k] = v.trim().slice(0, MAX_BATTERY_NAME);
+      }
+    }
+    return { details, locale, filter, theme, units, capacities, defaultCapacityMah, batteryNames };
   } catch {
     return base;
   }

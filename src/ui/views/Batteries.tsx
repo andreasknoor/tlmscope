@@ -7,6 +7,7 @@ import { AgeingChart } from "../charts/AgeingChart";
 import { Meter, RatingCard, Tile, useLevelWord } from "../bits";
 import { dateShort, num, timeLabel } from "../format";
 import { ModelBadge, ModelSelect, useModelName } from "../Shell";
+import { BatteryHeading } from "./BatteryHeading";
 import { useStore, useUnits, type Entry, type Model } from "../store";
 
 export function Batteries() {
@@ -74,7 +75,7 @@ export function Batteries() {
         const dq = stuck ? { l: 1 as const, w: t("batteries.stuck"), h: t("batteries.stuckHint") } : noCells ? { l: 2 as const, w: t("batteries.partial"), h: t("batteries.partialHint") } : { l: 4 as const, w: t("batteries.reliable"), h: t("batteries.reliableHint") };
         return (
           <div className="card" key={b.id}>
-            <div className="sectionhead"><h3 style={{ fontSize: 22 }}>{t("battery.name", { letter: list[0].batteryLetter! })}</h3>
+            <div className="sectionhead"><BatteryHeading key={b.id} id={b.id} letter={list[0].batteryLetter!} />
               <span className="pill">{b.chemistry} · {b.cells}S · {b.capacityMah ?? "?"} mAh</span></div>
             {others.length > 0 && <p className="hint alsoin">{t("batteries.alsoIn")} {others.map((o) => <span key={o.key} className="alsoin-m"><ModelBadge model={o} />{modelName(o)}</span>)}</p>}
             <div className="grid g4">

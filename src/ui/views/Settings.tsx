@@ -15,6 +15,12 @@ export function SettingsDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogE
   const rich = useRich();
   const nameOf = (key: string) => models.find((m) => m.key === key)?.name ?? (key || ta("unknownModel"));
   const capacities = Object.entries(settings.capacities).sort(([a], [b]) => a.localeCompare(b));
+  const names = Object.entries(settings.batteryNames).sort(([, a], [, b]) => a.localeCompare(b));
+  const removeName = (id: string) => {
+    const next = { ...settings.batteryNames };
+    delete next[id];
+    setSettings({ batteryNames: next });
+  };
   const removeCapacity = (key: string) => {
     const next = { ...settings.capacities };
     delete next[key];
@@ -66,6 +72,17 @@ export function SettingsDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogE
             ))}</tbody>
           </table></div>
         ) : <p className="hint">{t("noCapacities")}</p>}
+
+        <h3>{t("batteryNames")}</h3>
+        <p className="hint">{t("batteryNamesHint")}</p>
+        {names.length > 0 ? (
+          <div className="scroll"><table className="tbl">
+            <thead><tr><th>{t("batteryNames")}</th><th>ID</th><th /></tr></thead>
+            <tbody>{names.map(([id, name]) => (
+              <tr key={id}><td>{name}</td><td className="mono hint">{id}</td><td className="r"><button className="btn" onClick={() => removeName(id)}>{t("remove")}</button></td></tr>
+            ))}</tbody>
+          </table></div>
+        ) : <p className="hint">{t("noBatteryNames")}</p>}
 
         <p className="note">{t("local")}</p>
       </div>

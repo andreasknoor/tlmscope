@@ -7,7 +7,7 @@ import { DetailRows, Legend, RatingCard, useLevelWord, useRich } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { Scatter } from "../charts/Scatter";
 import { num } from "../format";
-import { useStore } from "../store";
+import { useBatteryName, useStore } from "../store";
 import { cellCount } from "@/core/analysis/battery";
 import { ConditionCard, IssueAlerts } from "./ratings";
 
@@ -16,6 +16,7 @@ export function BatteryTab() {
   const rich = useRich();
   const word = useLevelWord();
   const { selected: e, settings, go } = useStore();
+  const batteryName = useBatteryName();
   const a = e!.a;
   const loc = settings.locale;
   const g = a.grid;
@@ -43,7 +44,7 @@ export function BatteryTab() {
       <div className="grid g3">
         <div className="card">
           <div className="lbl">{t("battery.which")}</div>
-          <h3 style={{ fontSize: 24 }}>{e!.batteryLetter ? t("battery.name", { letter: e!.batteryLetter }) : t("battery.notIdentified")}</h3>
+          <h3 style={{ fontSize: 24 }}>{batteryName(e!) ?? t("battery.notIdentified")}</h3>
           <div className="hint">
             {b ? rich("battery.identity", { chem: b.chemistry ?? "?", cells: b.cells ?? "?", capacity: b.capacityMah ?? "?", cycles: b.chargeCycles ?? "?" }) : t("battery.noIdentity")}
           </div>
