@@ -6,13 +6,13 @@ import { AGEING, batteryAgeing, rate, THRESHOLDS, type AgeingPoint } from "@/cor
 import { AgeingChart } from "../charts/AgeingChart";
 import { Meter, RatingCard, Tile, useLevelWord } from "../bits";
 import { dateShort, num, timeLabel } from "../format";
-import { ModelBadge, useModelName } from "../Shell";
-import { useStore, useUnits, type Entry } from "../store";
+import { ModelBadge, ModelSelect, useModelName } from "../Shell";
+import { useStore, useUnits, type Entry, type Model } from "../store";
 
 export function Batteries() {
   const t = useTranslations();
   const word = useLevelWord();
-  const { entries, settings, select, models } = useStore();
+  const { entries, settings, select, models, modelFilter } = useStore();
   const modelName = useModelName();
   const loc = settings.locale;
   const U = useUnits();
@@ -23,7 +23,26 @@ export function Batteries() {
     if (!groups.has(id)) groups.set(id, []);
     groups.get(id)!.push(e);
   }
-  const unknown = entries.filter((e) => e.a.kind === "flight" && !e.a.session.battery);
+  // Each pack keeps one card with its whole history, listed under the model it flew most often (first used wins a tie).
+  const homeModel = (list: Entry[]): Model => {
+    const counts = new Map<string, { m: Model; n: number }>();
+    for (const e of list) {
+      const c = counts.get(e.model.key) ?? { m: e.model, n: 0 };
+      c.n += e.a.kind === "flight" ? 1 : 0.01;
+      counts.set(e.model.key, c);
+    }
+    return [...counts.values()].reduce((a, b) => (b.n > a.n ? b : a)).m;
+  };
+  const packs = [...groups.values()]
+    .filter((list) => modelFilter === null || list.some((e) => e.model.key === modelFilter))
+    .map((list) => {
+      const home = homeModel(list);
+      const others = [...new Map(list.filter((e) => e.model.key !== home.key).map((e) => [e.model.key, e.model])).values()];
+      return { list, home, others };
+    });
+  const byModel = models.map((m) => ({ m, packs: packs.filter((p) => p.home.key === m.key) })).filter((g) => g.packs.length > 0);
+  const grouped = models.length > 1;
+  const unknown = entries.filter((e) => e.a.kind === "flight" && !e.a.session.battery && (modelFilter === null || e.model.key === modelFilter));
   const resPerCell = (e: Entry) => (e.a.batteryCondition.available ? e.a.batteryCondition.value.resistancePerCellMilliOhm : null);
   const when = (e: Entry) => (e.startMs !== null ? `${dateShort(loc, e.startMs)} ${timeLabel(loc, e.startMs)}` : "–");
   const condCell = (e: Entry) => {
@@ -40,13 +59,7 @@ export function Batteries() {
     return { timeMs: e.startMs, cycles: e.a.session.battery?.chargeCycles ?? null, resistance: r, tempC: temp };
   };
   const used = (e: Entry) => (e.a.batteryUse.available ? `${num(loc, e.a.batteryUse.value.usedMah, 0)} mAh` : "–");
-
-  return (
-    <>
-      <div className="sectionhead"><h2 style={{ fontSize: 28 }}>{t("batteries.title")}</h2><p>{t("batteries.hint")}</p></div>
-      {groups.size === 0 && <div className="card empty">{t("batteries.none")}</div>}
-      {groups.size > 0 && <p className="note">{t("batteries.naming")}</p>}
-      {[...groups.values()].map((list) => {
+  const card = (list: Entry[], others: Model[]) => {
         const b = list[0].a.session.battery!;
         const flights = list.filter((e) => e.a.kind === "flight");
         const cond = rate(medianOf(flights.map((e) => resPerCell(e))), THRESHOLDS.resistancePerCellMilliOhm);
@@ -63,6 +76,7 @@ export function Batteries() {
           <div className="card" key={b.id}>
             <div className="sectionhead"><h3 style={{ fontSize: 22 }}>{t("battery.name", { letter: list[0].batteryLetter! })}</h3>
               <span className="pill">{b.chemistry} · {b.cells}S · {b.capacityMah ?? "?"} mAh</span></div>
+            {others.length > 0 && <p className="hint alsoin">{t("batteries.alsoIn")} {others.map((o) => <span key={o.key} className="alsoin-m"><ModelBadge model={o} />{modelName(o)}</span>)}</p>}
             <div className="grid g4">
               <Tile label={t("batteries.chargeCycles")} value={Math.max(...list.map((e) => e.a.session.battery?.chargeCycles ?? 0))} sub={t("batteries.asReported")} />
               <Tile label={t("batteries.flights")} value={flights.length} sub={t("batteries.sessionsTotal", { n: list.length })} />
@@ -96,7 +110,21 @@ export function Batteries() {
             </details>
           </div>
         );
-      })}
+  };
+
+  return (
+    <>
+      <div className="sectionhead"><h2 style={{ fontSize: 28 }}>{t("batteries.title")}</h2><p>{t("batteries.hint")}</p></div>
+      {/* Phones only: on wider screens the model filter sits in the sidebar. */}
+      {grouped && <div className="mfilter mpicker"><label htmlFor="battery-model">{t("app.model")}</label><ModelSelect id="battery-model" /></div>}
+      {packs.length === 0 && <div className="card empty">{t(groups.size === 0 ? "batteries.none" : "batteries.noneForModel")}</div>}
+      {packs.length > 0 && <p className="note">{t(grouped ? "batteries.namingGrouped" : "batteries.naming")}</p>}
+      {byModel.map(({ m, packs: inModel }) => (
+        <section key={m.key} className="stack">
+          {grouped && <h3 className="modelhead"><ModelBadge model={m} large />{modelName(m)}</h3>}
+          {inModel.map(({ list, others }) => card(list, others))}
+        </section>
+      ))}
       {unknown.length > 0 && (
         <div className="card">
           <h3>{t("batteries.unknownTitle")}</h3>

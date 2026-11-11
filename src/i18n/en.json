@@ -449,7 +449,10 @@
     "ageingNow": "Now {now} mΩ per cell, {change} mΩ per 10 charge cycles (trend over the last 10 flights).",
     "ageingCold": "Hollow dots are flights below {t}. Cold packs read high, so they are left out of the trend.",
     "sessionList": "All sessions ({n})",
-    "resistance": "Resistance per cell"
+    "resistance": "Resistance per cell",
+    "alsoIn": "Also flown in:",
+    "noneForModel": "No smart batteries in the flights of this model.",
+    "namingGrouped": "Batteries are named A, B, … in order of first use in the loaded files. Each one is listed under the model it flew most often."
   },
   "inv": {
     "title": "Data inventory",

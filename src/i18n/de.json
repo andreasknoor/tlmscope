@@ -449,7 +449,10 @@
     "ageingNow": "Jetzt {now} mΩ pro Zelle, {change} mΩ pro 10 Ladezyklen (Trend der letzten 10 Flüge).",
     "ageingCold": "Hohle Punkte sind Flüge unter {t}. Kalte Akkus messen zu hoch, deshalb zählen sie nicht zum Trend.",
     "sessionList": "Alle Sitzungen ({n})",
-    "resistance": "Widerstand pro Zelle"
+    "resistance": "Widerstand pro Zelle",
+    "alsoIn": "Auch geflogen in:",
+    "noneForModel": "Keine Smart-Akkus in den Flügen dieses Modells.",
+    "namingGrouped": "Akkus heißen A, B, … in der Reihenfolge ihrer ersten Nutzung in den geladenen Dateien. Jeder steht bei dem Modell, in dem er am häufigsten geflogen wurde."
   },
   "inv": {
     "title": "Dateninventar",
