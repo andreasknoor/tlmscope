@@ -8,7 +8,7 @@ import { LineChart } from "../charts/LineChart";
 import { jumpTo } from "../charts/sync";
 import { axisNum, clock, num } from "../format";
 import { useStore, useUnits } from "../store";
-import { rate, THRESHOLDS } from "@/core/analysis";
+import { COMPARE_MIN_FLIGHTS, rate, THRESHOLDS } from "@/core/analysis";
 import { PhaseLegend } from "./Overview";
 import { CapacityInput } from "./CapacityInput";
 import { ConsumptionCard, EfficiencyCard } from "./ratings";
@@ -57,9 +57,9 @@ export function EnergyTab() {
           </div>
         ) : <Tile label={t("rating.used")} value={u ? num(loc, u.usedMah, 0) : "–"} unit={u ? " mAh" : ""} />}
         {flight && a.consumption ? <ConsumptionCard a={a} /> : <Tile label={t("rating.consumption")} value={p?.mahPerMin != null ? num(loc, p.mahPerMin, 0) : "–"} unit={p?.mahPerMin != null ? " mAh/min" : ""}
-          sub={!flight ? t("energy.onlyFlights") : p.mahPerMin != null ? t("energy.needsOtherFlights") : undefined} />}
+          sub={!flight ? t("energy.onlyFlights") : p.mahPerMin != null ? t("energy.needsOtherFlights", { min: COMPARE_MIN_FLIGHTS, n: a.baseline?.counts.mahPerMin ?? 0 }) : undefined} />}
         {flight && a.efficiency ? <EfficiencyCard a={a} /> : <Tile label={t("rating.efficiency")} value="–"
-          sub={!flight ? t("energy.onlyFlights") : p.basis !== "height" ? t("energy.needsHeight") : p.mPer100mAh != null ? t("energy.needsOtherFlights") : undefined} />}
+          sub={!flight ? t("energy.onlyFlights") : p.basis !== "height" ? t("energy.needsHeight") : p.mPer100mAh != null ? t("energy.needsOtherFlights", { min: COMPARE_MIN_FLIGHTS, n: a.baseline?.counts.efficiency ?? 0 }) : undefined} />}
         <Tile label={t("overview.motorTime")} value={clock(p?.motorSecs ?? 0)} unit=" min" sub={`max ${num(loc, maxA, 1)} A`} />
       </div>
       {u && u.capacitySource !== "battery" && <CapacityInput key={e!.model.key} />}
@@ -78,7 +78,8 @@ export function EnergyTab() {
             <thead><tr><th>{t("height.start")}</th><th className="r">{t("height.duration")}</th><th className="r">{t("energy.gained")}</th><th className="r">{t("energy.chargeUsed")}</th><th>{t("energy.efficiency")}</th><th className="r lv-more">{U.u("height")} / 100 mAh</th></tr></thead>
             <tbody>
               {p.climbs.map((c) => {
-                const lvl = c.mPer100mAh !== null && a.baseline?.efficiency ? rate(c.mPer100mAh / a.baseline.efficiency, THRESHOLDS.efficiencyRatio) : null;
+                // Rated only when the flight itself is (enough other flights of the model).
+                const lvl = c.mPer100mAh !== null && a.efficiency && a.baseline?.efficiency ? rate(c.mPer100mAh / a.baseline.efficiency, THRESHOLDS.efficiencyRatio) : null;
                 return (
                   <tr key={c.start} className="clickable" onClick={() => jumpTo(e!.key, c.start)}>
                     <td className="num">{clock(c.start)}</td>

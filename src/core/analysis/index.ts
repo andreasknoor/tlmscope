@@ -91,7 +91,7 @@ export function withCapacities(logs: LogsAnalysis, capacityFor: CapacityFor): Lo
   return { ...logs, sessions: logs.sessions.map((a) => ({ ...a, batteryUse: batteryUse(a.session, capacityFor(a.session)) })) };
 }
 
-/** Usual values of one model: medians over its flights in the loaded files. */
+/** Usual values of one model: medians over its other flights in the loaded files. */
 export interface Baseline {
   /** Median height per 100 mAh; the reference for "better / worse than usual". */
   efficiency: number | null;
@@ -101,14 +101,21 @@ export interface Baseline {
   mahPerMin: number | null;
   /** Number of flights the medians come from. */
   flights: number;
+  /** Number of flights behind each median. */
+  counts: { efficiency: number; sink: number; mahPerMin: number };
 }
 
+/** A flight is compared with its model's usual values only when at least this many other flights have the value. */
+export const COMPARE_MIN_FLIGHTS = 3;
+
 function baselineOf(flights: SessionAnalysis[]): Baseline {
+  const values = (pick: (p: FlightProfile) => number | null) => flights.map((a) => { const p = val(a.profile); return p ? pick(p) : null; });
+  const eff = values((p) => p.mPer100mAh), sink = values((p) => p.glideSinkRate), mpm = values((p) => p.mahPerMin);
+  const count = (xs: (number | null)[]) => xs.filter((x) => x !== null).length;
   return {
-    efficiency: medianOf(flights.map((a) => val(a.profile)?.mPer100mAh ?? null)),
-    sink: medianOf(flights.map((a) => val(a.profile)?.glideSinkRate ?? null)),
-    mahPerMin: medianOf(flights.map((a) => val(a.profile)?.mahPerMin ?? null)),
+    efficiency: medianOf(eff), sink: medianOf(sink), mahPerMin: medianOf(mpm),
     flights: flights.length,
+    counts: { efficiency: count(eff), sink: count(sink), mahPerMin: count(mpm) },
   };
 }
 
@@ -137,20 +144,22 @@ export function analyseLogs(logs: LogFile[], opts: Omit<AnalysisOptions, "batter
     baselines.set(k, baselineOf(flights));
     for (const a of flights) {
       // A flight is compared with the other flights of its model, never with itself.
+      // One or two other flights are no "usual": they would rate a flight against chance.
       const b = baselineOf(flights.filter((x) => x !== a));
       if (!b.flights) continue;
       a.baseline = b;
+      const enough = (n: number) => n >= COMPARE_MIN_FLIGHTS;
       const p = val(a.profile);
-      if (p?.mPer100mAh != null && b.efficiency) {
+      if (p?.mPer100mAh != null && b.efficiency && enough(b.counts.efficiency)) {
         const ratio = p.mPer100mAh / b.efficiency;
         a.efficiency = { ratio, level: rate(ratio, THRESHOLDS.efficiencyRatio) };
       }
-      if (p?.mahPerMin != null && b.mahPerMin) {
+      if (p?.mahPerMin != null && b.mahPerMin && enough(b.counts.mahPerMin)) {
         const ratio = b.mahPerMin / p.mahPerMin;
         a.consumption = { ratio, level: rate(ratio, THRESHOLDS.consumptionRatio) };
       }
-      if (p?.glideSinkRate != null && b.sink) a.sinkComparison = { ratio: p.glideSinkRate / b.sink };
-      // A flight without motor climbs prices its thermals at the model's usual mAh per metre.
+      if (p?.glideSinkRate != null && b.sink && enough(b.counts.sink)) a.sinkComparison = { ratio: p.glideSinkRate / b.sink };
+      // A flight without motor climbs prices its thermals at the model's usual mAh per metre (any number of flights: an estimate, not a rating).
       if (p && p.mPer100mAh == null && b.efficiency && a.thermals?.list.length) {
         a.thermals = thermals(p, a.grid, val(a.circling), val(a.track), b.efficiency);
       }

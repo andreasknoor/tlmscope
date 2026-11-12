@@ -12,12 +12,12 @@ import { TAB_TAGS, type LinkTarget } from "./tab-tags";
 
 export const LEVEL_COLOR: Record<Level, string> = { 4: "var(--good)", 3: "var(--good)", 2: "var(--warn)", 1: "var(--crit)" };
 
-/** Four bars like a phone signal meter. Neutral meters are grey (not a quality rating). */
-export function Meter({ level, neutral = false }: { level: Level; neutral?: boolean }) {
+/** Four bars like a phone signal meter. */
+export function Meter({ level }: { level: Level }) {
   return (
     <span className="meter" aria-hidden="true">
       {[1, 2, 3, 4].map((k) => (
-        <i key={k} style={k <= level ? { background: neutral ? "var(--ink-2)" : LEVEL_COLOR[level], opacity: !neutral && level === 3 ? 0.55 : 1 } : undefined} />
+        <i key={k} style={k <= level ? { background: LEVEL_COLOR[level], opacity: level === 3 ? 0.55 : 1 } : undefined} />
       ))}
     </span>
   );
@@ -114,7 +114,8 @@ export function RatingCard(props: {
     <div className="card rating">
       <div className="top3">
         <span className="lbl">{props.name}</span>
-        <Meter level={props.level} neutral={props.neutral} />
+        {/* A neutral card describes rather than rates, so it has no level meter that could read as one. */}
+        {!props.neutral && <Meter level={props.level} />}
       </div>
       <div className="word">{props.word}</div>
       <div className="hint">{props.hint}</div>

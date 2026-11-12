@@ -6,7 +6,8 @@ export type SessionKind = "flight" | "ground-test" | "powered-on" | "transmitter
 /**
  * Phases per second. "motor" = climbing with the motor; "powered" = motor on without a
  * measured climb (level flight, or no height sensor); "unpowered" = motor off without
- * a height sensor, so glide and lift cannot be told apart.
+ * a height sensor, so glide and lift cannot be told apart, or motor off in a flight that
+ * sinks too fast for a glide (see `maxGlideSinkRate`).
  */
 export type PhaseKind = "ground" | "motor" | "powered" | "glide" | "lift" | "unpowered";
 /** Where the airborne time of a flight comes from. */
@@ -57,6 +58,12 @@ export const FLIGHT = {
   liftMinS: 10,
   /** Climbs shorter than this (s) are throttle blips. */
   climbMinS: 2,
+  /**
+   * Sinking faster than this (m/s, median with the motor off) is not a glide: a powered model diving
+   * and flying figures. Its motor-off time is then shown as "motor off", without glide values.
+   * The sample gliders sink 0.6–1.1 m/s; a sport model sinks 2.2–2.4 in calm flights and 5.8–8.8 in aerobatic ones.
+   */
+  maxGlideSinkRate: 3,
 } as const;
 
 export interface FlightProfile {
@@ -83,6 +90,8 @@ export interface FlightProfile {
   glideSecs: number;
   /** Median sink rate while gliding (m/s, positive = sinking). */
   glideSinkRate: number | null;
+  /** Motor-off time that sinks too fast to be a glide (see `maxGlideSinkRate`); null when it is a glide. */
+  fastSink: { secs: number; rate: number } | null;
   /** Height gained per 100 mAh over all motor climbs. */
   mPer100mAh: number | null;
   /** Charge used per minute in the air (mAh/min). */
@@ -233,8 +242,6 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
       if (last && last.kind === p.kind) last.end = p.end;
       else phases.push({ ...p });
     }
-    const phaseAt: (PhaseKind | null)[] = new Array(n).fill(null);
-    for (const p of phases) for (let i = p.start; i <= p.end; i++) phaseAt[i] = p.kind;
 
     // Motor runs (climbs): every run of the motor in the air, whether or not this second climbs.
     // The display phases above split a run into "motor climb" and "motor on"; the climbs and the
@@ -259,6 +266,12 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
     });
     const glideIdx: number[] = [];
     if (alt) for (let i = 0; i < n; i++) if (raw[i] === "glide" && (alt[i] ?? 0) > 5) glideIdx.push(i);
+    // Motor-off time that sinks like a dive is not a glide: shown as "motor off" without glide values.
+    const sinkRate = glideIdx.length > 20 ? -(medianOf(glideIdx.map((i) => climb[i])) ?? 0) : null;
+    const fastSink = sinkRate !== null && sinkRate > FLIGHT.maxGlideSinkRate ? { secs: glideIdx.length, rate: sinkRate } : null;
+    if (fastSink) for (const p of phases) if (p.kind === "glide") p.kind = "unpowered";
+    const phaseAt: (PhaseKind | null)[] = new Array(n).fill(null);
+    for (const p of phases) for (let i = p.start; i <= p.end; i++) phaseAt[i] = p.kind;
     const climbMah = climbs.reduce((s, c) => s + (c.mah ?? 0), 0);
     const climbGain = climbs.reduce((s, c) => s + c.gainM, 0);
     const airtimeS = airStart === null ? 0 : airEnd! - airStart;
@@ -280,8 +293,9 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
       phases, phaseAt, climbs, lifts,
       liftGainM: lifts.reduce((s, l) => s + Math.max(0, l.gainM), 0),
       liftSecs: lifts.reduce((s, l) => s + l.end - l.start + 1, 0),
-      glideSecs: glideIdx.length,
-      glideSinkRate: glideIdx.length > 20 ? -(medianOf(glideIdx.map((i) => climb[i])) ?? 0) : null,
+      glideSecs: fastSink ? 0 : glideIdx.length,
+      glideSinkRate: fastSink ? null : sinkRate,
+      fastSink,
       mPer100mAh: climbMah > 20 ? (climbGain / climbMah) * 100 : null,
       mahPerMin,
       smoothedClimb,

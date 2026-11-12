@@ -72,9 +72,11 @@ describe("flights without a height sensor (synthetic demo flight)", () => {
   });
 
   it("compares the charge per minute within the same model", () => {
-    const a = parseLog(demoFlightTlm(), "a.TLM");
-    const b = parseLog(demoFlightTlm(), "b.TLM");
-    const r = analyseLogs([a, b]);
+    // Two flights are not enough for a "usual" value; four are (each against the other three).
+    const two = analyseLogs(["a", "b"].map((k) => parseLog(demoFlightTlm(), `${k}.TLM`)));
+    expect(two.sessions[0].consumption).toBeNull();
+    expect(two.sessions[0].baseline!.counts.mahPerMin).toBe(1);
+    const r = analyseLogs(["a", "b", "c", "d"].map((k) => parseLog(demoFlightTlm(), `${k}.TLM`)));
     expect(r.baselines.get("demo glider")!.mahPerMin).toBeGreaterThan(0);
     expect(r.sessions[0].consumption!.ratio).toBeCloseTo(1, 5);
   });

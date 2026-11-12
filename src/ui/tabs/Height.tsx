@@ -52,8 +52,12 @@ export function HeightTab() {
       <div className="grid g3">
         <Tile label={t("height.motorClimbs")} value={p.climbs.length} sub={t("height.withMotor", { gain: U.fmt("height", p.climbs.reduce((s, c) => s + c.gainM, 0)) })} />
         <Tile label={t("height.lift")} value={p.lifts.length} sub={p.lifts.length ? `+${U.fmt("height", p.liftGainM)} · ${clock(p.liftSecs)} min` : t("height.noneFound")} />
-        <Tile label={t("height.gliding")} value={clock(p.glideSecs)} unit=" min"
-          sub={p.glideSinkRate !== null ? t("height.sinking", { rate: U.fmt("vspeed", p.glideSinkRate, 1), cmp }) : undefined} />
+        {p.fastSink ? (
+          <Tile label={t("phase.unpowered")} value={clock(p.fastSink.secs)} unit=" min" sub={t("height.notGliding", { rate: U.fmt("vspeed", p.fastSink.rate, 1) })} />
+        ) : (
+          <Tile label={t("height.gliding")} value={clock(p.glideSecs)} unit=" min"
+            sub={p.glideSinkRate !== null ? t("height.sinking", { rate: U.fmt("vspeed", p.glideSinkRate, 1), cmp }) : undefined} />
+        )}
       </div>
       {!p.lifts.length && <p className="note">{t("height.noLift")}</p>}
       {a.thermals && <ThermalsCard thermals={a.thermals} />}

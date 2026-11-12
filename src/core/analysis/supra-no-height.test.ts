@@ -22,6 +22,17 @@ const SUPRA = "TelemetryLog supra .tlm";
 describe.skipIf(!existsSync(join(SAMPLES_DIR, SUPRA)))("Supra Fly log: flights before the vario was fitted", { timeout: 120_000 }, () => {
   const logs = () => analyseLogs([loadSample(SUPRA)]);
 
+  it("shows aerobatic flights as motor off, not as a glide", () => {
+    const byIndex = (i: number) => value(logs().sessions.find((a) => a.session.index === i)!.profile);
+    const aerobatic = byIndex(109); // sinks about 8.8 m/s with the motor off
+    expect(aerobatic.fastSink!.rate).toBeGreaterThan(3);
+    expect(aerobatic.glideSinkRate).toBeNull();
+    expect(aerobatic.phases.some((p) => p.kind === "glide")).toBe(false);
+    const calm = byIndex(111); // about 2.2 m/s: a glide
+    expect(calm.fastSink).toBeNull();
+    expect(calm.glideSinkRate).toBeLessThan(3);
+  });
+
   it("finds 87 flights: 20 by height, 66 by motion, 1 by GPS", () => {
     const flights = logs().sessions.filter((a) => a.kind === "flight");
     expect(flights).toHaveLength(87);

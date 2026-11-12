@@ -16,7 +16,7 @@ export function LinkCard({ a }: { a: SessionAnalysis }) {
   const loc = useStore().settings.locale;
   const l = v(a.link);
   const o = l?.overall;
-  const hint = o ? t("linkHint") + (o.worst < o.level ? " " + t("linkBriefly", { level: word("link", o.worst).toLowerCase() }) : "") : "";
+  const hint = o ? t(a.kind === "flight" ? "linkHintAir" : "linkHint") + (o.worst < o.level ? " " + t("linkBriefly", { level: word("link", o.worst).toLowerCase() }) : "") : "";
   const fades = Object.entries(l?.fades ?? {}).filter(([, n]) => n !== undefined);
   return (
     <RatingCard name={t("link")} level={o?.level ?? null} word={word("link", o?.level ?? null)} hint={hint}
@@ -37,7 +37,7 @@ export function SignalCard({ a }: { a: SessionAnalysis }) {
   const loc = useStore().settings.locale;
   const s = v(a.signal);
   const o = s?.overall;
-  const hint = t("signalHint") + (o && o.weakShare > 0.05 ? " " + t("signalWeakShare", { pct: num(loc, o.weakShare * 100, 0) }) : "");
+  const hint = t(a.kind === "flight" ? "signalHintAir" : "signalHint") + (o && o.weakShare > 0.05 ? " " + t("signalWeakShare", { pct: num(loc, o.weakShare * 100, 0) }) : "");
   return (
     <RatingCard name={t("signal")} level={o?.level ?? null} word={word("signal", o?.level ?? null)} hint={s ? hint : ""}
       rows={s ? [[t("typical"), `${num(loc, s.medianDbm, 0)} dBm`], [t("weakest"), `${num(loc, s.minDbm, 0)} dBm`], [t("levels"), t("levelsSignal")]] : null} />
@@ -106,7 +106,7 @@ export function StyleCard({ a }: { a: SessionAnalysis }) {
   const x = v(a.loads);
   const level = x ? ({ gentle: 1, moderate: 2, sporty: 3, hard: 4 } as const)[x.style] : null;
   return (
-    <RatingCard name={t("rating.style")} level={level} neutral word={x ? t(`levels.style.${x.style}`) : ""} hint={x ? t("rating.styleHint") : ""}
+    <RatingCard name={t("rating.style")} level={level} neutral word={x ? t(`levels.style.${x.style}`) : ""} hint={x ? t(a.kind === "flight" ? "rating.styleHintAir" : "rating.styleHint") : ""}
       rows={x ? [[t("rating.maxLoad"), `${num(loc, x.maxG, 1)} g`], [t("rating.fastestRotation"), `${num(loc, x.maxRotation, 0)} °/s`]] : null} />
   );
 }
