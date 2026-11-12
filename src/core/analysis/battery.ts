@@ -60,11 +60,18 @@ const hasFrozen = (session: Session, id: string) => {
   return !!ch && ch.q.some((q) => (q & Q.FROZEN) !== 0);
 };
 
+/**
+ * Highest believable voltage per cell (V): a full high-voltage LiPo (LiHV) charges to 4.35 V.
+ * With 4.25 a full 3S LiHV pack (13.05 V) read as 4S. The limit now only fails for a pack that starts
+ * below 3.3 V per cell, which is flat anyway.
+ */
+export const MAX_CELL_V = 4.4;
+
 /** Number of cells: reported by the battery, else estimated from the highest pack voltage. */
 export function cellCount(session: Session, g = new Grid(session)): number | null {
   if (session.battery?.cells) return session.battery.cells;
   const vmax = maxOf(g.get("pack_voltage"));
-  return vmax === null ? null : Math.max(1, Math.ceil(vmax / 4.25));
+  return vmax === null ? null : Math.max(1, Math.ceil(vmax / MAX_CELL_V));
 }
 
 /**

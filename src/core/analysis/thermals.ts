@@ -64,11 +64,17 @@ export function thermals(profile: FlightProfile, g: Grid, circ: Circling | null,
     const circles: ThermalCircle[] = [];
     let direction: 1 | -1 | null = null;
     if (circ) {
-      let deg = 0, from = l.start, sum = 0;
+      // Circles go one way: the thermal's main turn direction. Turning the other way (S-turns,
+      // a change of direction) breaks the circle in progress instead of adding to it.
+      let sum = 0;
+      for (let i = l.start; i <= l.end; i++) sum += circ.turnRate[i] ?? 0;
+      const dir = sum >= 0 ? 1 : -1;
+      let deg = 0, from = l.start;
       for (let i = l.start; i <= l.end; i++) {
-        const w = circ.turnRate[i] ?? 0;
-        sum += w;
-        deg += Math.abs(w);
+        const w = (circ.turnRate[i] ?? 0) * dir;
+        if (w < 0) { deg = 0; from = i + 1; continue; }
+        if (w === 0 && deg === 0) { from = i + 1; continue; }
+        deg += w;
         if (deg >= 360) {
           const a = alt[from], b = alt[i];
           circles.push({ start: from, end: i, gainM: a !== null && b !== null ? b - a : 0 });
@@ -76,7 +82,7 @@ export function thermals(profile: FlightProfile, g: Grid, circ: Circling | null,
           from = i;
         }
       }
-      if (circles.length) direction = sum >= 0 ? 1 : -1;
+      if (circles.length) direction = dir;
     }
 
     let centre: Thermal["centre"] = null;

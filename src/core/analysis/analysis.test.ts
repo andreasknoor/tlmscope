@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { Q, type Channel, type Session } from "../model/types.ts";
 import { hasSamples, loadSample, MAIN_SAMPLE } from "../test-helpers.ts";
-import { lipoChargePct } from "./battery.ts";
+import { cellCount, lipoChargePct } from "./battery.ts";
+import type { Circling, FlightProfile } from "./flight.ts";
+import type { Grid } from "./grid.ts";
+import { thermals } from "./thermals.ts";
 import { analyseLogs, analyseSession, overall, rate, THRESHOLDS, type Result, type SessionAnalysis } from "./index.ts";
 
 const value = <T>(r: Result<T>): T => {
@@ -182,5 +185,51 @@ describe("thresholds", () => {
 
   it("flags frozen samples with the FROZEN quality bit", () => {
     expect(Q.FROZEN).toBe(4);
+  });
+});
+
+describe("battery cells without a smart battery", () => {
+  const withPack = (volts: number): Session => ({
+    index: 0, start: { utcMs: null, zone: "utc" }, durationS: 1, modelName: null, source: { format: "test" }, raw: [], meta: {},
+    channels: new Map<string, Channel>([["pack_voltage", { id: "pack_voltage", unit: "V", kind: "numeric", t: new Float64Array([0]), v: new Float64Array([volts]), q: new Uint8Array(1), nominalRateHz: 1, origin: "measured", source: { sensor: "test", field: "test" } }]]),
+  } as unknown as Session);
+
+  it("counts cells of LiPo and high-voltage LiPo packs, full or at storage charge", () => {
+    expect(cellCount(withPack(12.6))).toBe(3); // 3S full
+    expect(cellCount(withPack(13.05))).toBe(3); // 3S LiHV full (read as 4S before)
+    expect(cellCount(withPack(11.4))).toBe(3); // 3S storage
+    expect(cellCount(withPack(16.8))).toBe(4); // 4S full
+    expect(cellCount(withPack(17.4))).toBe(4); // 4S LiHV full
+    expect(cellCount(withPack(15.2))).toBe(4); // 4S storage
+    expect(cellCount(withPack(25.2))).toBe(6); // 6S full
+    expect(cellCount(withPack(26.1))).toBe(6); // 6S LiHV full
+  });
+});
+
+describe("thermal circles", () => {
+  const lift = (turnRate: number[]) => {
+    const n = turnRate.length;
+    const alt = Array.from({ length: n }, (_, i) => 100 + i * 0.5);
+    const profile = { climbs: [], lifts: [{ kind: "lift", start: 0, end: n - 1, gainM: alt[n - 1] - alt[0] }], mPer100mAh: null } as unknown as FlightProfile;
+    const grid = { get: () => alt } as unknown as Grid;
+    return thermals(profile, grid, { turnRate } as unknown as Circling, null).list[0];
+  };
+
+  it("counts full circles in one direction", () => {
+    const t = lift(new Array(48).fill(30)); // 30 °/s for 48 s = 4 circles
+    expect(t.circles).toHaveLength(4);
+    expect(t.direction).toBe(1);
+  });
+
+  it("does not count S-turns as circles", () => {
+    // left and right 10 s each, 300 ° per side: never a full circle either way
+    const s = Array.from({ length: 60 }, (_, i) => (Math.floor(i / 10) % 2 ? -30 : 30));
+    expect(lift(s).circles).toHaveLength(0);
+  });
+
+  it("restarts the circle after a turn the other way", () => {
+    const t = lift([...new Array(8).fill(30), ...new Array(4).fill(-30), ...new Array(12).fill(30)]);
+    expect(t.circles).toHaveLength(1);
+    expect(t.circles[0].start).toBe(12);
   });
 });
