@@ -24,7 +24,12 @@ describe.skipIf(!hasSamples)("session classification", () => {
 
 describe.skipIf(!hasSamples)("flight profile (same results as the prototype)", () => {
   it("counts motor climbs and finds no lift in the autumn flights", () => {
-    expect(FLIGHTS.map((i) => value(flight(i).profile).climbs.length)).toEqual([11, 15, 3, 7, 4]);
+    // Flights 15 and 32 each have a short motor run on the ground (after landing, before launch): not a climb.
+    expect(FLIGHTS.map((i) => value(flight(i).profile).climbs.length)).toEqual([11, 14, 3, 7, 3]);
+    for (const i of FLIGHTS) {
+      const p = value(flight(i).profile);
+      expect(p.climbs.every((c) => c.end >= p.airStart! && c.start <= p.airEnd!)).toBe(true);
+    }
     expect(FLIGHTS.map((i) => value(flight(i).profile).lifts.length)).toEqual([0, 0, 0, 0, 0]);
   });
 
@@ -36,7 +41,27 @@ describe.skipIf(!hasSamples)("flight profile (same results as the prototype)", (
     expect(logs().baselines.get("easy glider 4")!.efficiency).toBeCloseTo(49.8, 1);
     expect(flight(15).baseline!.efficiency).toBeCloseTo(49.8, 1);
     expect(flight(15).efficiency!.level).toBe(4); // 62 m per 100 mAh: better than usual
-    expect(flight(29).efficiency!.level).toBe(2); // 40 m per 100 mAh: below usual
+    // 40 m per 100 mAh against the other four flights (not itself): well below usual
+    expect(flight(29).efficiency!.level).toBe(1);
+    expect(flight(29).baseline!.flights).toBe(4);
+  });
+
+  it("rates loads, signal and frame losses only while airborne", () => {
+    for (const i of FLIGHTS) {
+      const a = flight(i);
+      const p = value(a.profile);
+      const ld = value(a.loads);
+      // launch throw and touchdown are left out
+      expect(ld.maxAt).toBeGreaterThan(p.airStart!);
+      expect(ld.maxAt).toBeLessThan(p.airEnd!);
+      const s = value(a.signal);
+      expect(s.minAt!).toBeGreaterThanOrEqual(p.airStart!);
+      expect(s.minAt!).toBeLessThanOrEqual(p.airEnd!);
+      const l = value(a.link);
+      const total = a.session.channels.get("frame_losses")!.v.at(-1)!;
+      expect(l.frameLosses!).toBeLessThanOrEqual(total);
+      if (l.worstSecond) expect(l.worstSecond.at).toBeGreaterThanOrEqual(p.airStart!);
+    }
   });
 
   it("splits the flight into phases that cover every second", () => {

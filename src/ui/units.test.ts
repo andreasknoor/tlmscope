@@ -27,8 +27,11 @@ describe("units", () => {
   });
 
   it("converts catalogue units it knows and leaves the rest", () => {
-    expect(i.byUnit("m", 10)).toEqual({ value: 32.8084, unit: "ft" });
-    expect(i.byUnit("V", 4.2)).toEqual({ value: 4.2, unit: "V" });
+    expect(i.byChannel("altitude", "m", 10)).toEqual({ value: 32.8084, unit: "ft" });
+    expect(i.byChannel("rx_voltage", "V", 4.2)).toEqual({ value: 4.2, unit: "V" });
+    // ground speed is a speed (mph), not a vertical speed (ft/s), although both are m/s in the catalogue
+    expect(i.byChannel("ground_speed", "m/s", 10).unit).toBe("mph");
+    expect(i.byChannel("climb_rate", "m/s", 1).unit).toBe("ft/s");
   });
 
   it("uses imperial by default only for US English", () => {

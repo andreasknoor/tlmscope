@@ -9,13 +9,14 @@ export interface LinkAnalysis {
   basis: "frame_losses" | "link_quality";
   levels: (Level | null)[];
   overall: Overall | null;
+  /** Frame losses in the rating window (airborne time of a flight, else the whole session); so are the fades. */
   frameLosses: number | null;
   frameLossesPerMinute: number | null;
   /** Holds while airborne. Holds on the ground (e.g. switching the transmitter off) do not count. */
   holdsAirborne: number | null;
   holdsTotal: number | null;
   fades: Partial<Record<"a" | "b" | "l" | "r", number>>;
-  /** Second with the most frame losses. */
+  /** Second with the most frame losses, in the rating window. */
   worstSecond: { at: number; frameLosses: number } | null;
 }
 
@@ -23,6 +24,7 @@ export interface SignalAnalysis {
   levels: (Level | null)[];
   overall: Overall | null;
   medianDbm: number | null;
+  /** Weakest signal in the rating window. */
   minDbm: number | null;
   minAt: number | null;
 }
@@ -31,6 +33,15 @@ export interface SignalAnalysis {
 function ratingWindow(profile: FlightProfile | null, n: number): [number, number] {
   return profile && profile.airStart !== null ? [profile.airStart, profile.airEnd!] : [0, n - 1];
 }
+
+/** Increase of a counter channel within seconds w0…w1; null without the channel. */
+const increase = (g: Grid, id: string, w0: number, w1: number): number | null => {
+  if (!g.has(id)) return null;
+  const inc = g.get(id, "increase");
+  let s = 0;
+  for (let i = w0; i <= w1; i++) s += inc[i] ?? 0;
+  return s;
+};
 
 const last = (session: Session, id: string): number | null => {
   const ch = session.channels.get(id);
@@ -62,12 +73,14 @@ export function linkQuality(session: Session, profile: FlightProfile | null, g =
         for (let k = Math.max(0, i - 59); k <= i; k++) c += fl[k] ?? 0;
         return rate(c, THRESHOLDS.frameLossesPerMinute);
       });
-      for (let i = 0; i < n; i++) if ((fl[i] ?? 0) > (worstSecond?.frameLosses ?? 0)) worstSecond = { at: i, frameLosses: fl[i]! };
+      for (let i = w0; i <= w1; i++) if ((fl[i] ?? 0) > (worstSecond?.frameLosses ?? 0)) worstSecond = { at: i, frameLosses: fl[i]! };
     } else {
       basis = "link_quality";
       levels = g.get("link_quality").map((v) => rate(v, THRESHOLDS.linkQualityPct));
     }
-    const frameLosses = last(session, "frame_losses");
+    // Counts, rate and fades all cover the rating window, like the holds: losses while the
+    // transmitter is switched off after landing are not part of the flight.
+    const frameLosses = increase(g, "frame_losses", w0, w1);
     const minutes = profile && profile.airStart !== null ? (w1 - w0 + 1) / 60 : session.durationS / 60;
     return {
       basis,
@@ -77,7 +90,7 @@ export function linkQuality(session: Session, profile: FlightProfile | null, g =
       frameLossesPerMinute: frameLosses !== null && minutes > 0 ? frameLosses / minutes : null,
       holdsAirborne,
       holdsTotal: last(session, "holds"),
-      fades: Object.fromEntries((["a", "b", "l", "r"] as const).map((k) => [k, last(session, `fades.${k}`)]).filter(([, v]) => v !== null)),
+      fades: Object.fromEntries((["a", "b", "l", "r"] as const).map((k) => [k, increase(g, `fades.${k}`, w0, w1)]).filter(([, v]) => v !== null)),
       worstSecond,
     };
   });
@@ -89,13 +102,13 @@ export function signalStrength(session: Session, profile: FlightProfile | null, 
     const [w0, w1] = ratingWindow(profile, g.n);
     const levels = dbm.map((v) => rate(v, THRESHOLDS.signalDbm));
     const win = dbm.slice(w0, w1 + 1);
-    const minDbm = minOf(dbm);
+    const minDbm = minOf(win);
     return {
       levels,
       overall: overall(levels.slice(w0, w1 + 1)),
       medianDbm: medianOf(win),
       minDbm,
-      minAt: minDbm === null ? null : dbm.indexOf(minDbm),
+      minAt: minDbm === null ? null : w0 + win.indexOf(minDbm),
     };
   });
 }

@@ -57,16 +57,29 @@ export interface Loads {
 
 export const STYLE_LIMITS = { gentle: 2.5, moderate: 4, sporty: 6 } as const;
 
-export function loads(session: Session, g = new Grid(session)): Result<Loads> {
+/**
+ * Seconds left out at both ends of the airborne time: the throw of a hand launch and the
+ * touchdown are the hardest jolts of many flights, but they say nothing about the flying.
+ */
+export const LOAD_EDGE_S = 3;
+
+/** Strongest load and fastest rotation; in a flight only while airborne, without launch and touchdown. */
+export function loads(session: Session, g = new Grid(session), profile: FlightProfile | null = null): Result<Loads> {
   return withNeeds(session, ["accel.x", "accel.y", "accel.z"], () => {
-    const mag = g.magnitudeMax(["accel.x", "accel.y", "accel.z"]);
+    let w0 = 0, w1 = g.n - 1;
+    if (profile && profile.kind === "flight" && profile.airStart !== null) {
+      w0 = profile.airStart;
+      w1 = profile.airEnd!;
+      if (w1 - w0 > 4 * LOAD_EDGE_S) { w0 += LOAD_EDGE_S; w1 -= LOAD_EDGE_S; }
+    }
+    const mag = g.magnitudeMax(["accel.x", "accel.y", "accel.z"]).slice(w0, w1 + 1);
     const maxG = maxOf(mag);
     if (maxG === null) return null;
     const rot = ["rotation_rate.roll", "rotation_rate.pitch", "rotation_rate.yaw"]
       .filter((id) => g.has(id))
-      .map((id) => Math.max(Math.abs(maxOf(g.get(id, "max")) ?? 0), Math.abs(minOf(g.get(id, "min")) ?? 0)));
+      .map((id) => Math.max(Math.abs(maxOf(g.get(id, "max").slice(w0, w1 + 1)) ?? 0), Math.abs(minOf(g.get(id, "min").slice(w0, w1 + 1)) ?? 0)));
     const style: FlyingStyle = maxG < STYLE_LIMITS.gentle ? "gentle" : maxG < STYLE_LIMITS.moderate ? "moderate" : maxG < STYLE_LIMITS.sporty ? "sporty" : "hard";
-    return { maxG, maxAt: mag.indexOf(maxG), maxRotation: rot.length ? Math.max(...rot) : null, style };
+    return { maxG, maxAt: w0 + mag.indexOf(maxG), maxRotation: rot.length ? Math.max(...rot) : null, style };
   });
 }
 

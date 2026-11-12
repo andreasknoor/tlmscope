@@ -30,7 +30,7 @@ export interface SessionAnalysis {
   loads: Result<Loads>;
   issues: DataIssue[];
   moments: Moment[];
-  /** Usual values of the flights of the same model (set by `analyseLogs`); null for sessions that are not flights. */
+  /** Usual values of the other flights of the same model (set by `analyseLogs`); null for sessions that are not flights and for a model's only flight. */
   baseline: Baseline | null;
   /** Compared with the other flights of the same model (set by `analyseLogs`). */
   efficiency: { ratio: number; level: Level | null } | null;
@@ -56,7 +56,7 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
   const circ = p ? circling(session, p, grid) : ({ available: false, missing: [] } as Result<Circling>);
   const link = linkQuality(session, p, grid);
   const signal = signalStrength(session, p, grid);
-  const ld = loads(session, grid);
+  const ld = loads(session, grid, p);
   const tr = track(session, grid);
   return {
     session, kind, grid, profile,
@@ -99,13 +99,22 @@ export interface Baseline {
   sink: number | null;
   /** Median charge per minute in the air (mAh/min). */
   mahPerMin: number | null;
-  /** Number of flights of this model. */
+  /** Number of flights the medians come from. */
   flights: number;
+}
+
+function baselineOf(flights: SessionAnalysis[]): Baseline {
+  return {
+    efficiency: medianOf(flights.map((a) => val(a.profile)?.mPer100mAh ?? null)),
+    sink: medianOf(flights.map((a) => val(a.profile)?.glideSinkRate ?? null)),
+    mahPerMin: medianOf(flights.map((a) => val(a.profile)?.mahPerMin ?? null)),
+    flights: flights.length,
+  };
 }
 
 export interface LogsAnalysis {
   sessions: SessionAnalysis[];
-  /** Usual values per model, keyed by `modelKey()`. Different models are never compared with each other. */
+  /** Usual values per model over all its flights, keyed by `modelKey()`. Different models are never compared with each other. */
   baselines: Map<string, Baseline>;
 }
 
@@ -125,14 +134,11 @@ export function analyseLogs(logs: LogFile[], opts: Omit<AnalysisOptions, "batter
   }
   const baselines = new Map<string, Baseline>();
   for (const [k, flights] of byModel) {
-    const b: Baseline = {
-      efficiency: medianOf(flights.map((a) => val(a.profile)?.mPer100mAh ?? null)),
-      sink: medianOf(flights.map((a) => val(a.profile)?.glideSinkRate ?? null)),
-      mahPerMin: medianOf(flights.map((a) => val(a.profile)?.mahPerMin ?? null)),
-      flights: flights.length,
-    };
-    baselines.set(k, b);
+    baselines.set(k, baselineOf(flights));
     for (const a of flights) {
+      // A flight is compared with the other flights of its model, never with itself.
+      const b = baselineOf(flights.filter((x) => x !== a));
+      if (!b.flights) continue;
       a.baseline = b;
       const p = val(a.profile);
       if (p?.mPer100mAh != null && b.efficiency) {

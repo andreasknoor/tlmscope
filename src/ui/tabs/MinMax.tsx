@@ -29,9 +29,9 @@ export function MinMaxCard({ a, syncKey }: { a: SessionAnalysis; syncKey: string
   }).filter((r) => r.max !== null);
   if (!rows.length) return null;
   const unit = (u: Unit) => (u === "count" || u === "" || u === "?" ? "" : ` ${u}`);
-  const cell = (si: number | null, at: number, u: Unit) => {
+  const cell = (id: string, si: number | null, at: number, u: Unit) => {
     if (si === null) return <td className="r">–</td>;
-    const shown = U.byUnit(u, si);
+    const shown = U.byChannel(id, u, si);
     return (
       <td className="r num clickable" onClick={() => jumpTo(syncKey, at)} title={clock(at)}>
         {num(loc, shown.value, DIGITS[u] ?? 1)}{unit(shown.unit as Unit)} <span className="hint">{clock(at)}</span>
@@ -48,8 +48,8 @@ export function MinMaxCard({ a, syncKey }: { a: SessionAnalysis; syncKey: string
         <tbody>{rows.map(({ c, min, max, minAt, maxAt }) => (
           <tr key={c.id}>
             <td>{c.label[loc]}</td>
-            {c.kind === "counter" ? <td className="r">–</td> : cell(min, minAt, c.unit)}
-            {cell(max, maxAt, c.unit)}
+            {c.kind === "counter" ? <td className="r">–</td> : cell(c.id, min, minAt, c.unit)}
+            {cell(c.id, max, maxAt, c.unit)}
           </tr>
         ))}</tbody>
       </table></div>

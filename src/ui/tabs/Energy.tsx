@@ -56,8 +56,10 @@ export function EnergyTab() {
             <div className="hint">{t("energy.usedText", { used: num(loc, u.usedMah, 0), capacity: u.capacityMah! })}{u.capacitySource === "user" ? t("rating.yourCapacity") : ""}</div>
           </div>
         ) : <Tile label={t("rating.used")} value={u ? num(loc, u.usedMah, 0) : "–"} unit={u ? " mAh" : ""} />}
-        {flight && a.consumption ? <ConsumptionCard a={a} /> : <Tile label={t("rating.consumption")} value={p?.mahPerMin != null ? num(loc, p.mahPerMin, 0) : "–"} unit={p?.mahPerMin != null ? " mAh/min" : ""} sub={flight ? undefined : t("energy.onlyFlights")} />}
-        {flight && a.efficiency ? <EfficiencyCard a={a} /> : <Tile label={t("rating.efficiency")} value="–" sub={flight && p.basis !== "height" ? t("energy.needsHeight") : t("energy.onlyFlights")} />}
+        {flight && a.consumption ? <ConsumptionCard a={a} /> : <Tile label={t("rating.consumption")} value={p?.mahPerMin != null ? num(loc, p.mahPerMin, 0) : "–"} unit={p?.mahPerMin != null ? " mAh/min" : ""}
+          sub={!flight ? t("energy.onlyFlights") : p.mahPerMin != null ? t("energy.needsOtherFlights") : undefined} />}
+        {flight && a.efficiency ? <EfficiencyCard a={a} /> : <Tile label={t("rating.efficiency")} value="–"
+          sub={!flight ? t("energy.onlyFlights") : p.basis !== "height" ? t("energy.needsHeight") : p.mPer100mAh != null ? t("energy.needsOtherFlights") : undefined} />}
         <Tile label={t("overview.motorTime")} value={clock(p?.motorSecs ?? 0)} unit=" min" sub={`max ${num(loc, maxA, 1)} A`} />
       </div>
       {u && u.capacitySource !== "battery" && <CapacityInput key={e!.model.key} />}
@@ -83,7 +85,7 @@ export function EnergyTab() {
                     <td className="r num">{c.end - c.start + 1} s</td>
                     <td className="r num">+{U.fmt("height", c.gainM)}</td>
                     <td className="r num">{c.mah === null ? "–" : `${num(loc, c.mah, 0)} mAh`}</td>
-                    <td>{lvl ? <><Meter level={lvl} /> {word("efficiency", lvl)}</> : <span style={{ color: "var(--ink-3)" }}>{t("energy.tooShort")}</span>}</td>
+                    <td>{lvl ? <><Meter level={lvl} /> {word("efficiency", lvl)}</> : <span style={{ color: "var(--ink-3)" }}>{c.mPer100mAh === null ? t("energy.tooShort") : "–"}</span>}</td>
                     <td className="r num lv-more">{U.n("height", c.mPer100mAh)}</td>
                   </tr>
                 );

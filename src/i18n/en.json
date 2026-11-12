@@ -338,6 +338,7 @@
     "note": "A climb that ends in a turn or a dive shows lower efficiency even with the same motor and propeller.",
     "onlyFlights": "Only for flights.",
     "needsHeight": "Needs height data.",
+    "needsOtherFlights": "Compared with your other flights of this model. Load more of them to see it.",
     "usedText": "{used} of {capacity} mAh used by the motor.",
     "capacity": {
       "title": "Battery capacity",

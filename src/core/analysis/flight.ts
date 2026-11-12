@@ -66,7 +66,10 @@ export interface FlightProfile {
   /** Seconds on the analysis grid (1 s per step). */
   n: number;
   motor: boolean[];
+  /** Seconds with the motor on: in the motor runs of a flight (not on the ground), else in the whole session. */
   motorSecs: number;
+  /** Runs of the motor that reach into the airborne time (pauses up to `motorGapS` included). */
+  motorRuns: { start: number; end: number }[];
   maxAltitudeM: number | null;
   airStart: number | null;
   airEnd: number | null;
@@ -236,8 +239,13 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
     // Motor runs (climbs): every run of the motor in the air, whether or not this second climbs.
     // The display phases above split a run into "motor climb" and "motor on"; the climbs and the
     // efficiency keep the whole run, so their values stay comparable between versions.
+    // A run on the ground (a motor test before the launch, a blip after landing) is not a climb.
+    // A run that starts on the ground and lifts off (hand launch with the motor on) is.
     const runLabels = Array.from({ length: n }, (_, i) => (motorMerged[i] ? "m" : inAir(i) ? "a" : "g"));
-    const motorRuns = runs(runLabels).filter((p, k, all) => p.kind === "m" && !(p.end - p.start < FLIGHT.climbMinS && all[k - 1]?.kind !== "g"));
+    const reachesAir = (p: { start: number; end: number }) => airStart === null || (p.end >= airStart && p.start <= airEnd!);
+    const motorRuns = runs(runLabels)
+      .filter((p, k, all) => p.kind === "m" && !(p.end - p.start < FLIGHT.climbMinS && all[k - 1]?.kind !== "g") && reachesAir(p))
+      .map(({ start, end }) => ({ start, end }));
     const climbs: Climb[] = !alt ? [] : motorRuns.map((p) => {
       const a0 = alt[p.start] ?? 0;
       let top = a0;
@@ -265,7 +273,8 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
 
     return {
       kind, basis, n, motor,
-      motorSecs: motor.filter(Boolean).length,
+      motorSecs: airStart === null ? motor.filter(Boolean).length : motorRuns.reduce((s, r) => s + motor.slice(r.start, r.end + 1).filter(Boolean).length, 0),
+      motorRuns,
       maxAltitudeM: alt ? maxOf(alt) : null,
       airStart, airEnd, airtimeS,
       phases, phaseAt, climbs, lifts,

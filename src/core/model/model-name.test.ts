@@ -54,7 +54,13 @@ describe("comparisons per model", () => {
     const r = analyseLogs([a, b]);
     expect([...r.baselines.keys()].sort()).toEqual(["demo glider", "other plane"]);
     expect(r.baselines.get("demo glider")!.flights).toBe(1);
-    expect(r.sessions[0].baseline).not.toBe(r.sessions[1].baseline);
+    // Each model has one flight: nothing to compare with, and never the other model.
+    for (const s of r.sessions) {
+      expect(s.baseline).toBeNull();
+      expect(s.efficiency).toBeNull();
+      expect(s.consumption).toBeNull();
+      expect(s.sinkComparison).toBeNull();
+    }
   });
 
   it("compares flights of the same model, whatever the spelling", () => {
@@ -64,5 +70,7 @@ describe("comparisons per model", () => {
     const r = analyseLogs([a, b]);
     expect(r.baselines.size).toBe(1);
     expect(r.baselines.get("demo glider")!.flights).toBe(2);
+    // each flight is compared with the other one only
+    expect(r.sessions[0].baseline!.flights).toBe(1);
   });
 });

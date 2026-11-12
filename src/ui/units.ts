@@ -34,6 +34,8 @@ const TABLE: Record<UnitSystem, Record<Quantity, Conv>> = {
 
 /** Catalogue units that have an imperial counterpart (min / max table). */
 const BY_SI_UNIT: Record<string, Quantity> = { m: "height", "m/s": "vspeed", "°C": "temp" };
+/** Channels whose unit alone does not say what they measure: a speed over ground is not a climb rate. */
+const BY_CHANNEL: Record<string, Quantity> = { ground_speed: "speed" };
 
 /** Default for first-time visitors: imperial only for US English. */
 export function defaultUnits(lang: string | undefined): UnitSystem {
@@ -52,8 +54,8 @@ export interface Units {
   fmt(q: Quantity, si: number | null | undefined, digits?: number): string;
   /** Formatted value without the unit. */
   n(q: Quantity, si: number | null | undefined, digits?: number): string;
-  /** A catalogue value in `unit`, converted when it has an imperial counterpart. */
-  byUnit(unit: string, si: number | null): { value: number | null; unit: string };
+  /** A value of channel `id` in its catalogue `unit`, shown like the same quantity elsewhere in the app. */
+  byChannel(id: string, unit: string, si: number | null): { value: number | null; unit: string };
 }
 
 export function makeUnits(system: UnitSystem, locale: Locale): Units {
@@ -67,8 +69,8 @@ export function makeUnits(system: UnitSystem, locale: Locale): Units {
     series: (q, si) => si.map((x) => v(q, x)),
     n,
     fmt: (q, si, digits = 0) => { const s = n(q, si, digits); return s === "–" ? s : `${s} ${t[q].unit}`; },
-    byUnit: (unit, si) => {
-      const q = BY_SI_UNIT[unit];
+    byChannel: (id, unit, si) => {
+      const q = BY_CHANNEL[id] ?? BY_SI_UNIT[unit];
       return q ? { value: v(q, si), unit: t[q].unit } : { value: si, unit };
     },
   };

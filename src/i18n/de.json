@@ -338,6 +338,7 @@
     "note": "Ein Steigflug, der in einer Kurve oder einem Sturzflug endet, zeigt auch bei gleichem Motor und Propeller eine geringere Effizienz.",
     "onlyFlights": "Nur bei Flügen.",
     "needsHeight": "Braucht Höhendaten.",
+    "needsOtherFlights": "Vergleich mit deinen anderen Flügen dieses Modells. Lade weitere, um ihn zu sehen.",
     "usedText": "{used} von {capacity} mAh vom Motor verbraucht.",
     "capacity": {
       "title": "Akkukapazität",

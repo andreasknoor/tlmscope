@@ -18,8 +18,8 @@ export function PhaseLegend({ kinds, glide }: { kinds: string[]; glide?: string 
   return <Legend items={kinds.map((k) => [(k === "glide" || k === "unpowered") && glide ? `var(${glide})` : `var(${PHASE_COLOR[k]})`, t(k)] as [string, string])} />;
 }
 
-/** Motor runs in the air when there are no climbs (no height): runs of "motor on". */
-const runsOf = (p: FlightProfile) => p.phases.filter((x) => x.kind === "powered" || x.kind === "motor").length;
+/** Motor runs in the air (without height there are no climbs, but there are runs). */
+const runsOf = (p: FlightProfile) => p.motorRuns.length;
 
 export function OverviewTab() {
   const t = useTranslations();
