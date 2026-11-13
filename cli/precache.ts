@@ -2,7 +2,8 @@
  * The files the service worker stores for offline use, read from the static export in `out/`.
  * Only what the app itself needs: the two app pages and all bundled code, fonts and styles
  * (including the chunks loaded later for the map and 3D view), the MapLibre worker, the demo
- * flight and the icons. Content pages, screenshots and the MapLibre development builds stay out.
+ * flight, the icons and the start page screenshot. Content pages, their screenshots and the MapLibre
+ * development builds stay out.
  */
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -22,6 +23,9 @@ const EXTRA = [
   "icon1.png",
   "apple-icon",
   "icon-512.png",
+  // The screenshot behind "Try the demo flight" on the start page (the content pages' screenshots stay online only).
+  "img/overview-en.jpg",
+  "img/overview-de.jpg",
 ];
 
 /** MapLibre's unminified development builds and source maps: the app never loads them (Vercel even refuses `.map` files). */
