@@ -21,6 +21,8 @@
     "addFiles": "Dateien hinzufügen",
     "closeFile": "{name} schließen",
     "closeAll": "Alle Dateien schließen",
+    "filesLoaded": "{n, plural, one {# Datei} other {# Dateien}}",
+    "addShort": "Hinzufügen",
     "loading": "Lese {name} …",
     "loadingFile": "Datei {n} von {total}",
     "loadingLarge": "Große Dateien brauchen ein paar Sekunden. Die Datei bleibt in deinem Browser.",

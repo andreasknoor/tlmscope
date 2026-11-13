@@ -157,6 +157,8 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .st-bar .offbadge .offpop { left: auto; right: 0; }
 kbd { font: 500 11px var(--code); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--sunken); }
 .mpicker { display: none; }
+/* Loaded files on phones (the sidebar is hidden there). */
+.mfiles { display: none; }
 /* Desktop: the sidebar stays below the header at window height; only the session list scrolls. */
 @media (min-width: 761px) {
   .side { position: sticky; top: var(--top-h, 57px); align-self: start; height: calc(100dvh - var(--top-h, 57px)); padding-bottom: 12px; }
@@ -334,6 +336,17 @@ body:not([data-details="on"]) .lv-more { display: none !important; }
   .app { grid-template-columns: minmax(0, 1fr); }
   .side { display: none; }
   .mpicker { display: flex; flex-direction: column; gap: 6px; }
+  .mfiles { display: flex; gap: 8px; align-items: flex-start; }
+  .mfiles details { flex: 1; min-width: 0; border: 1.5px dashed var(--line); border-radius: var(--radius); background: var(--sunken); }
+  .mfiles summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; padding: 7px 10px; font-weight: 600; font-size: 14px; }
+  .mfiles summary::-webkit-details-marker { display: none; }
+  .mfiles summary i { font-style: normal; color: var(--ink-3); transition: transform .15s; }
+  .mfiles details[open] summary i { transform: rotate(180deg); }
+  .mfiles-list { display: flex; flex-direction: column; gap: 8px; padding: 2px 10px 10px; }
+  .mfiles .file { display: flex; gap: 8px; align-items: center; min-width: 0; font-size: 14px; }
+  .mfiles .file span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mfiles .file .size { margin-left: auto; color: var(--ink-3); white-space: nowrap; }
+  .mfiles .x { border: 0; background: none; color: var(--ink-3); cursor: pointer; font-size: 20px; line-height: 1; padding: 2px 8px; border-radius: 6px; }
   .mpicker .row { display: flex; gap: 6px; align-items: center; }
   .mpicker select { flex: 1; background: var(--surface); }
   .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }

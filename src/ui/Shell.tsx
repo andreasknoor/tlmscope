@@ -248,6 +248,36 @@ function Footer({ offline }: { offline: boolean }) {
   );
 }
 
+/**
+ * Phones only (the sidebar is hidden there): the loaded files in one line, with "Add" and a list
+ * that opens to close single files or all of them. Shown above every view.
+ */
+function PhoneFiles() {
+  const t = useTranslations("app");
+  const { files, addFiles, closeFile, closeAll, settings } = useStore();
+  const input = useRef<HTMLInputElement>(null);
+  const mb = files.reduce((sum, f) => sum + f.sizeBytes, 0) / 1e6;
+  return (
+    <div className="mfiles">
+      <details>
+        <summary><span>{t("filesLoaded", { n: files.length })} · <span className="num">{num(settings.locale, mb, 1)} MB</span></span><i aria-hidden="true">▾</i></summary>
+        <div className="mfiles-list">
+          {files.map((f) => (
+            <div key={f.fileName} className="file">
+              <span title={f.fileName}>{f.fileName}</span>
+              <span className="num size">{num(settings.locale, f.sizeBytes / 1e6, 1)} MB</span>
+              <button className="x" aria-label={t("closeFile", { name: f.fileName })} onClick={() => closeFile(f.fileName)}>×</button>
+            </div>
+          ))}
+          <div><button className="btn" onClick={closeAll}>{t("closeAll")}</button></div>
+        </div>
+      </details>
+      <button className="btn" onClick={() => input.current?.click()}>+ {t("addShort")}</button>
+      <input ref={input} type="file" accept=".tlm,.TLM" multiple hidden onChange={(e) => { addFiles([...(e.target.files ?? [])]); e.target.value = ""; }} />
+    </div>
+  );
+}
+
 /** A new version is stored: offer the reload, which also closes the open files. */
 function UpdateBar({ sw }: { sw: OfflineState }) {
   const t = useTranslations("app");
@@ -308,6 +338,7 @@ export function Shell({ helpRef, settingsRef, messages, dismiss }: { helpRef: Re
         <div className="app">
           <Sidebar />
           <main className="main">
+            <PhoneFiles />
             {notices}
             <ErrorBoundary resetKey={`${view}|${selected?.key}|${tab}`} onError={() => track({ name: "view-error", view: view === "sessions" ? `sessions/${tab}` : view })} fallback={(reset) => (
               <div className="errorbox stack">
