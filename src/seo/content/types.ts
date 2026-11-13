@@ -1,10 +1,19 @@
-import type { Faq } from "../site.ts";
 import type { PageId } from "../pages.ts";
 
 /**
  * Text content of the pages. Inline markup in every string: `[text](target)`, `**bold**` and `` `code` ``;
  * a link target is `home`, `legal`, `page:<id>` or an https address.
  */
+/** A short answer is one paragraph; longer ones use paragraphs and lists (no tables or images). */
+export type Answer = string | Block[];
+
+export interface FaqEntry {
+  /** Anchor for deep links (`page#id`); defaults to a slug of the question. Set it to keep old links working when the question is reworded. */
+  id?: string;
+  q: string;
+  a: Answer;
+}
+
 export type Block =
   | { t: "p"; text: string }
   | { t: "ul"; items: string[] }
@@ -25,7 +34,7 @@ export interface Guide {
   lead: string;
   sections: Section[];
   /** Questions shown on the page; also given to search engines as structured data. */
-  faq?: Faq[];
+  faq?: FaqEntry[];
 }
 
 export interface Chrome {

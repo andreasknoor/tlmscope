@@ -49,7 +49,8 @@ describe("site summary", () => {
   it("is worded the same in the FAQ and the README", async () => {
     const { CONTENT } = await import("./content/index.ts");
     const { readFileSync } = await import("node:fs");
-    expect(CONTENT.en.guides.faq.faq?.[0].a.startsWith(SITE_SUMMARY.split(". ")[0])).toBe(true);
+    const { answerPlain } = await import("./markup.ts");
+    expect(answerPlain(CONTENT.en.guides.faq.faq![0].a).startsWith(SITE_SUMMARY.split(". ")[0])).toBe(true);
     expect(readFileSync("README.md", "utf8")).toContain(SITE_SUMMARY);
   });
 });

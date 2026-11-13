@@ -1,5 +1,5 @@
 import { CONTENT } from "@/seo/content";
-import { plain } from "@/seo/markup";
+import { answerPlain } from "@/seo/markup";
 import { LANGS, PAGE_IDS, pathOf } from "@/seo/pages";
 import { REPO_URL } from "@/legal/contact";
 import { absolute, HOME_META, SITE_NAME, SITE_SUMMARY } from "@/seo/site";
@@ -26,6 +26,6 @@ export function GET() {
     lines.push("");
   }
   lines.push("## Questions and answers", "");
-  for (const f of CONTENT.en.guides.faq.faq ?? []) lines.push(`### ${f.q}`, "", plain(f.a), "");
+  for (const f of CONTENT.en.guides.faq.faq ?? []) lines.push(`### ${f.q}`, "", answerPlain(f.a, true), "");
   return new Response(lines.join("\n"), { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }

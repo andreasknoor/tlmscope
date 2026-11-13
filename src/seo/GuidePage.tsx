@@ -3,7 +3,7 @@ import { REPO_URL } from "../legal/contact.ts";
 import { Logo, Wordmark } from "../ui/brand";
 import { CONTENT } from "./content/index.ts";
 import { Inline } from "./Inline";
-import { plain } from "./markup.ts";
+import { answerBlocks, answerPlain } from "./markup.ts";
 import { Blocks } from "./Blocks";
 import { JsonLd } from "./JsonLd";
 import { homePath, legalPath, pagePath, PAGE_IDS, type Lang, type PageId } from "./pages.ts";
@@ -16,7 +16,7 @@ export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
   const other: Lang = lang === "de" ? "en" : "de";
   return (
     <>
-      <JsonLd data={guideStructuredData(lang, id, g.title, c.chrome.home, g.faq?.map((f) => ({ q: f.q, a: plain(f.a) })))} />
+      <JsonLd data={guideStructuredData(lang, id, g.title, c.chrome.home, g.faq?.map((f) => ({ q: f.q, a: answerPlain(f.a) })))} />
       <a className="skip" href="#main">{c.chrome.skip}</a>
       <header className="sitehead">
         <Link className="brand" href={homePath(lang)}><Logo /><Wordmark /></Link>
@@ -42,7 +42,7 @@ export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
             {g.faq.map((f) => (
               <div key={f.q} id={faqId(f)} className="qa">
                 <h3>{f.q} <a className="qlink" href={`#${faqId(f)}`} aria-label={c.chrome.linkToQuestion}>#</a></h3>
-                <p><Inline text={f.a} lang={lang} /></p>
+                <div className="qa-a"><Blocks blocks={answerBlocks(f.a)} lang={lang} /></div>
               </div>
             ))}
           </section>

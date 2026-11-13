@@ -4,7 +4,7 @@ import { CONTENT } from "./content/index.ts";
 import type { Block, Guide } from "./content/types.ts";
 import { LANGS, PAGE_IDS } from "./pages.ts";
 import { SCREENSHOTS } from "./images.ts";
-import { LINK, plain, resolveTarget } from "./markup.ts";
+import { answerBlocks, answerPlain, LINK, resolveTarget } from "./markup.ts";
 import { faqId } from "./site.ts";
 
 const blocksOf = (g: Guide) => g.sections.flatMap((s) => s.blocks);
@@ -13,7 +13,7 @@ const strings = (lang: (typeof LANGS)[number]): string[] => {
   const out: string[] = [c.home.h1, c.home.sub, ...c.home.facts.map((f) => f.text), ...c.home.tiles.flatMap((t) => [t.label, t.title, ...t.body.flatMap(blockStrings)])];
   for (const id of PAGE_IDS) {
     const g = c.guides[id];
-    out.push(g.h1, g.lead, ...(g.faq ?? []).flatMap((f) => [f.q, f.a]));
+    out.push(g.h1, g.lead, ...(g.faq ?? []).flatMap((f) => [f.q, ...answerBlocks(f.a).flatMap(blockStrings)]));
     for (const s of g.sections) {
       out.push(s.h2);
       for (const b of s.blocks) {
@@ -52,6 +52,7 @@ describe("guide pages", () => {
     for (const id of PAGE_IDS) {
       expect(en.guides[id].sections.map((s) => s.blocks.map(shape)), id).toEqual(de.guides[id].sections.map((s) => s.blocks.map(shape)));
       expect(en.guides[id].faq?.length, `${id} faq`).toBe(de.guides[id].faq?.length);
+      expect((en.guides[id].faq ?? []).map((f) => answerBlocks(f.a).map(shape).join()), `${id} faq answers`).toEqual((de.guides[id].faq ?? []).map((f) => answerBlocks(f.a).map(shape).join()));
     }
   });
 
@@ -72,11 +73,11 @@ describe("guide pages", () => {
       for (const x of ids) expect(x).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
       expect(new Set(ids).size).toBe(ids.length);
     }
-    expect(faqId({ q: "Wie lädt man Größe & Höhe?", a: "" })).toBe("wie-laedt-man-groesse-hoehe");
+    expect(faqId({ q: "Wie lädt man Größe & Höhe?" })).toBe("wie-laedt-man-groesse-hoehe");
   });
 
   it("gives search engines answers as plain text", () => {
-    for (const lang of LANGS) for (const id of PAGE_IDS) for (const f of CONTENT[lang].guides[id].faq ?? []) expect(plain(f.a)).not.toMatch(/[[\]`]|\*\*/);
+    for (const lang of LANGS) for (const id of PAGE_IDS) for (const f of CONTENT[lang].guides[id].faq ?? []) expect(answerPlain(f.a)).not.toMatch(/[[\]`]|\*\*/);
   });
 
   it("points every start page topic to a page that exists, and every guide is reachable from the start page", () => {

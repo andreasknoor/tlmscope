@@ -360,20 +360,56 @@ export const de: Content = {
       lead: "Kurze Antworten zum Öffnen von Spektrum-Telemetrie-Logs und zum Lesen in TLMscope. Jede Antwort verweist auf die Seite mit den Einzelheiten.",
       sections: [],
       faq: [
-        { q: "Was ist TLMscope?", a: "TLMscope ist ein kostenloser Viewer und Analysewerkzeug für Spektrum-.TLM-Telemetrie-Logs, direkt im Browser. Es läuft unter Windows, macOS, Linux, Android und iOS ohne Installation, und die Dateien bleiben auf deinem Gerät. Aus einem Log macht es eine verständliche Zusammenfassung jedes Flugs, Diagramme, eine GPS-Karte mit 3D-Wiedergabe, Thermik und den Akkuzustand über mehrere Flüge." },
+        { q: "Was ist TLMscope?", a: [
+          { t: "p", text: "TLMscope ist ein kostenloser Viewer und Analysewerkzeug für Spektrum-.TLM-Telemetrie-Logs, direkt im Browser. Es läuft unter Windows, macOS, Linux, Android und iOS ohne Installation, und die Dateien bleiben auf deinem Gerät." },
+          { t: "p", text: "Aus einem Log zeigt es:" },
+          { t: "ul", items: ["eine verständliche Zusammenfassung jedes Flugs", "Diagramme zu Höhe, Steigen, Motor, Akku und Funkverbindung", "eine GPS-Karte mit 3D-Wiedergabe", "Thermik", "den Akkuzustand über mehrere Flüge"] },
+        ] },
         { q: "Was ist eine Spektrum-.TLM-Datei?", a: "Eine .TLM-Datei ist das Telemetrie-Log, das ein Spektrum-Sender während des Flugs speichert. Sie enthält, was der Empfänger und die Sensoren im Modell gemeldet haben, zum Beispiel Signalstärke, Akkuspannung, Motorstrom, Höhe und GPS-Position. Siehe [Spektrum-.TLM-Dateien öffnen](page:open)." },
-        { q: "Wie öffne ich eine .TLM-Datei?", a: "Lege die Datei auf der Startseite ab oder klicke, um sie auszuwählen. TLMscope liest sie in deinem Browser und zeigt eine Zusammenfassung jedes Flugs. Hast du gerade kein Log zur Hand, lade den Demo-Flug. Die [Schritt-für-Schritt-Anleitung](page:open) zeigt, wo die Dateien bei NX-, iX- und DX-Sendern liegen." },
-        { q: "Wo speichert ein Spektrum NX seine Telemetrie-Logs?", a: "Im internen Speicher: Logs mit dem Modellnamen als .TLM-Dateien und automatische Logs je Sitzung im Ordner AutoLog. Verbinde den Sender per USB und wähle die Option für den Zugriff auf den internen Speicher, um sie zu kopieren." },
+        { q: "Wie öffne ich eine .TLM-Datei?", a: [
+          { t: "ol", items: ["Kopiere die .TLM-Datei vom Sender auf deinen Computer oder dein Handy.", "Lege sie auf der Startseite ab oder klicke, um sie auszuwählen.", "TLMscope liest sie in deinem Browser und zeigt eine Zusammenfassung jedes Flugs."] },
+          { t: "p", text: "Gerade kein Log zur Hand? Lade den Demo-Flug. Die [Schritt-für-Schritt-Anleitung](page:open) zeigt, wo die Dateien bei NX-, iX- und DX-Sendern liegen." },
+        ] },
+        { q: "Wo speichert ein Spektrum NX seine Telemetrie-Logs?", a: [
+          { t: "p", text: "Im internen Speicher:" },
+          { t: "ul", items: ["Logs mit dem Modellnamen, als .TLM-Dateien", "automatische Logs je Sitzung, im Ordner **AutoLog**"] },
+          { t: "p", text: "Verbinde den Sender per USB und wähle die Option für den Zugriff auf den internen Speicher, um sie zu kopieren." },
+        ] },
         { q: "Gibt es einen Spektrum-TLM-Viewer für Mac, Linux oder Handy?", a: "Ja. TLMscope ist eine Webseite und läuft in einem aktuellen Browser unter Windows, macOS, Linux, Android und iOS. Es muss nichts installiert werden. Karte und 3D-Wiedergabe nutzen WebGL, das aktuelle Browser unterstützen." },
-        { q: "Werden meine Flug-Logs irgendwo hochgeladen?", a: "Nein. Die Dateien werden in deinem Browser gelesen und verlassen dein Gerät nicht. Nur bei Logs mit GPS lädt die Karte Kartenbilder von OpenFreeMap, das dadurch ungefähr sieht, wo du geflogen bist. Siehe [Datenschutzerklärung](legal)." },
-        { q: "Funktioniert TLMscope ohne Internet?", a: "Ja, nach einem Besuch mit Internet. Der Browser speichert die App dann und öffnet sie auch ohne Verbindung, zum Beispiel auf dem Flugplatz. Sobald es so weit ist, steht unten „Funktioniert offline“. Auf iPhone und iPad füge TLMscope zum Home-Bildschirm hinzu, damit Safari es behält. Nur die Karte im Tab „Flugweg“ braucht Internet." },
-        { id: "app-installieren", q: "Wie installiere ich TLMscope auf Handy oder Laptop?", a: "TLMscope läuft im Browser, deshalb gibt es nichts aus einem App Store zu laden. Du kannst es aber wie eine App hinzufügen. **Android (Chrome):** TLMscope öffnen, auf das Menü ⋮ tippen und **App installieren** oder **Zum Startbildschirm hinzufügen** wählen. **iPhone und iPad (Safari):** auf **Teilen** tippen, dann **Zum Home-Bildschirm**. So bleibt auch die Offline-Kopie erhalten, die Safari sonst nach einigen Tagen ohne Nutzung löscht. **Laptop:** In Chrome oder Edge auf das Installieren-Symbol rechts in der Adressleiste klicken, in Safari auf dem Mac **Ablage → Zum Dock hinzufügen** wählen, in Firefox reicht ein Lesezeichen. Öffne TLMscope einmal mit Internet und warte, bis unten **Funktioniert offline** steht. Danach öffnet es sich auch ohne Verbindung, nur die Karte braucht Internet. Deine Log-Dateien werden nie hochgeladen oder gespeichert." },
+        { q: "Werden meine Flug-Logs irgendwo hochgeladen?", a: [
+          { t: "p", text: "Nein. Die Dateien werden in deinem Browser gelesen und verlassen dein Gerät nicht." },
+          { t: "p", text: "Nur bei Logs mit GPS lädt die Karte Kartenbilder von OpenFreeMap, das dadurch ungefähr sieht, wo du geflogen bist. Siehe [Datenschutzerklärung](legal)." },
+        ] },
+        { q: "Funktioniert TLMscope ohne Internet?", a: [
+          { t: "p", text: "Ja, nach einem Besuch mit Internet:" },
+          { t: "ol", items: ["Öffne TLMscope einmal mit Internet.", "Warte, bis unten **Funktioniert offline** steht.", "Ab dann öffnet es sich auch ohne Verbindung, zum Beispiel auf dem Flugplatz."] },
+          { t: "p", text: "Auf iPhone und iPad füge TLMscope zum Home-Bildschirm hinzu, damit Safari es behält. Nur die Karte im Tab „Flugweg“ braucht Internet." },
+        ] },
+        { id: "app-installieren", q: "Wie installiere ich TLMscope auf Handy oder Laptop?", a: [
+          { t: "p", text: "TLMscope läuft im Browser, deshalb gibt es nichts aus einem App Store zu laden. Du kannst es trotzdem wie eine App hinzufügen:" },
+          { t: "ul", items: [
+            "**Android (Chrome):** TLMscope öffnen, auf das Menü ⋮ tippen und **App installieren** oder **Zum Startbildschirm hinzufügen** wählen.",
+            "**iPhone und iPad (Safari):** auf **Teilen** tippen, dann **Zum Home-Bildschirm**. So bleibt auch die Offline-Kopie erhalten, die Safari sonst nach einigen Tagen ohne Nutzung löscht.",
+            "**Laptop mit Chrome oder Edge:** auf das Installieren-Symbol rechts in der Adressleiste klicken.",
+            "**Mac mit Safari:** **Ablage → Zum Dock hinzufügen** wählen.",
+            "**Firefox:** Ein Lesezeichen reicht.",
+          ] },
+          { t: "p", text: "Öffne TLMscope danach einmal mit Internet und warte, bis unten **Funktioniert offline** steht. Ab dann öffnet es sich auch ohne Verbindung, nur die Karte braucht Internet." },
+          { t: "p", text: "Deine Log-Dateien werden nie hochgeladen oder gespeichert." },
+        ] },
         { q: "Welche Sender und Sensoren werden unterstützt?", a: "Logs von Spektrum-NX- und iX-Sendern sind getestet. DX-Logs sollten funktionieren, sind aber noch nicht getestet. Funkverbindung, Motor, Akku, Höhe, GPS und mehr erscheinen je nachdem, welche Sensoren dein Modell hat. Siehe [Unterstützte Sender und Sensoren](page:radios)." },
-        { q: "Wie viele Frame Losses sind bei einem Spektrum-Empfänger normal?", a: "Die Spektrum-Empfängerhandbücher beschreiben bis etwa 100 pro Minute in der Luft als normal. TLMscope bewertet bis etwa 20 pro Minute als hohe Qualität. Holds, also etwa eine Sekunde ohne Signal, sollten nicht vorkommen. Mehr in [Deine Spektrum-Telemetrie verstehen](page:understand)." },
+        { q: "Wie viele Frame Losses sind bei einem Spektrum-Empfänger normal?", a: [
+          { t: "ul", items: ["**Normal:** Die Spektrum-Empfängerhandbücher beschreiben bis etwa 100 pro Minute in der Luft als normal.", "**Hohe Qualität:** TLMscope bewertet bis etwa 20 pro Minute als hohe Qualität.", "**Holds**, also etwa eine Sekunde ohne Signal, sollten nicht vorkommen."] },
+          { t: "p", text: "Mehr in [Deine Spektrum-Telemetrie verstehen](page:understand)." },
+        ] },
         { q: "Was ist ein Hold in der Spektrum-Telemetrie?", a: "Ein Hold ist etwa eine Sekunde ganz ohne Signal am Empfänger. Der Empfänger geht dann in seine Hold- oder Failsafe-Einstellung. TLMscope bewertet einen Hold im Flug immer als kritisch." },
         { q: "Wann sollte ich einen LiPo-Akku ausmustern?", a: "Eine gängige Faustregel lautet, einen Akku auszumustern, wenn sein Innenwiderstand etwa 15 mΩ je Zelle erreicht. TLMscope schätzt diesen Wert aus dem Spannungseinbruch im Flug und verfolgt ihn bei Spektrum Smart-Akkus über mehrere Flüge." },
         { q: "Ist TLMscope kostenlos, und stammt es von Spektrum?", a: "TLMscope ist kostenlos, braucht kein Konto und ist ein unabhängiges Hobbyprojekt eines Modellfliegers. Es wird nicht von Spektrum oder Horizon Hobby hergestellt oder unterstützt. Wie es sich zu anderen Viewern verhält, steht in [Spektrum-TLM-Viewer im Vergleich](page:compare)." },
-        { q: "Gibt es eine Alternative zu TLM Viewer?", a: "Ja. TLM Viewer ist ein bewährtes, quelloffenes Windows-Programm mit Export nach CSV und KML. TLMscope ist eine kostenlose Alternative, die im Browser auf jedem Gerät läuft und jeden Flug in einfachen Worten erklärt. Log Explorer ist ein kostenpflichtiges Desktop-Programm, das auch andere Fernsteuersysteme liest. Siehe [Spektrum-TLM-Viewer im Vergleich](page:compare)." },
+        { q: "Gibt es eine Alternative zu TLM Viewer?", a: [
+          { t: "p", text: "Ja. Die wichtigsten Möglichkeiten:" },
+          { t: "ul", items: ["**TLM Viewer:** ein bewährtes, quelloffenes Windows-Programm mit Export nach CSV und KML.", "**TLMscope:** kostenlos, läuft im Browser auf jedem Gerät und erklärt jeden Flug in einfachen Worten.", "**Log Explorer:** ein kostenpflichtiges Desktop-Programm, das auch andere Fernsteuersysteme liest."] },
+          { t: "p", text: "Siehe [Spektrum-TLM-Viewer im Vergleich](page:compare)." },
+        ] },
       ],
     },
 
@@ -431,7 +467,10 @@ export const de: Content = {
         },
       ],
       faq: [
-        { q: "Welcher Viewer ist der beste für Spektrum-TLM-Dateien?", a: "Das hängt davon ab, was du brauchst. TLMscope ist der schnellste Weg, einen Flug auf jedem Gerät zu verstehen, im Browser und ohne Installation. TLM Viewer passt zu Windows-Nutzern, die Daten nach CSV oder Google Earth exportieren wollen. Log Explorer passt zu Piloten, die mehrere Fernsteuersysteme fliegen und eine Flugbibliothek möchten." },
+        { q: "Welcher Viewer ist der beste für Spektrum-TLM-Dateien?", a: [
+          { t: "p", text: "Das hängt davon ab, was du brauchst:" },
+          { t: "ul", items: ["**TLMscope** ist der schnellste Weg, einen Flug auf jedem Gerät zu verstehen, im Browser und ohne Installation.", "**TLM Viewer** passt zu Windows-Nutzern, die Daten nach CSV oder Google Earth exportieren wollen.", "**Log Explorer** passt zu Piloten, die mehrere Fernsteuersysteme fliegen und eine Flugbibliothek möchten."] },
+        ] },
         { q: "Kann ich Spektrum-TLM-Dateien online ansehen?", a: "Ja. TLMscope ist ein Online-TLM-Viewer: Seite öffnen, .TLM-Datei ablegen, und die Flüge erscheinen. Die Datei wird in deinem Browser gelesen und nicht auf einen Server hochgeladen." },
         { q: "Läuft TLM Viewer auf dem Mac?", a: "Laut seiner Dokumentation ist TLM Viewer ein Windows-Programm, das auf dem Mac nur über einen Windows-Emulator läuft. TLMscope läuft auf dem Mac direkt in Safari, Chrome oder Firefox." },
       ],

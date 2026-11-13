@@ -1,3 +1,4 @@
+import type { Answer, Block } from "./content/types.ts";
 import { homePath, legalPath, pagePath, PAGE_IDS, type Lang, type PageId } from "./pages.ts";
 
 /** Inline markup of the content files: `[text](target)`, `**bold**` and `` `code` ``. */
@@ -19,4 +20,21 @@ export function resolveTarget(lang: Lang, target: string): { href: string; exter
 /** The same text without markup, for structured data and plain text. */
 export function plain(text: string): string {
   return text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/`([^`]+)`/g, "$1");
+}
+
+/** The blocks of an answer: a plain string is one paragraph. */
+export function answerBlocks(a: Answer): Block[] {
+  return typeof a === "string" ? [{ t: "p", text: a }] : a;
+}
+
+/**
+ * An answer as plain text: paragraphs separated by a blank line, list items on their own lines.
+ * With `markdown`, list items get "- " or "1. " (for llms.txt); without, they stay bare (structured data).
+ */
+export function answerPlain(a: Answer, markdown = false): string {
+  return answerBlocks(a).map((b) => {
+    if (b.t === "p" || b.t === "note") return plain(b.text);
+    if (b.t === "ul" || b.t === "ol") return b.items.map((it, k) => (markdown ? (b.t === "ul" ? "- " : `${k + 1}. `) : "") + plain(it)).join("\n");
+    return "";
+  }).filter(Boolean).join("\n\n");
 }
