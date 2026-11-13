@@ -57,7 +57,7 @@
     "missingNeeds": "Not available: this log has no {channels}.",
     "or": "or",
     "demoBanner": "Demo data: this flight is synthetic, made to show every view.",
-    "settings": "My settings"
+    "settings": "Settings"
   },
   "kind": {
     "flight": "Flight",

@@ -164,7 +164,7 @@ export function Missing({ missing }: { missing: Need[] }) {
   return <div className="card empty">{t("missingNeeds", { channels: parts.join(", ") })}</div>;
 }
 
-/** Opens "My settings"; the gear stays, the label hides on narrow screens like the help button's. */
+/** Opens the settings; the gear stays, the label hides on narrow screens like the help button's. */
 /** Shown only while the browser is offline; a tap or click explains what still works. */
 export function OfflineBadge() {
   const t = useTranslations("app");
