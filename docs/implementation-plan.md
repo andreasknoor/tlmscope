@@ -285,7 +285,7 @@ Every phase ends with passing tests, a short demo, small focused commits and you
 - Export (CSV of canonical channels, GPX/KML with GPS).
 - Comparing flights side by side.
 - Decoding 0x7A once its meaning is clear.
-- Feedback feature: a way for users to send feedback from the app, through a Tally form.
+- Feedback feature: a way for users to send feedback from the app, through a Tally form. Planned in docs/feedback-plan.md (decided 2026-11-12).
 - Beta testers: research where to find them (RC forums and communities, e.g. groups for Spektrum and gliders). Only makes sense once the feedback feature exists.
 - Recommended telemetry alarm settings (concept in docs/feature-concepts.md, section 1). On hold: unclear how general the thresholds are; needs more research and the exact NX8+ alarm menus.
 - Range-test report: recognise (or let the pilot mark) a range-test session on the ground and check it against the NX8 manual targets (0 holds, < 10 frame losses, fades typically < 100 per minute), with the moments the signal dropped.

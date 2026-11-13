@@ -3,8 +3,8 @@
   "buildCommand": "npm test && npm run build",
   "framework": null,
   "outputDirectory": "out",
-  "cleanUrls": true,
-  "rewrites": [{ "source": "/google14e45ccf008eed4b.html", "destination": "/google14e45ccf008eed4b" }],
+  "trailingSlash": false,
+  "rewrites": [{ "source": "/:path((?!.*\\.).+)", "destination": "/:path.html" }],
   "headers": [
     {
       "source": "/(.*)",
