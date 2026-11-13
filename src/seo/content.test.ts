@@ -5,6 +5,7 @@ import type { Block, Guide } from "./content/types.ts";
 import { LANGS, PAGE_IDS } from "./pages.ts";
 import { SCREENSHOTS } from "./images.ts";
 import { LINK, plain, resolveTarget } from "./markup.ts";
+import { faqId } from "./site.ts";
 
 const blocksOf = (g: Guide) => g.sections.flatMap((s) => s.blocks);
 const strings = (lang: (typeof LANGS)[number]): string[] => {
@@ -63,6 +64,15 @@ describe("guide pages", () => {
         expect((bare.match(/`/g) ?? []).length % 2, text).toBe(0);
       }
     }
+  });
+
+  it("gives every question its own anchor for deep links", () => {
+    for (const lang of LANGS) for (const id of PAGE_IDS) {
+      const ids = (CONTENT[lang].guides[id].faq ?? []).map(faqId);
+      for (const x of ids) expect(x).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+      expect(new Set(ids).size).toBe(ids.length);
+    }
+    expect(faqId({ q: "Wie lädt man Größe & Höhe?", a: "" })).toBe("wie-laedt-man-groesse-hoehe");
   });
 
   it("gives search engines answers as plain text", () => {

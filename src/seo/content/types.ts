@@ -39,6 +39,8 @@ export interface Chrome {
   nav: Record<PageId, string>;
   /** Heading above the questions of a guide. */
   faq: string;
+  /** Label of the "#" link next to each question (a deep link to it). */
+  linkToQuestion: string;
 }
 
 export type IconName = "summary" | "chart" | "map" | "battery" | "lock" | "usb" | "radio" | "question" | "drop" | "play" | "help" | "x" | "device";

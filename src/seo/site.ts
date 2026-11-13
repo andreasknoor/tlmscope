@@ -39,7 +39,23 @@ export function languageAlternates(id?: PageId): Record<string, string> {
   return { en: absolute(pathOf("en", id)), de: absolute(pathOf("de", id)), "x-default": absolute(pathOf("en", id)) };
 }
 
-export interface Faq { q: string; a: string }
+export interface Faq {
+  q: string;
+  a: string;
+  /** Anchor for deep links (`page#id`); defaults to a slug of the question. Set it to keep old links working when the question is reworded. */
+  id?: string;
+}
+
+/** The anchor of a question: lower case ASCII words joined by hyphens, umlauts spelt out. */
+export function faqId(f: Faq): string {
+  if (f.id) return f.id;
+  return f.q
+    .toLowerCase()
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 const faqPage = (faq: Faq[]) => ({
   "@type": "FAQPage",

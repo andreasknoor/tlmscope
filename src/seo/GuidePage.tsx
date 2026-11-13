@@ -7,7 +7,7 @@ import { plain } from "./markup.ts";
 import { Blocks } from "./Blocks";
 import { JsonLd } from "./JsonLd";
 import { homePath, legalPath, pagePath, PAGE_IDS, type Lang, type PageId } from "./pages.ts";
-import { guideStructuredData } from "./site.ts";
+import { faqId, guideStructuredData } from "./site.ts";
 
 /** A guide page: the same content in both languages, with the language switch, navigation and footer. */
 export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
@@ -40,8 +40,8 @@ export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
           <section>
             <h2>{c.chrome.faq}</h2>
             {g.faq.map((f) => (
-              <div key={f.q} className="qa">
-                <h3>{f.q}</h3>
+              <div key={f.q} id={faqId(f)} className="qa">
+                <h3>{f.q} <a className="qlink" href={`#${faqId(f)}`} aria-label={c.chrome.linkToQuestion}>#</a></h3>
                 <p><Inline text={f.a} lang={lang} /></p>
               </div>
             ))}
