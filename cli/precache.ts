@@ -24,8 +24,8 @@ const EXTRA = [
   "icon-512.png",
 ];
 
-/** MapLibre also ships unminified development builds; the app never loads them. */
-const SKIP = /-dev\.[^/]*$/;
+/** MapLibre's unminified development builds and source maps: the app never loads them (Vercel even refuses `.map` files). */
+const SKIP = /-dev\.[^/]*$|\.map$/;
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
