@@ -1,10 +1,11 @@
 {
   "name": "tlmscope",
-  "version": "1.51.0",
+  "version": "1.52.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node cli/make-sw.ts",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",

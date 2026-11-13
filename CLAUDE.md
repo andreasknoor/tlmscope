@@ -10,7 +10,7 @@ TLMscope is a browser-only viewer for RC telemetry logs (Spektrum `.TLM` today, 
 
 ```sh
 npm run dev                 # dev server on :3000 (predev copies the MapLibre worker into public/maplibre/)
-npm run build               # static export to out/ (prebuild does the same copy)
+npm run build               # static export to out/ (prebuild does the same copy; postbuild writes the offline service worker out/sw.js)
 npm test                    # vitest run; tests needing private samples/*.TLM are skipped without them
 npx vitest run src/core/analysis/analysis.test.ts       # one file
 npx vitest run -t "frozen battery"                       # tests by name
@@ -27,6 +27,7 @@ Node 24+. Scripts run TypeScript directly with `node file.ts`, so `src/core` imp
 
 - Every push to `main` deploys to production on Vercel (https://tlmscope.andreasknoor.com). `vercel.json` sets the build to `npm test && npm run build`, so a failing test blocks the deploy. GitHub Actions (`.github/workflows/ci.yml`) runs lint, typecheck, tests and build.
 - `vercel.json` also holds the security headers. The CSP allows only `'self'` plus `https://tiles.openfreemap.org` (map style, tiles, glyphs, sprites) and Umami page-view counting (`cloud.umami.is` script, `gateway.umami.is` endpoint, script tag in `src/app/layout.tsx`); a new external host must be added there or it will be blocked in production, and described on the privacy page (`src/app/legal/page.tsx`).
+- Offline use: `cli/make-sw.ts` (postbuild) writes `out/sw.js` from `cli/sw.template.js` with the files listed by `cli/precache.ts` (app pages `/` and `/de`, all of `_next/static`, MapLibre worker, demo flight, icons). A new file the app loads at run time from outside `_next/static` must be added there, or it will be missing offline. Registered by `src/ui/offline.ts` in production builds only.
 - Bump the minor version in `package.json` with every deployed update (shown as `major.minor` in the header via `NEXT_PUBLIC_APP_VERSION`); the major version changes only on the owner's explicit decision. Commits are titled `Version X.Y: …`.
 - All code, comments, docs, commit messages and UI text are in English (German UI text lives only in `src/i18n/de.json` and `streams.de.json`). UI wording is plain language: simple levels first, exact values behind the "Show details" toggle.
 

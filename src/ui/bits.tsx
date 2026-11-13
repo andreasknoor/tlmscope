@@ -7,6 +7,7 @@ import type { Need } from "@/core/analysis/requirements";
 import { catalogue } from "@/core/model/catalogue";
 import type { FlightProfile } from "@/core/analysis/flight";
 import { clock } from "./format";
+import { useOnline } from "./offline";
 import { useStore } from "./store";
 import { TAB_TAGS, type LinkTarget } from "./tab-tags";
 
@@ -164,6 +165,24 @@ export function Missing({ missing }: { missing: Need[] }) {
 }
 
 /** Opens "My settings"; the gear stays, the label hides on narrow screens like the help button's. */
+/** Shown only while the browser is offline; a tap or click explains what still works. */
+export function OfflineBadge() {
+  const t = useTranslations("app");
+  const online = useOnline();
+  if (online) return null;
+  return (
+    <details className="offbadge">
+      <summary>
+        <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+          <path d="M2 8.8a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16.2a5 5 0 0 1 6 0" /><path d="M3 3l18 18" />
+        </svg>
+        {t("offline")}
+      </summary>
+      <div className="offpop">{t("offlineText")}</div>
+    </details>
+  );
+}
+
 export function SettingsButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button className="helpbtn setbtn" aria-label={label} title={label} onClick={onClick}>

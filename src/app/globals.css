@@ -149,6 +149,12 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .sitem .k { min-width: 0; }
 .keys { font-size: 12px; color: var(--ink-3); }
 .version { font-size: 11px; color: var(--ink-3); font-family: var(--code); align-self: center; margin-left: -6px; }
+/* Offline badge (header and start page): only while the browser has no connection. */
+.offbadge { position: relative; align-self: center; }
+.offbadge summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; background: var(--warn); color: #1d1a12; font-size: 12px; font-weight: 700; line-height: 1.4; white-space: nowrap; }
+.offbadge summary::-webkit-details-marker { display: none; }
+.offbadge .offpop { position: absolute; z-index: 60; top: calc(100% + 6px); left: 0; width: min(290px, calc(100vw - 32px)); padding: 9px 12px; border: 1px solid var(--warn); border-radius: var(--radius); background: var(--surface); color: var(--ink); font-size: 13px; font-weight: 400; line-height: 1.45; box-shadow: 0 12px 32px -12px rgb(0 0 0 / .45); }
+.st-bar .offbadge .offpop { left: auto; right: 0; }
 kbd { font: 500 11px var(--code); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--sunken); }
 .mpicker { display: none; }
 /* Desktop: the sidebar stays below the header at window height; only the session list scrolls. */
@@ -301,6 +307,8 @@ dialog.helpdlg::backdrop { background: var(--scrim); }
 .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--accent-soft); border-top-color: var(--accent); flex: none; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .infobox { border: 1px solid var(--accent); border-radius: var(--radius); padding: 10px 14px; background: var(--surface); color: var(--ink); }
+/* New version waiting: a bar at the bottom edge, above everything but dialogs. */
+.updatebar { position: fixed; z-index: 50; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(560px, calc(100% - 32px)); display: flex; gap: 12px; align-items: center; justify-content: space-between; box-shadow: 0 12px 32px -12px rgb(0 0 0 / .45); }
 
 .note { font-size: 13px; color: var(--ink-3); border-left: 3px solid var(--line); padding-left: 10px; max-width: 75ch; }
 .empty { padding: 30px; text-align: center; color: var(--ink-2); align-items: center; }

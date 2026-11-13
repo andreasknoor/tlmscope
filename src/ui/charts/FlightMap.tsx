@@ -198,6 +198,11 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
         attributionControl: { compact: true },
       });
       const m = map;
+      // The style could not be fetched (no real connection although the browser reports one, server down):
+      // show the note instead of an empty map. Errors of single tiles carry a source id and are ignored.
+      m.on("error", (ev) => {
+        if (!cancelled && !m.isStyleLoaded() && !(ev as { sourceId?: string }).sourceId) setFailed(true);
+      });
       fitZoomRef.current = fitTrack(m, bounds, pitch);
       // The container changes size (full screen, window): resize the map and fit the track again.
       let first = true;

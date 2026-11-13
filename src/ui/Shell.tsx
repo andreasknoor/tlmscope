@@ -11,13 +11,14 @@ import { Inventory } from "./views/Inventory";
 import { SessionView } from "./views/SessionView";
 import { Start } from "./views/Start";
 import { useStore, useUnits, type Entry, type Model } from "./store";
-import { SettingsButton, useAirtime } from "./bits";
+import { OfflineBadge, SettingsButton, useAirtime } from "./bits";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
 import { PHASE_COLOR } from "./charts/LineChart";
 import { Logo, Wordmark } from "./brand";
 import { useLogoClicks } from "./StorkRace";
+import { useServiceWorker, type OfflineState } from "./offline";
 
 export const KIND_COLOR: Record<string, string> = { flight: "var(--s-alt)", "ground-test": "var(--s-motor)", "powered-on": "var(--s-glide)", "transmitter-only": "var(--s-ground)" };
 
@@ -69,6 +70,7 @@ function Header() {
       </a>
       {extra}
       <span className="version" title={`TLMscope ${APP_VERSION}`}>v{APP_VERSION}</span>
+      <OfflineBadge />
       {files.length > 0 && (
         <nav className="nav" aria-label="Main">
           {(["sessions", "batteries", "inventory"] as const).map((v) => (
@@ -232,16 +234,30 @@ function Sidebar() {
   );
 }
 
-function Footer() {
+function Footer({ offline }: { offline: boolean }) {
   const t = useTranslations("footer");
   const { settings } = useStore();
   return (
     <footer className="foot">
       <span>TLMscope {t("by", { name: OPERATOR.name })} (v{APP_VERSION})</span>
+      {offline && <span title={t("offlineHint")}>{t("offline")}</span>}
       <a href={REPO_URL} target="_blank" rel="noopener noreferrer">{t("source")}</a>
       <span>{t("notAffiliated")}</span>
       <a href={`/legal#${settings.locale}`}>{t("legal")}</a>
     </footer>
+  );
+}
+
+/** A new version is stored: offer the reload, which also closes the open files. */
+function UpdateBar({ sw }: { sw: OfflineState }) {
+  const t = useTranslations("app");
+  const { files } = useStore();
+  if (!sw.update) return null;
+  return (
+    <div className="infobox updatebar" role="status">
+      <span>{t("updateReady")}{files.length > 0 && ` ${t("updateCloses")}`}</span>
+      <button className="btn" onClick={sw.applyUpdate}>{t("updateReload")}</button>
+    </div>
   );
 }
 
@@ -273,6 +289,7 @@ function LoadCard({ m }: { m: LoadMessage }) {
 export function Shell({ helpRef, settingsRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; settingsRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
   const t = useTranslations();
   const { files, view, selected, tab } = useStore();
+  const sw = useServiceWorker();
   const notices = messages.length > 0 && (
     <div className="stack" role="status">
       {messages.map((m, i) => m.kind === "loading" ? <LoadCard key={i} m={m} /> : (
@@ -305,7 +322,8 @@ export function Shell({ helpRef, settingsRef, messages, dismiss }: { helpRef: Re
         </div>
         </>
       )}
-      <Footer />
+      <Footer offline={sw.ready} />
+      <UpdateBar sw={sw} />
       <Help dialogRef={helpRef} />
       <SettingsDialog dialogRef={settingsRef} />
     </>

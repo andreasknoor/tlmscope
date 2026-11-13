@@ -2,6 +2,7 @@
 
 import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
+import { useOnline } from "../offline";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Legend, Tile, useLevelWord } from "../bits";
 import { FlightMap, LINE_STYLES, MARKER_STYLES, PATH_MODES, type LineStyle, type MarkerStyle, type PathMode } from "../charts/FlightMap";
@@ -20,6 +21,7 @@ type ColourBy = "phase" | "height" | "signal";
 
 function GpsView() {
   const t = useTranslations();
+  const online = useOnline();
   const { selected: e, settings, entries } = useStore();
   const a = e!.a;
   const loc = settings.locale;
@@ -90,7 +92,7 @@ function GpsView() {
         </div>
         {/* The tools sit over the map on wide screens and above it on phones (CSS). */}
         <div className="mapbox">
-          <div className="tools">
+          {online && <div className="tools">
             <div className="seg" role="group">
               <button aria-pressed={pitch > 0} onClick={() => setPitch(55)}>{t("path.view3d")}</button>
               <button aria-pressed={pitch === 0} onClick={() => setPitch(0)}>{t("path.viewTop")}</button>
@@ -110,16 +112,16 @@ function GpsView() {
               {MARKER_STYLES.map((k) => <option key={k} value={k}>{t(`path.marker_${k}`)}</option>)}
             </select>
             <div className="seg"><button aria-pressed={shadow} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
-          </div>
+          </div>}
           <div className="mapwrap">
-            <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} failedText={t("path.mapFailed")} />
+            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} failedText={t("path.mapFailed")} />}
           </div>
         </div>
-        {colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />
+        {!online ? null : colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />
           : colourBy === "height" ? <Legend items={[[`linear-gradient(90deg, var(--h-low), var(--h-high))`, `0 – ${U.fmt("height", top)}`]]} />
           : <Legend items={[[cssVar("--good"), word("signal", 4)], [withAlpha(cssVar("--good"), 0.45), word("signal", 3)], [cssVar("--warn"), word("signal", 2)], [cssVar("--crit"), word("signal", 1)]]} />}
       </div>
-      {spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
+      {online && spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
       <Replay a={a} syncKey={e!.key} clatter={markerStyle === "stork"} />
       </div>
       <LineChart syncKey={e!.key} title={t(hasHeight ? "path.follow" : "path.followThrottle")} series={followSeries} phases={p?.phases} height={150}

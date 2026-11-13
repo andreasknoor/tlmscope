@@ -82,6 +82,10 @@ export default function LegalPage() {
           Sprache, Farbschema, Einheiten, Detailansicht, Sitzungsfilter sowie von dir eingetragene Akkukapazitäten und Akku-Namen werden im lokalen Speicher deines Browsers (localStorage) abgelegt, damit sie beim nächsten Besuch erhalten bleiben.
           Diese Daten verlassen dein Gerät nicht und du kannst sie jederzeit über die Browser-Einstellungen löschen (§ 25 Abs. 2 Nr. 2 TDDDG).
         </p>
+        <p>
+          Damit TLMscope auch ohne Internet funktioniert, speichert dein Browser beim Besuch die Programmdateien der App (Seiten, Skripte, Schriften, Symbole und den Demo-Flug) in seinem Zwischenspeicher (Service Worker).
+          Deine Log-Dateien werden dabei nicht gespeichert. Auch diese Daten verlassen dein Gerät nicht und lassen sich über die Browser-Einstellungen löschen (§ 25 Abs. 2 Nr. 2 TDDDG).
+        </p>
 
         <h2>8. Externe Links</h2>
         <p>Links, z. B. zum Quellcode auf GitHub, führen zu Angeboten anderer Anbieter. Dort gelten deren Datenschutzbestimmungen.</p>
@@ -151,6 +155,10 @@ export default function LegalPage() {
         <p>
           Language, colour scheme, units, detail view, session filter, and the battery capacities and battery names you entered are kept in your browser&apos;s local storage so they are still set on your next visit.
           This data does not leave your device, and you can delete it at any time in your browser settings (§ 25(2) no. 2 TDDDG).
+        </p>
+        <p>
+          So that TLMscope also works without internet, your browser stores the app&apos;s program files (pages, scripts, fonts, icons and the demo flight) in its cache (service worker) when you visit.
+          Your log files are not stored. This data does not leave your device either, and you can delete it in your browser settings (§ 25(2) no. 2 TDDDG).
         </p>
 
         <h2>8. External links</h2>

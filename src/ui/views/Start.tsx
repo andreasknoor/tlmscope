@@ -11,7 +11,7 @@ import { homePath, pagePath, PAGE_IDS } from "@/seo/pages";
 import { Logo, Wordmark } from "../brand";
 import { Icon } from "../icons";
 import { useLogoClicks } from "../StorkRace";
-import { SettingsButton } from "../bits";
+import { OfflineBadge, SettingsButton } from "../bits";
 import { useStore } from "../store";
 
 /** The flight of the demo: motor climbs, glides and a thermal, in the colours of the app. Drawn once when the page opens. */
@@ -88,6 +88,7 @@ export function Start({ notices }: { notices: ReactNode }) {
       <div className="st-panel">
         <div className="st-wrap">
           <div className="st-bar">
+            <OfflineBadge />
             <div className="seg" role="group" aria-label="Language">
               {(["en", "de"] as const).map((l) => (
                 <button key={l} aria-pressed={lang === l} onClick={() => setSettings({ locale: l })}>{l.toUpperCase()}</button>
