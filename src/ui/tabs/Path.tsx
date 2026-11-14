@@ -45,6 +45,8 @@ function GpsView() {
   const [pathMode, setPathMode] = useState<PathMode>("full");
   const [markerStyle, setMarkerStyle] = useState<MarkerStyle>("plane");
   const [shadow, setShadow] = useState(true);
+  const [relief, setRelief] = useState(false);
+  const [chase, setChase] = useState(false);
   const [marker, setMarker] = useState<number | null>(null);
   // Full screen: map and replay fill the browser window. Esc closes; the page behind does not scroll.
   const [full, setFull] = useState(false);
@@ -112,10 +114,14 @@ function GpsView() {
             <select className="mapselect" aria-label={t("path.marker")} value={markerStyle} onChange={(ev) => setMarkerStyle(ev.target.value as MarkerStyle)}>
               {MARKER_STYLES.map((k) => <option key={k} value={k}>{t(`path.marker_${k}`)}</option>)}
             </select>
-            <div className="seg"><button aria-pressed={shadow} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
+            <div className="seg"><button aria-pressed={shadow && !relief} disabled={relief} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
+            <div className="seg" role="group">
+              <button aria-pressed={relief} onClick={() => setRelief(!relief)} title={t("path.reliefHint")}>{t("path.relief")}</button>
+              <button aria-pressed={chase} onClick={() => { setChase(!chase); if (!chase && pitch === 0) setPitch(55); }} title={t("path.chaseHint")}>{t("path.chase")}</button>
+            </div>
           </div>}
           <div className="mapwrap">
-            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} failedText={t("path.mapFailed")} />}
+            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} relief={relief} chase={chase} onChaseEnd={() => setChase(false)} failedText={t("path.mapFailed")} />}
           </div>
         </div>
         {!online ? null : colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />

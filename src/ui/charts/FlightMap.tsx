@@ -49,9 +49,25 @@ interface Props {
   air?: { start: number | null; end: number | null };
   /** Thermal centres to mark: strength in m/s, `own` for this flight. */
   spots?: { lat: number; lon: number; climb: number; own: boolean }[];
+  /** Experimental: terrain relief from free elevation tiles (the path and the model then sit on top of it). */
+  relief?: boolean;
+  /** Experimental: the camera follows the model during the replay. */
+  chase?: boolean;
+  /** Called when the user grabs the map while the camera follows, so the follow mode can end. */
+  onChaseEnd?: () => void;
   /** Shown when the map cannot be loaded. */
   failedText: string;
 }
+
+/** Free elevation tiles (Terrarium encoding, no key) for the relief. Credited on the map and named on the privacy page. */
+export const DEM_TILES = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png";
+const DEM_ATTRIBUTION = '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noopener noreferrer">Terrain: Mapzen and open data sources</a>';
+/** Camera of the chase view: tilt, and how many ground metres one screen pixel covers. */
+const CHASE_PITCH = 72;
+const CHASE_M_PER_PX = 0.8;
+/** Share of the remaining course difference the chase camera turns per frame. */
+const CHASE_TURN = 0.06;
+const isDark = () => document.documentElement.dataset.theme === "dark" || (document.documentElement.dataset.theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
 /** Space around the track (px); in 3D a third of the height stays free at the top, where the path rises. */
 const FIT_PADDING = 30;
@@ -152,7 +168,7 @@ const toRgb = (c: string): [number, number, number] => {
 };
 
 /** Map with the flight path in 3D. Libraries load only in the browser. */
-export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pathMode, markerStyle, shadow: showShadow, flapping, air, spots = [], failedText }: Props) {
+export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pathMode, markerStyle, shadow: showShadow, flapping, air, spots = [], relief = false, chase = false, onChaseEnd, failedText }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
@@ -169,11 +185,20 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
   /** Shown position (fractional second), its glide towards the cursor, and the stork's wing beat. */
   const anim = useRef({ shown: null as number | null, from: 0, to: 0, start: 0, dur: 0, lastChange: 0, blend: 0, phase: 0, prevT: 0, frame: 0, fold: 0, launchAt: 0, landAt: 0, prevShown: null as number | null });
   const drawRef = useRef<() => void>(() => {});
+  const tickRef = useRef<(time: number) => void>(() => {});
   // The animation loop reads the latest props through refs, so it keeps running across renders.
   const live = useRef({ markerStyle, flapping, air });
   useEffect(() => { live.current = { markerStyle, flapping, air }; }, [markerStyle, flapping, air]);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  /** Counts the maps created, so the relief is set up again on a new map. */
+  const [mapGen, setMapGen] = useState(0);
+  /** Ground elevation at the launch spot (m above sea level) while the relief is on; the logged heights start there. */
+  const [elev, setElev] = useState(0);
+  const boundsRef = useRef<[[number, number], [number, number]] | null>(null);
+  const chaseRef = useRef({ on: chase, bearing: null as number | null });
+  const onChaseEndRef = useRef(onChaseEnd);
+  useEffect(() => { onChaseEndRef.current = onChaseEnd; }, [onChaseEnd]);
 
   useEffect(() => {
     let cancelled = false;
@@ -187,6 +212,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
       const lons = pts.map((p) => p[0]), lats = pts.map((p) => p[1]);
       if (!pts.length) { setFailed(true); return; }
       const bounds: [[number, number], [number, number]] = [[minOf(lons)!, minOf(lats)!], [maxOf(lons)!, maxOf(lats)!]];
+      boundsRef.current = bounds;
       map = new ml.Map({
         container: el.current,
         style: MAP_STYLE,
@@ -198,6 +224,12 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
         attributionControl: { compact: true },
       });
       const m = map;
+      // deck.gl 9.4 reads `map.transform.elevation` (the ground height under the map centre) to follow a map with
+      // terrain, but maplibre-gl 6 no longer has `transform`, so the overlay throws as soon as the relief is on.
+      // This stands in for it with the same value, read from the terrain.
+      if (!(m as unknown as { transform?: unknown }).transform) {
+        Object.defineProperty(m, "transform", { configurable: true, get: () => ({ elevation: m.queryTerrainElevation(m.getCenter()) ?? 0, height: m.getContainer().clientHeight }) });
+      }
       // The style could not be fetched (no real connection although the browser reports one, server down):
       // show the note instead of an empty map. Errors of single tiles carry a source id and are ignored.
       m.on("error", (ev) => {
@@ -222,7 +254,11 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
       extRef.current = ext;
       // The model keeps about the same size on screen, so it follows the zoom.
       m.on("zoom", () => drawRef.current());
+      // Grabbing the map ends the chase view, otherwise the next frame would pull the camera back.
+      m.on("dragstart", () => { if (chaseRef.current.on) onChaseEndRef.current?.(); });
+      m.on("wheel", () => { if (chaseRef.current.on) onChaseEndRef.current?.(); });
       setReady(true);
+      setMapGen((g) => g + 1);
     }).catch((err: unknown) => {
       // Offline, blocked or no WebGL: show a note instead of breaking the page.
       console.error("Map could not be shown", err);
@@ -243,6 +279,57 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
     mapRef.current?.easeTo({ pitch, duration: 600 });
   }, [pitch]);
 
+  // Relief: elevation tiles as 3D terrain with shading and a sky. The elevation at the launch spot is read back
+  // once the tiles are in, because the logged heights start there (not at sea level).
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    let off = false;
+    const sky = () => (isDark()
+      ? { "sky-color": "#1b2a4a", "horizon-color": "#3a4a68", "fog-color": "#2a3550", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.8, "fog-ground-blend": 0.4 }
+      : { "sky-color": "#7db9f0", "horizon-color": "#e8f2fb", "fog-color": "#dbe8f2", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.8, "fog-ground-blend": 0.4 });
+    const apply = () => {
+      if (off) return;
+      if (relief) {
+        if (!m.getSource("dem")) m.addSource("dem", { type: "raster-dem", tiles: [DEM_TILES], encoding: "terrarium", tileSize: 256, maxzoom: 15, attribution: DEM_ATTRIBUTION });
+        if (!m.getLayer("relief-shade")) {
+          const firstLabel = m.getStyle().layers.find((l) => l.type === "symbol")?.id;
+          m.addLayer({ id: "relief-shade", type: "hillshade", source: "dem", paint: { "hillshade-exaggeration": 0.45, "hillshade-shadow-color": "#3b4a52", "hillshade-highlight-color": "#ffffff", "hillshade-accent-color": "#5a6b74" } }, firstLabel);
+        }
+        m.setTerrain({ source: "dem", exaggeration: 1 });
+        m.setSky(sky());
+        // Read the ground height at the launch spot as soon as the tiles are loaded.
+        const read = () => {
+          if (off) return;
+          const h = m.queryTerrainElevation([track.home.lon, track.home.lat]);
+          if (h !== null && Number.isFinite(h)) setElev(h);
+        };
+        m.once("idle", read);
+        m.once("idle", () => setTimeout(read, 400));
+      } else {
+        m.setTerrain(null);
+        if (m.getLayer("relief-shade")) m.removeLayer("relief-shade");
+        if (m.getSource("dem")) m.removeSource("dem");
+        setElev(0);
+      }
+    };
+    if (m.isStyleLoaded()) apply(); else m.once("load", apply);
+    return () => { off = true; };
+  }, [ready, mapGen, relief, track]);
+
+  // Chase view: tilt and zoom the camera behind the model; the tick below moves it with the replay.
+  useEffect(() => {
+    const m = mapRef.current, st = chaseRef.current;
+    st.on = chase; st.bearing = null;
+    if (!ready || !m) return;
+    if (chase) {
+      m.easeTo({ pitch: CHASE_PITCH, duration: 500 });
+      if (anim.current.shown !== null && !anim.current.frame) anim.current.frame = requestAnimationFrame((t) => tickRef.current(t));
+    } else if (boundsRef.current) {
+      fitZoomRef.current = fitTrack(m, boundsRef.current, pitch) ?? fitZoomRef.current;
+    }
+  }, [ready, mapGen, chase]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Path data changes rarely; keeping it stable lets the replay move the marker without re-uploading the path.
   // One line per stretch with a fix, coloured per point, so dashes run on along the whole line.
   const pathData = useMemo(() => {
@@ -251,7 +338,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
     let cur: (typeof lines)[number] | null = null;
     for (let i = 0; i < track.lat.length; i++) {
       if (track.lat[i] === null || track.lon[i] === null) { cur = null; continue; }
-      const p: [number, number, number] = [track.lon[i]!, track.lat[i]!, Math.max(0, height[i] ?? 0)];
+      const p: [number, number, number] = [track.lon[i]!, track.lat[i]!, elev + Math.max(0, height[i] ?? 0)];
       shadow.push([p[0], p[1]]);
       if (!cur) { cur = { path: [], colors: [], secs: [] }; lines.push(cur); }
       // Skip a point that repeats the last one (the model standing on the ground): deck.gl's
@@ -265,7 +352,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
     const kept = lines.filter((l) => l.path.length > 1);
     const rest = kept.map((l) => ({ ...l, colors: l.colors.map(([r, g, b]) => [r, g, b, REST_ALPHA] as Rgba) }));
     return { lines: kept, rest, shadow: [{ path: shadow }] };
-  }, [track, height, colorAt]);
+  }, [track, height, colorAt, elev]);
 
   const attitude = useMemo(() => attitudeFromPath(track.east, track.north, height), [track, height]);
   const mesh = useMemo(() => planeMesh(), []);
@@ -289,19 +376,19 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
     trailRef.current = { lines: null, sec: -1, data: [] };
     staticRef.current = [
       // Ground shadow, kept faint so it does not read as a second path.
-      ...(showShadow ? [new layers.PathLayer({ id: "shadow", data: shadow, getPath: (d: { path: [number, number][] }) => d.path, getColor: [60, 70, 80, 55], getWidth: 1.5, widthUnits: "pixels" })] : []),
+      ...(showShadow && !relief ? [new layers.PathLayer({ id: "shadow", data: shadow, getPath: (d: { path: [number, number][] }) => d.path, getColor: [60, 70, 80, 55], getWidth: 1.5, widthUnits: "pixels" })] : []),
       // In the trail modes the replay draws the flown part (see draw); the rest is faint or left out.
       ...(pathMode === "full" ? [pathLayer("path", lines)] : pathMode === "trailRest" ? [pathLayer("path-rest", rest)] : []),
       new layers.ScatterplotLayer({
-        id: "thermals", data: spots, getPosition: (d: (typeof spots)[number]) => [d.lon, d.lat, 0],
+        id: "thermals", data: spots, getPosition: (d: (typeof spots)[number]) => [d.lon, d.lat, elev],
         getFillColor: (d: (typeof spots)[number]) => [...toRgb(cssVar("--s-lift")), d.own ? 170 : 90] as [number, number, number, number],
         getLineColor: toRgb(cssVar("--ink")), stroked: true, getLineWidth: (d: (typeof spots)[number]) => (d.own ? 2 : 0), lineWidthUnits: "pixels",
         getRadius: (d: (typeof spots)[number]) => 12 + Math.max(0, d.climb) * 14, radiusUnits: "meters",
       }),
-      new layers.ScatterplotLayer({ id: "home", data: [track.home], getPosition: (d: Track["home"]) => [d.lon, d.lat, 0], getFillColor: toRgb(cssVar("--ink")), getRadius: 6, radiusUnits: "pixels", billboard: true }),
+      new layers.ScatterplotLayer({ id: "home", data: [track.home], getPosition: (d: Track["home"]) => [d.lon, d.lat, elev], getFillColor: toRgb(cssVar("--ink")), getRadius: 6, radiusUnits: "pixels", billboard: true }),
     ];
     drawRef.current();
-  }, [ready, track, pathData, spots, lineStyle, showShadow, pathMode]);
+  }, [ready, track, pathData, spots, lineStyle, showShadow, pathMode, relief, elev]);
 
   // The model layers for the shown (fractional) second, drawn together with the static layers.
   useEffect(() => {
@@ -315,7 +402,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
       const sizeAt = (lat: number) => Math.max(PLANE_MIN_M, planePx(zoom, fitZoomRef.current ?? zoom) * metresPerPixel(lat, zoom));
       const material = { ambient: 0.45, diffuse: 0.75, shininess: 24, specularColor: [80, 80, 80] as V };
       const model: Layer[] = [];
-      const home: V = [track.home.lon, track.home.lat, 0];
+      const home: V = [track.home.lon, track.home.lat, elev];
       const isStork = markerStyle === "stork";
       const s = sizeAt(home[1]) * 1.2;
       const mesh3 = (id: string, m: Mesh, at: V, matrix: number[], scale = s) =>
@@ -331,7 +418,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
           for (let j = 0; j < count; j++) {
             const th = (w * now) / 1000 + (j * 2 * Math.PI) / count + n;
             const east = r * Math.cos(th), north = r * Math.sin(th);
-            const z = THERMAL_STORK_BASE + j * THERMAL_STORK_STEP + 4 * Math.sin(now / 3000 + j + n);
+            const z = elev + THERMAL_STORK_BASE + j * THERMAL_STORK_STEP + 4 * Math.sin(now / 3000 + j + n);
             const heading = (Math.atan2(-Math.sin(th), Math.cos(th)) * 180) / Math.PI;
             const bank = -(Math.atan((THERMAL_STORK_SPEED * THERMAL_STORK_SPEED) / (r * 9.81)) * 180) / Math.PI;
             circling.push({ at: [sp.lon + east / (111_320 * Math.cos(sp.lat * rad)), sp.lat + north / 111_320, z], o: [0, 90 - heading, bank] });
@@ -349,7 +436,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
         // The stork is drawn even without a fix here: it may be sitting in its nest.
         if (ok(a) || markerStyle === "stork") {
           const lerp = (x: number, y: number) => x + (y - x) * k;
-          let at: V = ok(a) ? [lerp(track.lon[a]!, track.lon[b]!), lerp(track.lat[a]!, track.lat[b]!), lerp(Math.max(0, height[a] ?? 0), Math.max(0, height[b] ?? 0))] : home;
+          let at: V = ok(a) ? [lerp(track.lon[a]!, track.lon[b]!), lerp(track.lat[a]!, track.lat[b]!), elev + lerp(Math.max(0, height[a] ?? 0), Math.max(0, height[b] ?? 0))] : home;
           const turn = ((attitude.heading[b] - attitude.heading[a] + 540) % 360) - 180;
           const heading = attitude.heading[a] + turn * k, climb = lerp(attitude.climb[a], attitude.climb[b]), bank = lerp(attitude.bank[a], attitude.bank[b]);
           // deck.gl takes [pitch (nose down), yaw (from east, anticlockwise), roll (right wing down)].
@@ -362,7 +449,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
             model.push(new meshLayers.SimpleMeshLayer({ id: "plane", data: [at], mesh, getPosition: (d: V) => d, getOrientation: orientation, sizeScale: size, getColor: planeColor(toRgb(cssVar("--ink"))), material }));
           } else {
             const pose = storkPose(t, air, st.launchAt, st.landAt, now);
-            const inNest: V = [home[0], home[1], (NEST_TOP + 0.03) * s];
+            const inNest: V = [home[0], home[1], elev + (NEST_TOP + 0.03) * s];
             const bearing = (from: V, to: V) => (Math.atan2((to[0] - from[0]) * Math.cos(from[1] * rad), to[1] - from[1]) * 180) / Math.PI;
             if (pose === "nest") {
               // Facing the way it will take off (or came in).
@@ -371,7 +458,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
             } else if (pose === "hop") {
               // From the landing spot into the nest along a small arc.
               const e = air!.end!;
-              const from: V = ok(e) ? [track.lon[e]!, track.lat[e]!, Math.max(0, height[e] ?? 0)] : inNest;
+              const from: V = ok(e) ? [track.lon[e]!, track.lat[e]!, elev + Math.max(0, height[e] ?? 0)] : inNest;
               const u = Math.min(1, (now - st.landAt) / HOP_MS);
               const arc = 4 * Math.max(4, 3 * s) * u * (1 - u);
               at = [from[0] + (inNest[0] - from[0]) * u, from[1] + (inNest[1] - from[1]) * u, from[2] + (inNest[2] - from[2]) * u + arc];
@@ -417,7 +504,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
     };
     drawRef.current = draw;
     draw();
-  }, [ready, track, height, attitude, mesh, stork, markerStyle, spots, air, pathMode, pathData]);
+  }, [ready, track, height, attitude, mesh, stork, markerStyle, spots, air, pathMode, pathData, elev]);
 
   // Replay cursor: glide from the shown second to the new one over about the time between two updates.
   useEffect(() => {
@@ -463,12 +550,29 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
       }
       st.prevShown = st.shown;
       drawRef.current();
-      // Keep running while gliding to the cursor or while the stork is chosen (wings, nest and thermal storks move).
-      st.frame = st.dur > 0 || stork ? requestAnimationFrame(tick) : 0;
+      // Chase view: the camera sits behind the model, looking along its course.
+      const ch = chaseRef.current, mp = mapRef.current;
+      if (ch.on && mp && st.shown !== null) {
+        const n = track.lat.length - 1, t = Math.max(0, Math.min(n, st.shown));
+        const i0 = Math.floor(t), i1 = Math.min(n, i0 + 1), f = t - i0;
+        const ok = (i: number) => track.lat[i] != null && track.lon[i] != null;
+        if (ok(i0) && ok(i1)) {
+          const lon = track.lon[i0]! + (track.lon[i1]! - track.lon[i0]!) * f, lat = track.lat[i0]! + (track.lat[i1]! - track.lat[i0]!) * f;
+          const turnTo = ((attitude.heading[i1] - attitude.heading[i0] + 540) % 360) - 180;
+          const want = attitude.heading[i0] + turnTo * f;
+          ch.bearing = ch.bearing === null ? want : ch.bearing + (((want - ch.bearing + 540) % 360) - 180) * CHASE_TURN;
+          // Zoom so that a screen pixel covers about CHASE_M_PER_PX metres on the ground.
+          const zoom = Math.log2((40_075_016.7 * Math.cos(lat * rad)) / (512 * CHASE_M_PER_PX));
+          mp.jumpTo({ center: [lon, lat], bearing: (ch.bearing + 360) % 360, pitch: CHASE_PITCH, zoom });
+        }
+      }
+      // Keep running while gliding to the cursor, while chasing, or while the stork is chosen (wings, nest and thermal storks move).
+      st.frame = st.dur > 0 || stork || (ch.on && st.shown !== null) ? requestAnimationFrame(tick) : 0;
       if (!st.frame) st.prevT = 0;
     };
+    tickRef.current = tick;
     if (!st.frame) st.frame = requestAnimationFrame(tick);
-  }, [marker, markerStyle, flapping, air]);
+  }, [marker, markerStyle, flapping, air, attitude]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (failed) return <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>{failedText}</div>;
   return <div ref={el} style={{ position: "absolute", inset: 0 }} />;
