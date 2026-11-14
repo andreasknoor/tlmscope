@@ -85,6 +85,7 @@ function GpsView() {
         <Tile label={t("path.typicalSpeed")} value={tr.medianSpeed === null ? "–" : U.n("speed", tr.medianSpeed)} unit={tr.medianSpeed === null ? "" : ` ${U.u("speed")}`} sub={t("path.overGround")} />
         <Tile label={t("path.topSpeed")} value={tr.maxSpeed === null ? "–" : U.n("speed", tr.maxSpeed)} unit={tr.maxSpeed === null ? "" : ` ${U.u("speed")}`} sub={t("path.overGround")} />
       </div>
+      {tr.airborneOnly && <p className="note">{t("path.gpsNote")}{tr.jumps > 0 && ` ${t("path.gpsJumps", { n: tr.jumps })}`}</p>}
       <div id="map" className={`mapgroup${full ? " full" : ""}`} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("path.map") : undefined}>
       <div className="chart">
         <div className="ch"><b>{t("path.map")}</b>

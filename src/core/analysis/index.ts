@@ -57,7 +57,7 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
   const link = linkQuality(session, p, grid);
   const signal = signalStrength(session, p, grid);
   const ld = loads(session, grid, p);
-  const tr = track(session, grid);
+  const tr = track(session, grid, p);
   return {
     session, kind, grid, profile,
     circling: circ,
