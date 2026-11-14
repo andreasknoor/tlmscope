@@ -95,7 +95,7 @@ export default function LegalPage() {
 
         <h2>8. Gespeicherte Einstellungen</h2>
         <p>
-          Sprache, Farbschema, Einheiten, Detailansicht, Sitzungsfilter sowie von dir eingetragene Akkukapazitäten und Akku-Namen werden im lokalen Speicher deines Browsers (localStorage) abgelegt, damit sie beim nächsten Besuch erhalten bleiben.
+          Sprache, Farbschema, Einheiten, Detailansicht, Sitzungsfilter sowie von dir eingetragene Akkukapazitäten und Akku-Namen werden im lokalen Speicher deines Browsers (localStorage) abgelegt, damit sie beim nächsten Besuch erhalten bleiben. Dasselbe gilt für die Einstellungen der Testseite für Sender (/debug).
           Diese Daten verlassen dein Gerät nicht und du kannst sie jederzeit über die Browser-Einstellungen löschen (§ 25 Abs. 2 Nr. 2 TDDDG).
         </p>
         <p>
@@ -185,7 +185,7 @@ export default function LegalPage() {
 
         <h2>8. Saved settings</h2>
         <p>
-          Language, colour scheme, units, detail view, session filter, and the battery capacities and battery names you entered are kept in your browser&apos;s local storage so they are still set on your next visit.
+          Language, colour scheme, units, detail view, session filter, and the battery capacities and battery names you entered are kept in your browser&apos;s local storage so they are still set on your next visit. The same applies to the setup of the transmitter test page (/debug).
           This data does not leave your device, and you can delete it at any time in your browser settings (§ 25(2) no. 2 TDDDG).
         </p>
         <p>

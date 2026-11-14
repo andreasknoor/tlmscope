@@ -50,4 +50,4 @@ The pipeline is **adapter → normalised model → analysis → UI**, and the la
 
 ## Other folders
 
-`prototype/` (HTML prototype, not deployed), `reference/tlm.py` (Python reference parser), `docs/` (implementation plan, feature concepts, screenshots). Lint ignores `prototype/`, `reference/` and the copied `public/maplibre/`.
+`prototype/` (HTML prototypes, not deployed, except `prototype/dry-run.html`: `cli/make-debug-page.ts` turns it into `public/debug.html` before `dev` and `build`, the transmitter ground test at /debug; edit the prototype, not the generated file), `reference/tlm.py` (Python reference parser), `docs/` (implementation plan, feature concepts, screenshots). Lint ignores `prototype/`, `reference/` and the copied `public/maplibre/`.

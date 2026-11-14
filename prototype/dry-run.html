@@ -1,0 +1,761 @@
+<title>Transmitter Dry Run</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a cockpit-style two-column console. Left: the virtual transmitter and the live step; right: schedule, setup and the run log. Stacks on phones. */
+:root {
+  --bg: #eef3f5;
+  --panel: #ffffff;
+  --sunken: #e3eaee;
+  --line: #c9d6dc;
+  --ink: #12232b;
+  --ink-2: #44575f;
+  --ink-3: #6f838c;
+  --accent: #0d6a83;
+  --accent-soft: #d5ecf2;
+  --hot: #d9741b;
+  --good: #2f8a4f;
+  --tx-body: #2b3a41;
+  --tx-face: #3a4b53;
+  --tx-line: #5d727b;
+  --tx-ink: #dfe9ed;
+  --display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --text: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1519; --panel: #142027; --sunken: #0f1a1f; --line: #26363e; --ink: #e2ecef; --ink-2: #a6b7be; --ink-3: #74878f;
+    --accent: #4fb3cf; --accent-soft: #143642; --hot: #f0954a; --good: #5cc283;
+    --tx-body: #1c282e; --tx-face: #24343b; --tx-line: #4a5f68; --tx-ink: #d4e2e7;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1519; --panel: #142027; --sunken: #0f1a1f; --line: #26363e; --ink: #e2ecef; --ink-2: #a6b7be; --ink-3: #74878f;
+  --accent: #4fb3cf; --accent-soft: #143642; --hot: #f0954a; --good: #5cc283;
+  --tx-body: #1c282e; --tx-face: #24343b; --tx-line: #4a5f68; --tx-ink: #d4e2e7;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--text); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; letter-spacing: .01em; }
+h1 { font-size: 30px; }
+h2 { font-size: 21px; }
+h3 { font-size: 17px; }
+p { margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.top p { color: var(--ink-2); max-width: 70ch; }
+.eyebrow { font: 600 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 920px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.hint { color: var(--ink-3); font-size: 14px; }
+
+/* Transmitter */
+.txbox { position: relative; background: var(--sunken); border-radius: 14px; padding: 8px; }
+.txbox svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.tx-body { fill: var(--tx-body); }
+.tx-face { fill: var(--tx-face); }
+.tx-line { stroke: var(--tx-line); fill: none; stroke-width: 2; }
+.tx-text { fill: var(--tx-ink); font: 600 13px var(--mono); }
+.tx-small { fill: var(--tx-ink); font: 600 11px var(--mono); opacity: .8; }
+.tx-screen { fill: #0b1d14; stroke: var(--tx-line); stroke-width: 2; }
+.tx-screen-text { fill: #8ff0b4; font: 600 12px var(--mono); }
+.stick { fill: #e8eef1; stroke: #0b1418; stroke-width: 2; }
+.ghost { fill: none; stroke: var(--hot); stroke-width: 3; stroke-dasharray: 5 4; }
+.slot { fill: #1a252a; stroke: var(--tx-line); stroke-width: 1.5; }
+.lever { fill: #e8eef1; }
+.knob { fill: #1a252a; stroke: var(--tx-line); stroke-width: 2; }
+.knob-mark { stroke: #e8eef1; stroke-width: 3; stroke-linecap: round; }
+.trimbar { fill: #1a252a; }
+.trimdot { fill: #e8eef1; }
+.focus .slot, .focus .knob, .focus.gimbal rect, .focus .trimbar { stroke: var(--hot); stroke-width: 3; }
+.focus .lever, .focus .trimdot, .focus .stick { fill: var(--hot); }
+@media (prefers-reduced-motion: no-preference) { .pulse { animation: pulse 1s ease-in-out infinite; } }
+@keyframes pulse { 50% { opacity: .55; } }
+.model { display: none; }
+.model.on { display: block; }
+.model svg { width: 100%; max-height: 260px; }
+.model-shape { fill: var(--accent); }
+.model-line { stroke: var(--ink-3); stroke-width: 2; stroke-dasharray: 6 6; }
+
+/* Live step */
+.now { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: center; }
+.now .what { font: 600 26px/1.15 var(--display); }
+.now .detail { color: var(--ink-2); grid-column: 1; }
+.count { grid-row: 1 / span 3; grid-column: 2; font: 600 64px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--accent); min-width: 2ch; text-align: right; }
+.count.hot { color: var(--hot); }
+.next { color: var(--ink-3); font-size: 14px; grid-column: 1; }
+.bar { height: 8px; background: var(--sunken); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.bar.total i { background: var(--ink-3); }
+.meta { display: flex; justify-content: space-between; gap: 12px; font: 13px var(--mono); color: var(--ink-3); font-variant-numeric: tabular-nums; flex-wrap: wrap; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, select, input[type="text"] { font: inherit; }
+.btn { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 10px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.btn.warn { border-color: var(--hot); color: var(--hot); }
+.btn:disabled { opacity: .45; cursor: default; }
+:focus-visible { outline: 3px solid var(--hot); outline-offset: 2px; }
+.toggle { display: inline-flex; gap: 6px; align-items: center; color: var(--ink-2); font-size: 14px; }
+
+/* Schedule */
+.sched { position: relative; max-height: 420px; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; }
+.sec { position: sticky; top: 0; background: var(--sunken); font: 600 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); padding: 6px 12px; display: flex; justify-content: space-between; }
+.row { display: grid; grid-template-columns: 4.2em minmax(0, 1fr) 3em; gap: 8px; padding: 5px 12px; font-size: 14px; border-top: 1px solid var(--line); }
+.row .t, .row .d { font: 13px var(--mono); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.row .d { text-align: right; }
+.row.done { color: var(--ink-3); }
+.row.cur { background: var(--accent-soft); font-weight: 600; }
+.row.rest .s { color: var(--ink-3); }
+
+/* Setup */
+.check { display: flex; gap: 8px; align-items: flex-start; }
+.check input { margin-top: 5px; }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font: 600 12px var(--mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; padding: 4px 6px; }
+td { padding: 4px 6px; border-top: 1px solid var(--line); }
+td select, td input[type="text"] { width: 100%; min-width: 0; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
+.opts { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+textarea { width: 100%; min-height: 160px; font: 12px/1.45 var(--mono); background: var(--sunken); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; resize: vertical; }
+details > summary { cursor: pointer; font: 600 17px var(--display); }
+.done-box { border: 2px solid var(--good); border-radius: 12px; padding: 12px; display: none; flex-direction: column; gap: 6px; }
+.done-box.on { display: flex; }
+.warnline { color: var(--hot); font-weight: 600; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow"><a href="https://tlmscope.andreasknoor.com" style="color: inherit">TLMscope</a> · ground test · <span id="modeLabel">Mode 2</span></div>
+      <h1>Transmitter Dry Run</h1>
+    </div>
+    <p>Move each stick, trim, switch and knob on cue while the transmitter records a telemetry log. The page keeps its own timeline; send it together with the log file, and TLMscope learns which value in the log belongs to which control.</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="liveTitle">
+        <h2 id="liveTitle" class="eyebrow" style="font-family: var(--mono)">Live</h2>
+        <div class="txbox">
+          <svg id="tx" viewBox="0 0 560 360" role="img" aria-label="Virtual transmitter showing the target position of every control"></svg>
+          <div class="model" id="model">
+            <svg viewBox="0 0 400 260" role="img" aria-label="Model attitude for the gyro steps">
+              <line class="model-line" x1="20" y1="130" x2="380" y2="130" />
+              <g id="mRear" transform="translate(200 130)">
+                <rect class="model-shape" x="-150" y="-5" width="300" height="10" rx="5" />
+                <circle class="model-shape" cx="0" cy="0" r="16" />
+                <rect class="model-shape" x="-3" y="-60" width="6" height="50" rx="3" />
+              </g>
+              <g id="mSide" transform="translate(200 130)">
+                <rect class="model-shape" x="-130" y="-8" width="260" height="16" rx="8" />
+                <path class="model-shape" d="M-130 -8 L-150 -50 L-118 -50 L-100 -8 Z" />
+                <circle class="model-shape" cx="125" cy="0" r="10" />
+              </g>
+              <g id="mTop" transform="translate(200 130)">
+                <rect class="model-shape" x="-8" y="-100" width="16" height="200" rx="8" />
+                <rect class="model-shape" x="-150" y="-30" width="300" height="22" rx="10" />
+                <rect class="model-shape" x="-50" y="80" width="100" height="12" rx="6" />
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="now" aria-live="polite">
+          <div class="what" id="what">Press Start when you are ready</div>
+          <div class="count" id="count">–</div>
+          <div class="detail" id="detail">Check the list under “Before you start” first.</div>
+          <div class="next" id="next"></div>
+        </div>
+        <div class="bar" aria-hidden="true"><i id="stepBar"></i></div>
+        <div class="bar total" aria-hidden="true"><i id="totalBar"></i></div>
+        <div class="meta"><span id="stepNo">Step 0 of 0</span><span id="clock">00:00 / 00:00</span></div>
+        <div class="controls">
+          <button class="btn primary" id="startBtn" type="button">Start</button>
+          <button class="btn" id="prevBtn" type="button" aria-label="Previous step">◀ Back</button>
+          <button class="btn" id="nextBtn" type="button" aria-label="Next step">Skip ▶</button>
+          <button class="btn warn" id="resetBtn" type="button">Reset</button>
+          <label class="toggle"><input type="checkbox" id="voice" checked> Voice</label>
+          <label class="toggle"><input type="checkbox" id="beep" checked> Beeps</label>
+        </div>
+        <p class="hint">Keys: Space starts or pauses, → skips, ← goes back. Voice and beeps let you keep your eyes on the transmitter.</p>
+        <div class="done-box" id="doneBox" role="status">
+          <h3>Done</h3>
+          <p>Power off the model first, then the transmitter, so the log file closes. Then copy the run log below and send it with the log file (on a Spektrum NX: <span style="font-family: var(--mono)">002~&lt;model&gt;_&lt;date&gt;.TLM</span>) to whoever asked you for this test, or get in touch through the Feedback button on <a href="https://tlmscope.andreasknoor.com">tlmscope.andreasknoor.com</a>.</p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="logTitle">
+        <h2 id="logTitle">Run log</h2>
+        <p class="hint">Filled while the run goes. It holds the clock time of every step, so it can be matched with the log file. Nothing is sent anywhere.</p>
+        <textarea id="log" readonly aria-label="Run log as JSON"></textarea>
+        <div class="controls"><button class="btn" id="copyBtn" type="button">Copy run log</button><span class="hint" id="copyState"></span></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-labelledby="prepTitle">
+        <h2 id="prepTitle">Before you start</h2>
+        <label class="check"><input type="checkbox" id="c1"> <span><b>Propeller off</b>, model held or secured. Some steps unlock the motor.</span></label>
+        <label class="check"><input type="checkbox" id="c2"> <span>The transmitter records a <b>telemetry log</b> that includes the stick positions (on a Spektrum NX: the AutoLog file).</span></label>
+        <label class="check"><input type="checkbox" id="c3"> <span>Model powered and bound, telemetry on the screen.</span></label>
+        <label class="check"><input type="checkbox" id="c4"> <span>Throttle stick fully down, trims where they normally are, every switch in its usual pre-flight position (enter the positions below).</span></label>
+        <label class="check"><input type="checkbox" id="c5"> <span>Sound on (voice and beeps), screen bright. About 7 minutes.</span></label>
+      </section>
+
+      <section class="panel" aria-labelledby="schedTitle">
+        <div class="top"><h2 id="schedTitle">Schedule</h2><span class="hint" id="schedSum"></span></div>
+        <div class="sched" id="sched" tabindex="0" aria-label="Schedule of all steps"></div>
+      </section>
+
+      <section class="panel">
+        <details id="setup" open>
+          <summary>Setup: switches, knobs and options</summary>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px">
+            <p class="hint">Positions: <b>up</b> = away from you, <b>down</b> = towards you. Set each switch as it is right now; “What it does” helps the analysis (for example “throttle hold”, “flight mode”). Changes rebuild the schedule; they are kept in this browser.</p>
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Switch</th><th>Kind</th><th>Now in</th><th>What it does</th></tr></thead>
+              <tbody id="swRows"></tbody>
+            </table></div>
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Use</th><th>Knob, slider or lever</th></tr></thead>
+              <tbody id="kRows"></tbody>
+            </table></div>
+            <div class="opts">
+              <label class="toggle"><input type="checkbox" id="optTrims" checked> Trims</label>
+              <label class="toggle"><input type="checkbox" id="optGyro" checked> Gyro (move the model by hand)</label>
+              <label class="toggle">Rate switch <select id="optRate"></select></label>
+              <label class="toggle">Stick mode <select id="optMode"><option value="2">Mode 2 (throttle left)</option><option value="1">Mode 1 (throttle right)</option></select></label>
+              <label class="toggle">Pace <select id="optPace"><option value="1">Normal</option><option value="1.4">Relaxed</option></select></label>
+            </div>
+          </div>
+        </details>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  // ---------- Configuration ----------
+  const LETTERS = "ABCDEFGH".split("");
+  const POS_WORD = ["UP", "MIDDLE", "DOWN"];
+  const KEY = "tlmscope.dryrun.v1";
+  const defaults = () => ({
+    switches: LETTERS.map((l) => ({ letter: l, kind: "3", now: 0, role: "" })),
+    controls: [
+      { use: true, name: "Knob or slider 1" },
+      { use: false, name: "Knob or slider 2" },
+      { use: false, name: "Side lever left" },
+      { use: false, name: "Side lever right" },
+    ],
+    trims: true, gyro: true, rate: "", pace: 1, mode: 2, voice: true, beep: true,
+  });
+  let cfg = defaults();
+  try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && Array.isArray(s.switches)) cfg = Object.assign(defaults(), s); } catch (e) { /* storage blocked */ }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) { /* storage blocked */ } };
+
+  // ---------- Schedule ----------
+  // A pose is the target state of every control: sticks -1…1 (e: +1 = right stick forward, a: +1 = right,
+  // r: +1 = left stick right, t: +1 = throttle full), trims -1…1, switch positions 0/1/2, knobs -1…1.
+  function basePose() {
+    const sw = {}; cfg.switches.forEach((s) => { sw[s.letter] = s.kind === "btn" ? 0 : Number(s.now); });
+    return { t: -1, r: 0, e: 0, a: 0, trim: { a: 0, e: 0, r: 0, t: 0 }, sw, k: [0, 0, 0, 0], model: null };
+  }
+  function build() {
+    const pace = Number(cfg.pace) || 1;
+    // Mode 2: throttle and rudder on the left stick; Mode 1: elevator and rudder on the left, throttle on the right.
+    const m2 = Number(cfg.mode) !== 1;
+    const thrSide = m2 ? "Left" : "Right", thrF = m2 ? "L" : "R";
+    const eleSide = m2 ? "Right" : "Left", eleF = m2 ? "R" : "L";
+    const steps = [];
+    let sec = "";
+    const add = (o) => steps.push(Object.assign({ kind: "move", focus: [], pose: null, anim: null, section: sec }, o, { dur: Math.round(o.dur * pace * 10) / 10 }));
+    const pose = (patch) => { const p = basePose(); Object.assign(p, patch); if (patch.trim) p.trim = Object.assign(basePose().trim, patch.trim); if (patch.sw) p.sw = Object.assign(basePose().sw, patch.sw); return p; };
+    const rest = (id, dur, what) => add({ id, kind: "rest", dur, what: what || "Pause · hands off the sticks", say: "Pause", pose: pose({}) });
+    const ready = (id, what, say, detail) => add({ id, kind: "ready", dur: 5, what, say, detail, pose: pose({}) });
+
+    sec = "Start";
+    ready("ready", "Get ready", "Get ready. Hands off the sticks.", "The run starts in a moment. Throttle stick fully down, other sticks centred.");
+    rest("baseline", 10, "Hands off: throttle down, sticks centred");
+    const signal = (id, label) => add({ id, kind: "signal", dur: 7, what: label, say: "Signal. Throttle full up and down, three times.", detail: `${thrSide} stick fully up and fully down, three times, about one second each way.`, focus: [thrF],
+      anim: (u) => pose({ t: -Math.cos(u * Math.PI * 6) }) });
+    signal("signal-start", "Start signal: throttle up and down, 3 times");
+    rest("rest-signal", 5);
+
+    sec = "Sticks";
+    ready("ready-sticks", "Next: the sticks", "Next: the sticks.", "Each stick to its end, held, then back to the centre. Twice each.");
+    const axes = [
+      { id: "elev", focus: eleF, words: [[`${eleSide} stick FORWARD (away from you)`, { e: 1 }, "Forward"], [`${eleSide} stick BACK (towards you)`, { e: -1 }, "Back"]] },
+      { id: "ail", focus: "R", words: [["Right stick RIGHT", { a: 1 }, "Right"], ["Right stick LEFT", { a: -1 }, "Left"]] },
+      { id: "rud", focus: "L", words: [["Left stick RIGHT", { r: 1 }, "Left stick right"], ["Left stick LEFT", { r: -1 }, "Left stick left"]] },
+    ];
+    for (const ax of axes) {
+      for (let k = 1; k <= 2; k++) {
+        ax.words.forEach(([what, p, say], j) => {
+          add({ id: `${ax.id}-${j ? "neg" : "pos"}-${k}`, dur: 3, what: what + " · hold", say, focus: [ax.focus], pose: pose(p) });
+          add({ id: `${ax.id}-centre-${k}${j ? "b" : "a"}`, kind: "rest", dur: 2, what: "Centre", say: "Centre", focus: [ax.focus], pose: pose({}) });
+        });
+      }
+      rest(`rest-${ax.id}`, 4);
+    }
+    for (let k = 1; k <= 2; k++) {
+      add({ id: `thr-mid-${k}`, dur: 3, what: `${thrSide} stick to the MIDDLE (throttle half)`, say: "Throttle to the middle", focus: [thrF], pose: pose({ t: 0 }) });
+      add({ id: `thr-full-${k}`, dur: 3, what: `${thrSide} stick fully UP (full throttle)`, say: "Full throttle", focus: [thrF], pose: pose({ t: 1 }) });
+      add({ id: `thr-idle-${k}`, dur: 3, what: `${thrSide} stick fully DOWN`, say: "Throttle down", focus: [thrF], pose: pose({ t: -1 }) });
+    }
+    rest("rest-thr", 4);
+
+    if (cfg.trims) {
+      sec = "Trims";
+      ready("ready-trims", "Next: two trims", "Next: the trims.", "Five clicks one way, wait, five clicks back. The trims end where they started.");
+      const trims = [["trim-ail", "Aileron trim", "a", "TR-A", ["RIGHT", "LEFT"]], ["trim-elev", "Elevator trim", "e", "TR-E", ["UP", "DOWN"]]];
+      for (const [id, name, key, focus, dirs] of trims) {
+        add({ id: `${id}-out`, dur: 6, what: `${name}: 5 clicks ${dirs[0]}`, say: `${name}, five clicks ${dirs[0].toLowerCase()}`, focus: [focus], pose: pose({ trim: { [key]: 1 } }) });
+        add({ id: `${id}-hold`, kind: "rest", dur: 3, what: "Wait", say: "Wait", focus: [focus], pose: pose({ trim: { [key]: 1 } }) });
+        add({ id: `${id}-back`, dur: 6, what: `${name}: 5 clicks ${dirs[1]} (back)`, say: `Five clicks ${dirs[1].toLowerCase()}, back`, focus: [focus], pose: pose({}) });
+        rest(`rest-${id}`, 3);
+      }
+    }
+
+    const rateSw = cfg.switches.find((s) => s.letter === cfg.rate && s.kind !== "none");
+    if (rateSw) {
+      sec = "Rates";
+      ready("ready-rate", `Next: rate switch ${rateSw.letter}`, "Next: the rate switch.", "With the other rate, two full stick moves; then the switch goes back.");
+      const other = rateSw.kind === "3" ? (Number(rateSw.now) === 0 ? 2 : 0) : (Number(rateSw.now) === 0 ? 2 : 0);
+      add({ id: "rate-on", dur: 4, what: `Switch ${rateSw.letter} to ${POS_WORD[other]}`, say: `Switch ${rateSw.letter} ${POS_WORD[other].toLowerCase()}`, focus: [`S${rateSw.letter}`], pose: pose({ sw: { [rateSw.letter]: other } }) });
+      add({ id: "rate-ail", dur: 3, what: "Right stick RIGHT · hold", say: "Right", focus: ["R"], pose: pose({ a: 1, sw: { [rateSw.letter]: other } }) });
+      add({ id: "rate-centre-a", kind: "rest", dur: 2, what: "Centre", say: "Centre", focus: ["R"], pose: pose({ sw: { [rateSw.letter]: other } }) });
+      add({ id: "rate-elev", dur: 3, what: `${eleSide} stick FORWARD · hold`, say: "Forward", focus: [eleF], pose: pose({ e: 1, sw: { [rateSw.letter]: other } }) });
+      add({ id: "rate-centre-b", kind: "rest", dur: 2, what: "Centre", say: "Centre", focus: [eleF], pose: pose({ sw: { [rateSw.letter]: other } }) });
+      add({ id: "rate-off", dur: 4, what: `Switch ${rateSw.letter} back to ${POS_WORD[Number(rateSw.now)]}`, say: `Switch ${rateSw.letter} back`, focus: [`S${rateSw.letter}`], pose: pose({}) });
+      rest("rest-rate", 3);
+    }
+
+    const sws = cfg.switches.filter((s) => s.kind !== "none");
+    if (sws.length) {
+      sec = "Switches";
+      ready("ready-switches", "Next: the switches, A to H", "Next: the switches.", "Each switch through all its positions and back. Some unlock the motor: propeller off.");
+      for (const s of sws) {
+        const L = s.letter, now = Number(s.now);
+        let seq;
+        if (s.kind === "btn") {
+          for (let k = 1; k <= 2; k++) {
+            add({ id: `sw-${L}-press-${k}`, dur: 3, what: `Button ${L}: press and hold`, say: `Button ${L}, press`, focus: [`S${L}`], pose: pose({ sw: { [L]: 2 } }) });
+            add({ id: `sw-${L}-release-${k}`, kind: "rest", dur: 3, what: `Button ${L}: release`, say: "Release", focus: [`S${L}`], pose: pose({}) });
+          }
+        } else {
+          if (s.kind === "3") seq = now === 0 ? [1, 2, 1, 0] : now === 1 ? [0, 1, 2, 1] : [1, 0, 1, 2];
+          else { const other = now === 0 ? 2 : 0; seq = [other, now, other, now]; }
+          seq.forEach((p, k) => add({ id: `sw-${L}-p${p}-${k + 1}`, dur: 3, what: `Switch ${L} to ${POS_WORD[p]}`, say: `${L} ${POS_WORD[p].toLowerCase()}`, detail: s.role ? `(${s.role})` : "", focus: [`S${L}`], pose: pose({ sw: { [L]: p } }) }));
+        }
+        rest(`rest-sw-${L}`, 3);
+      }
+    }
+
+    const ks = cfg.controls.map((c, i) => ({ ...c, i })).filter((c) => c.use);
+    if (ks.length) {
+      sec = "Knobs";
+      ready("ready-knobs", "Next: knobs, sliders and levers", "Next: the knobs and sliders.", "Each one fully to one end, to the other end, then back to its usual position.");
+      for (const c of ks) {
+        const kv = (v) => { const k = [0, 0, 0, 0]; k[c.i] = v; return k; };
+        add({ id: `k${c.i + 1}-min`, dur: 4, what: `${c.name}: fully to ONE end`, say: `${c.name}, one end`, focus: [`K${c.i}`], pose: pose({ k: kv(-1) }) });
+        add({ id: `k${c.i + 1}-max`, dur: 4, what: `${c.name}: fully to the OTHER end`, say: "Other end", focus: [`K${c.i}`], pose: pose({ k: kv(1) }) });
+        add({ id: `k${c.i + 1}-back`, dur: 4, what: `${c.name}: back to its usual position`, say: "Back to usual", focus: [`K${c.i}`], pose: pose({}) });
+        rest(`rest-k${c.i + 1}`, 3);
+      }
+    }
+
+    if (cfg.gyro) {
+      sec = "Gyro";
+      add({ id: "ready-gyro", kind: "ready", dur: 8, what: "Put the transmitter down, pick up the model", say: "Put the transmitter down. Hold the model level, nose away from you.", detail: "Both hands on the model, level, nose pointing away from you.", pose: pose({}), model: { view: "top", deg: 0 } });
+      const g = [
+        ["gyro-level", 5, "Hold the model LEVEL", "Level", "top", 0],
+        ["gyro-roll-right", 3, "Roll: RIGHT wing down (about 45°)", "Right wing down", "rear", 45],
+        ["gyro-level-1", 3, "Level", "Level", "rear", 0],
+        ["gyro-roll-left", 3, "Roll: LEFT wing down (about 45°)", "Left wing down", "rear", -45],
+        ["gyro-level-2", 3, "Level", "Level", "rear", 0],
+        ["gyro-nose-up", 3, "Nose UP (about 45°)", "Nose up", "side", 45],
+        ["gyro-level-3", 3, "Level", "Level", "side", 0],
+        ["gyro-nose-down", 3, "Nose DOWN (about 45°)", "Nose down", "side", -45],
+        ["gyro-level-4", 3, "Level", "Level", "side", 0],
+        ["gyro-yaw-right", 3, "Turn the nose to the RIGHT, stay flat", "Nose right", "top", 45],
+        ["gyro-back-1", 3, "Back to straight", "Straight", "top", 0],
+        ["gyro-yaw-left", 3, "Turn the nose to the LEFT, stay flat", "Nose left", "top", -45],
+        ["gyro-back-2", 3, "Back to straight", "Straight", "top", 0],
+      ];
+      for (const [id, dur, what, say, view, deg] of g) add({ id, kind: deg ? "move" : "rest", dur, what, say, pose: pose({}), model: { view, deg } });
+      add({ id: "ready-tx", kind: "ready", dur: 8, what: "Put the model down, pick up the transmitter", say: "Put the model down. Pick up the transmitter.", detail: "Throttle stick fully down, hands ready.", pose: pose({}) });
+    }
+
+    sec = "End";
+    signal("signal-end", "End signal: throttle up and down, 3 times");
+    rest("baseline-end", 10, "Hands off: throttle down, sticks centred");
+    return steps;
+  }
+
+  // ---------- Virtual transmitter (Mode 2) ----------
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById("tx");
+  const el = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); (parent || svg).appendChild(n); return n; };
+  const G = {};
+  function drawTx() {
+    svg.textContent = "";
+    el("rect", { class: "tx-body", x: 262, y: 4, width: 36, height: 44, rx: 10 });
+    el("rect", { class: "tx-body", x: 20, y: 30, width: 520, height: 310, rx: 70 });
+    el("rect", { class: "tx-face", x: 44, y: 112, width: 472, height: 210, rx: 50 });
+    // screen
+    el("rect", { class: "tx-screen", x: 212, y: 146, width: 136, height: 84, rx: 8 });
+    const m2 = Number(cfg.mode) !== 1;
+    G.scr1 = el("text", { class: "tx-screen-text", x: 222, y: 168 }); G.scr1.textContent = `MODE ${m2 ? 2 : 1}`;
+    G.scr2 = el("text", { class: "tx-screen-text", x: 222, y: 190 });
+    G.scr3 = el("text", { class: "tx-screen-text", x: 222, y: 212 });
+    // gimbals
+    const gimbal = (id, cx, label) => {
+      const g = el("g", { class: "gimbal", id: `g${id}` });
+      el("rect", { x: cx - 78, y: 140, width: 156, height: 156, rx: 22, fill: "#1a252a", stroke: "#5d727b", "stroke-width": 2 }, g);
+      el("line", { class: "tx-line", x1: cx - 64, y1: 218, x2: cx + 64, y2: 218 }, g);
+      el("line", { class: "tx-line", x1: cx, y1: 154, x2: cx, y2: 282 }, g);
+      const ghost = el("circle", { class: "ghost", cx, cy: 218, r: 20 }, g);
+      const stick = el("circle", { class: "stick", cx, cy: 218, r: 15 }, g);
+      const t = el("text", { class: "tx-small", x: cx, y: 314, "text-anchor": "middle" }); t.textContent = label;
+      return { g, ghost, stick, cx };
+    };
+    G.L = gimbal("L", 132, m2 ? "THR / RUD" : "ELE / RUD");
+    G.R = gimbal("R", 428, m2 ? "ELE / AIL" : "THR / AIL");
+    // trims: [key, x, y, vertical]
+    G.trim = {};
+    const trim = (key, x, y, vertical, label) => {
+      const g = el("g", { id: `trim${key}` });
+      el("rect", vertical ? { class: "trimbar", x: x - 4, y: y - 50, width: 8, height: 100, rx: 4 } : { class: "trimbar", x: x - 50, y: y - 4, width: 100, height: 8, rx: 4 }, g);
+      const dot = el("rect", vertical ? { class: "trimdot", x: x - 7, y: y - 3, width: 14, height: 6, rx: 3 } : { class: "trimdot", x: x - 3, y: y - 7, width: 6, height: 14, rx: 3 }, g);
+      const t = el("text", { class: "tx-small", x: vertical ? x : x + 58, y: vertical ? y + 66 : y + 4, "text-anchor": vertical ? "middle" : "start" }); t.textContent = label;
+      G.trim[key] = { g, dot, x, y, vertical };
+    };
+    trim(m2 ? "t" : "e", 38, 218, true, m2 ? "T" : "E");
+    trim("r", 132, 330, false, "R");
+    trim(m2 ? "e" : "t", 522, 218, true, m2 ? "E" : "T");
+    trim("a", 428, 330, false, "A");
+    // switches A–D left shoulder, E–H right shoulder
+    G.sw = {};
+    LETTERS.forEach((L, i) => {
+      const x = i < 4 ? 72 + i * 40 : 368 + (i - 4) * 40;
+      const g = el("g", { id: `S${L}` });
+      const s = cfg.switches[i];
+      if (s.kind === "btn") {
+        el("circle", { class: "slot", cx: x, cy: 70, r: 13 }, g);
+        G.sw[L] = { g, lever: el("circle", { class: "lever", cx: x, cy: 70, r: 7 }, g), x, btn: true };
+      } else if (s.kind === "none") {
+        el("rect", { class: "slot", x: x - 7, y: 50, width: 14, height: 40, rx: 7, opacity: .25 }, g);
+        G.sw[L] = { g, lever: null, x };
+      } else {
+        el("rect", { class: "slot", x: x - 7, y: 50, width: 14, height: 40, rx: 7 }, g);
+        G.sw[L] = { g, lever: el("circle", { class: "lever", cx: x, cy: 56, r: 6 }, g), x, two: s.kind === "2" };
+      }
+      const t = el("text", { class: "tx-text", x, y: 106, "text-anchor": "middle" }); t.textContent = L;
+    });
+    // knobs
+    G.k = [];
+    for (let i = 0; i < 4; i++) {
+      const x = 231 + i * 33;
+      const g = el("g", { id: `K${i}` });
+      const used = cfg.controls[i] && cfg.controls[i].use;
+      el("circle", { class: "knob", cx: x, cy: 118, r: 12, opacity: used ? 1 : .25 }, g);
+      const mark = el("line", { class: "knob-mark", x1: x, y1: 118, x2: x, y2: 108, opacity: used ? 1 : .25 }, g);
+      const t = el("text", { class: "tx-small", x, y: 142, "text-anchor": "middle" }); t.textContent = `K${i + 1}`;
+      G.k.push({ g, mark, x });
+    }
+  }
+
+  // Current displayed pose (eased towards the target)
+  let shown = null;
+  const ease = (a, b, f) => a + (b - a) * f;
+  function renderTx(target, focus, dt) {
+    if (!shown) shown = JSON.parse(JSON.stringify(target));
+    const f = Math.min(1, dt * 9);
+    for (const k of ["t", "r", "e", "a"]) shown[k] = ease(shown[k], target[k], f);
+    for (const k of ["a", "e", "r", "t"]) shown.trim[k] = ease(shown.trim[k], target.trim[k], f);
+    for (let i = 0; i < 4; i++) shown.k[i] = ease(shown.k[i], target.k[i], f);
+    for (const L of LETTERS) shown.sw[L] = ease(shown.sw[L] ?? 0, target.sw[L] ?? 0, f);
+    const R = 62;
+    const m2 = Number(cfg.mode) !== 1, lv = m2 ? "t" : "e", rv = m2 ? "e" : "t";
+    G.L.stick.setAttribute("cx", G.L.cx + shown.r * R); G.L.stick.setAttribute("cy", 218 - shown[lv] * R);
+    G.L.ghost.setAttribute("cx", G.L.cx + target.r * R); G.L.ghost.setAttribute("cy", 218 - target[lv] * R);
+    G.R.stick.setAttribute("cx", G.R.cx + shown.a * R); G.R.stick.setAttribute("cy", 218 - shown[rv] * R);
+    G.R.ghost.setAttribute("cx", G.R.cx + target.a * R); G.R.ghost.setAttribute("cy", 218 - target[rv] * R);
+    for (const key of ["t", "r", "e", "a"]) {
+      const tr = G.trim[key], v = shown.trim[key] * 42;
+      if (tr.vertical) tr.dot.setAttribute("y", tr.y - 3 - v); else tr.dot.setAttribute("x", tr.x - 3 + v);
+    }
+    for (const L of LETTERS) {
+      const s = G.sw[L]; if (!s.lever) continue;
+      if (s.btn) s.lever.setAttribute("r", 7 - shown.sw[L] * 1.5);
+      else s.lever.setAttribute("cy", 56 + shown.sw[L] * 14);
+    }
+    G.k.forEach((k, i) => { const a = shown.k[i] * 135 * Math.PI / 180; k.mark.setAttribute("x2", k.x + Math.sin(a) * 10); k.mark.setAttribute("y2", 118 - Math.cos(a) * 10); });
+    const ids = new Set(focus);
+    const set = (g, on) => { g.classList.toggle("focus", on); g.classList.toggle("pulse", on); };
+    set(G.L.g, ids.has("L")); set(G.R.g, ids.has("R"));
+    for (const L of LETTERS) set(G.sw[L].g, ids.has(`S${L}`));
+    G.k.forEach((k, i) => set(k.g, ids.has(`K${i}`)));
+    for (const key of ["t", "r", "e", "a"]) set(G.trim[key].g, ids.has(`TR-${key.toUpperCase()}`));
+  }
+  const modelBox = document.getElementById("model");
+  const views = { rear: document.getElementById("mRear"), side: document.getElementById("mSide"), top: document.getElementById("mTop") };
+  function renderModel(m) {
+    modelBox.classList.toggle("on", !!m);
+    svg.style.display = m ? "none" : "block";
+    if (!m) return;
+    for (const v in views) views[v].style.display = v === m.view ? "inline" : "none";
+    // rear view: right wing down = clockwise; side view: nose (right side) up = counter-clockwise; top: nose right = clockwise
+    const deg = m.view === "side" ? -m.deg : m.deg;
+    views[m.view].setAttribute("transform", `translate(200 130) rotate(${deg})`);
+  }
+
+  // ---------- Run engine ----------
+  let steps = build();
+  const total = () => steps.reduce((s, x) => s + x.dur, 0);
+  const st = { phase: "idle", i: 0, stepRun: 0, run: 0, startWall: null, last: 0, events: [] };
+  const $ = (id) => document.getElementById(id);
+  const fmt = (s) => { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+
+  let audio = null;
+  function beep(freq, ms, vol) {
+    if (!$("beep").checked) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.value = freq; g.gain.value = vol || 0.15;
+      o.connect(g); g.connect(audio.destination);
+      o.start(); o.stop(audio.currentTime + ms / 1000);
+    } catch (e) { /* no audio */ }
+  }
+  function say(text) {
+    if (!$("voice").checked || !text) return;
+    try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 1.1; u.lang = "en-GB"; speechSynthesis.speak(u); } catch (e) { /* no speech */ }
+  }
+  let wake = null;
+  async function keepAwake(on) {
+    try {
+      if (on && !wake && navigator.wakeLock) wake = await navigator.wakeLock.request("screen");
+      if (!on && wake) { await wake.release(); wake = null; }
+    } catch (e) { wake = null; }
+  }
+
+  function logEvent(type, extra) {
+    const now = new Date();
+    const ev = Object.assign({ type, wall: now.toISOString(), sinceStart: st.startWall ? Math.round((now - st.startWall) / 100) / 10 : 0, run: Math.round(st.run * 10) / 10 }, extra || {});
+    st.events.push(ev);
+    writeLog();
+  }
+  function writeLog() {
+    const out = {
+      tool: "TLMscope transmitter dry run", format: 1, mode: Number(cfg.mode) === 1 ? 1 : 2,
+      startedAt: st.startWall ? st.startWall.toISOString() : null,
+      timezoneOffsetMinutes: new Date().getTimezoneOffset(),
+      pace: Number(cfg.pace),
+      switches: cfg.switches.map((s) => ({ letter: s.letter, kind: s.kind === "3" ? "3-position" : s.kind === "2" ? "2-position" : s.kind === "btn" ? "button" : "none", startPosition: s.kind === "btn" ? null : POS_WORD[Number(s.now)].toLowerCase(), role: s.role || null })),
+      controls: cfg.controls.filter((c) => c.use).map((c) => c.name),
+      trims: !!cfg.trims, gyro: !!cfg.gyro, rateSwitch: cfg.rate || null,
+      events: st.events,
+    };
+    $("log").value = JSON.stringify(out, null, 1);
+  }
+  function enter(i, how) {
+    st.i = i; st.stepRun = st.run;
+    const s = steps[i];
+    if (!s) return;
+    logEvent("step", { step: i + 1, id: s.id, what: s.what, planned: s.dur, via: how || "auto" });
+    say(s.say);
+    beep(s.kind === "rest" ? 520 : s.kind === "ready" ? 440 : 880, s.kind === "signal" ? 300 : 160);
+    renderSchedule();
+  }
+  function finish() {
+    st.phase = "done";
+    logEvent("finished");
+    say("Done. Power off the model, then the transmitter.");
+    beep(660, 200); setTimeout(() => beep(990, 300), 250);
+    keepAwake(false);
+    $("doneBox").classList.add("on");
+    updateButtons();
+  }
+  function start() {
+    if (st.phase === "idle") {
+      steps = build(); st.events = []; st.run = 0; st.startWall = new Date();
+      st.phase = "run"; $("doneBox").classList.remove("on");
+      logEvent("start", { steps: steps.length, plannedSeconds: total() });
+      enter(0, "start");
+    } else if (st.phase === "paused") { st.phase = "run"; logEvent("resume"); say("Go on"); }
+    else if (st.phase === "run") { st.phase = "paused"; logEvent("pause"); say("Paused"); try { speechSynthesis.cancel(); } catch (e) {} }
+    keepAwake(st.phase === "run");
+    updateButtons();
+  }
+  function jump(d) {
+    if (st.phase === "idle" || st.phase === "done") return;
+    const j = Math.max(0, Math.min(steps.length - 1, st.i + d));
+    logEvent(d > 0 ? "skip" : "back", { from: st.i + 1, to: j + 1 });
+    enter(j, d > 0 ? "skip" : "back");
+  }
+  let resetArmed = 0;
+  function reset() {
+    if (st.phase === "run" || st.phase === "paused" || st.phase === "done") {
+      if (Date.now() - resetArmed > 3000) { resetArmed = Date.now(); $("resetBtn").textContent = "Really reset?"; setTimeout(() => { $("resetBtn").textContent = "Reset"; }, 3000); return; }
+    }
+    resetArmed = 0; $("resetBtn").textContent = "Reset";
+    Object.assign(st, { phase: "idle", i: 0, stepRun: 0, run: 0, startWall: null, events: [] });
+    try { speechSynthesis.cancel(); } catch (e) {}
+    keepAwake(false);
+    $("doneBox").classList.remove("on");
+    steps = build(); shown = null; drawTx(); writeLog(); renderSchedule(); updateButtons();
+  }
+  function updateButtons() {
+    $("startBtn").textContent = st.phase === "run" ? "Pause" : st.phase === "paused" ? "Resume" : st.phase === "done" ? "Finished" : "Start";
+    $("startBtn").disabled = st.phase === "done";
+    $("prevBtn").disabled = $("nextBtn").disabled = !(st.phase === "run" || st.phase === "paused");
+    document.querySelectorAll("#setup select, #setup input").forEach((n) => { n.disabled = st.phase === "run" || st.phase === "paused"; });
+  }
+
+  // ---------- Schedule list ----------
+  function renderSchedule() {
+    const box = $("sched");
+    let html = "", t = 0, sec = null;
+    steps.forEach((s, i) => {
+      if (s.section !== sec) {
+        sec = s.section;
+        const secDur = steps.filter((x) => x.section === sec).reduce((a, x) => a + x.dur, 0);
+        html += `<div class="sec"><span>${sec}</span><span>${fmt(secDur)}</span></div>`;
+      }
+      const cls = ["row", s.kind === "rest" || s.kind === "ready" ? "rest" : "", st.phase !== "idle" && i < st.i ? "done" : "", st.phase !== "idle" && i === st.i ? "cur" : ""].join(" ");
+      html += `<div class="${cls}" data-i="${i}"><span class="t">${fmt(t)}</span><span class="s">${s.what.replace(/</g, "&lt;")}</span><span class="d">${s.dur}s</span></div>`;
+      t += s.dur;
+    });
+    box.innerHTML = html;
+    $("schedSum").textContent = `${steps.length} steps · ${fmt(total())} min`;
+    const cur = box.querySelector(".row.cur");
+    if (cur) box.scrollTop = cur.offsetTop - box.clientHeight / 2 + cur.clientHeight;
+  }
+
+  // ---------- Setup UI ----------
+  function renderSetup() {
+    $("swRows").innerHTML = cfg.switches.map((s, i) => `
+      <tr><td style="font-family: var(--mono); font-weight: 600">${s.letter}</td>
+      <td><select id="swKind${i}" aria-label="Kind of switch ${s.letter}">
+        <option value="3"${s.kind === "3" ? " selected" : ""}>3 positions</option>
+        <option value="2"${s.kind === "2" ? " selected" : ""}>2 positions</option>
+        <option value="btn"${s.kind === "btn" ? " selected" : ""}>Push button</option>
+        <option value="none"${s.kind === "none" ? " selected" : ""}>Not there / skip</option></select></td>
+      <td><select id="swNow${i}" aria-label="Current position of switch ${s.letter}"${s.kind === "btn" || s.kind === "none" ? " disabled" : ""}>
+        <option value="0"${Number(s.now) === 0 ? " selected" : ""}>Up</option>
+        ${s.kind === "3" ? `<option value="1"${Number(s.now) === 1 ? " selected" : ""}>Middle</option>` : ""}
+        <option value="2"${Number(s.now) === 2 ? " selected" : ""}>Down</option></select></td>
+      <td><input type="text" id="swRole${i}" value="${(s.role || "").replace(/"/g, "&quot;")}" placeholder="e.g. throttle hold" aria-label="What switch ${s.letter} does"></td></tr>`).join("");
+    $("kRows").innerHTML = cfg.controls.map((c, i) => `
+      <tr><td><input type="checkbox" id="kUse${i}"${c.use ? " checked" : ""} aria-label="Use control ${i + 1}"></td>
+      <td><input type="text" id="kName${i}" value="${c.name.replace(/"/g, "&quot;")}" aria-label="Name of control ${i + 1}"></td></tr>`).join("");
+    $("optRate").innerHTML = `<option value="">none</option>` + LETTERS.map((L) => `<option value="${L}"${cfg.rate === L ? " selected" : ""}>${L}</option>`).join("");
+    $("optTrims").checked = !!cfg.trims; $("optGyro").checked = !!cfg.gyro; $("optPace").value = String(cfg.pace); $("optMode").value = String(cfg.mode === 1 ? 1 : 2);
+    $("modeLabel").textContent = `Mode ${cfg.mode === 1 ? 1 : 2}`;
+    $("voice").checked = cfg.voice !== false; $("beep").checked = cfg.beep !== false;
+  }
+  function readSetup() {
+    cfg.switches.forEach((s, i) => {
+      s.kind = $(`swKind${i}`).value;
+      let now = Number($(`swNow${i}`).value);
+      if (s.kind === "2" && now === 1) now = 0;
+      s.now = now; s.role = $(`swRole${i}`).value.trim().slice(0, 40);
+    });
+    cfg.controls.forEach((c, i) => { c.use = $(`kUse${i}`).checked; c.name = $(`kName${i}`).value.trim().slice(0, 40) || `Control ${i + 1}`; });
+    cfg.trims = $("optTrims").checked; cfg.gyro = $("optGyro").checked; cfg.rate = $("optRate").value; cfg.pace = Number($("optPace").value) || 1; cfg.mode = Number($("optMode").value) === 1 ? 1 : 2;
+    $("modeLabel").textContent = `Mode ${cfg.mode}`;
+    cfg.voice = $("voice").checked; cfg.beep = $("beep").checked;
+    save();
+  }
+  $("setup").addEventListener("change", (e) => {
+    if (st.phase !== "idle") return;
+    readSetup();
+    if (e.target.id && e.target.id.startsWith("swKind")) renderSetup();
+    steps = build(); shown = null; drawTx(); renderSchedule(); writeLog();
+  });
+  ["voice", "beep"].forEach((id) => $(id).addEventListener("change", () => { cfg.voice = $("voice").checked; cfg.beep = $("beep").checked; save(); }));
+
+  // ---------- Controls ----------
+  $("startBtn").addEventListener("click", start);
+  $("nextBtn").addEventListener("click", () => jump(1));
+  $("prevBtn").addEventListener("click", () => jump(-1));
+  $("resetBtn").addEventListener("click", reset);
+  $("copyBtn").addEventListener("click", () => {
+    const ta = $("log");
+    const done = () => { $("copyState").textContent = "Copied."; setTimeout(() => { $("copyState").textContent = ""; }, 2500); };
+    try {
+      navigator.clipboard.writeText(ta.value).then(done, () => { ta.focus(); ta.select(); $("copyState").textContent = "Selected: press Ctrl+C or ⌘C."; });
+    } catch (e) { ta.focus(); ta.select(); $("copyState").textContent = "Selected: press Ctrl+C or ⌘C."; }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest("input, select, textarea")) return;
+    if (e.code === "Space") { e.preventDefault(); if (st.phase !== "done") start(); }
+    if (e.code === "ArrowRight") jump(1);
+    if (e.code === "ArrowLeft") jump(-1);
+  });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && st.phase === "run") keepAwake(true); });
+
+  // ---------- Frame loop ----------
+  let lastTickSecond = -1;
+  function frame(now) {
+    const dt = st.last ? (now - st.last) / 1000 : 0;
+    st.last = now;
+    if (st.phase === "run") {
+      st.run += dt;
+      const s = steps[st.i];
+      if (st.run - st.stepRun >= s.dur) {
+        if (st.i + 1 < steps.length) enter(st.i + 1); else finish();
+      }
+    }
+    const s = steps[Math.min(st.i, steps.length - 1)];
+    const elapsed = st.phase === "idle" ? 0 : Math.min(s.dur, st.run - st.stepRun);
+    const left = s.dur - elapsed;
+    const u = s.dur ? elapsed / s.dur : 1;
+    const target = s.anim && st.phase !== "idle" ? s.anim(u) : (s.pose || basePose());
+    renderTx(target, st.phase === "idle" ? [] : s.focus, dt);
+    renderModel(st.phase === "idle" || st.phase === "done" ? null : s.model);
+    if (st.phase === "idle") {
+      $("what").textContent = "Press Start when you are ready";
+      $("detail").textContent = "Check the list under “Before you start” first. The orange ring shows where a control has to go.";
+      $("count").textContent = "–"; $("next").textContent = `First: ${steps[0].what}`;
+      G.scr2.textContent = `${steps.length} STEPS`; G.scr3.textContent = fmt(total());
+    } else if (st.phase === "done") {
+      $("what").textContent = "Done"; $("detail").textContent = "Power off the model, then the transmitter. Copy the run log."; $("count").textContent = "✓"; $("next").textContent = "";
+      G.scr2.textContent = "DONE"; G.scr3.textContent = "";
+    } else {
+      $("what").textContent = s.what;
+      $("detail").textContent = (s.detail || "") + (st.phase === "paused" ? " · Paused" : "");
+      const n = steps[st.i + 1];
+      $("next").textContent = n ? `Next: ${n.what}` : "Next: done";
+      const c = Math.ceil(left);
+      $("count").textContent = String(c);
+      $("count").classList.toggle("hot", s.kind !== "rest" && s.kind !== "ready");
+      G.scr2.textContent = `STEP ${st.i + 1}/${steps.length}`;
+      G.scr3.textContent = `${s.id.toUpperCase().slice(0, 13)} ${c}s`;
+      if (st.phase === "run" && c <= 3 && c > 0 && c !== lastTickSecond && s.dur >= 5) { beep(330, 60, 0.08); }
+      lastTickSecond = c;
+    }
+    $("stepBar").style.width = `${Math.round(u * 100)}%`;
+    const before = steps.slice(0, st.i).reduce((a, x) => a + x.dur, 0);
+    const doneSecs = st.phase === "idle" ? 0 : st.phase === "done" ? total() : before + elapsed;
+    $("totalBar").style.width = `${Math.round((doneSecs / total()) * 100)}%`;
+    $("stepNo").textContent = st.phase === "idle" ? `Step 0 of ${steps.length}` : `Step ${Math.min(st.i + 1, steps.length)} of ${steps.length} · ${s.section}`;
+    $("clock").textContent = `${fmt(doneSecs)} / ${fmt(total())}`;
+    requestAnimationFrame(frame);
+  }
+
+  renderSetup(); drawTx(); renderSchedule(); writeLog(); updateButtons();
+  requestAnimationFrame(frame);
+})();
+</script>

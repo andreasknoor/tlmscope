@@ -56,3 +56,6 @@ __pycache__/
 docs/outreach.md
 docs/seo-plan.md
 docs/competitive-analysis-log-explorer.md
+
+# generated from prototype/dry-run.html by cli/make-debug-page.ts
+/public/debug.html

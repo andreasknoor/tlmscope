@@ -1,6 +1,6 @@
 {
   "name": "tlmscope",
-  "version": "1.62.0",
+  "version": "1.63.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -14,8 +14,8 @@
     "inspect": "node cli/inspect.ts",
     "docs": "node cli/docs.ts",
     "demo": "node cli/make-demo.ts",
-    "predev": "node cli/copy-maplibre-worker.ts",
-    "prebuild": "node cli/copy-maplibre-worker.ts"
+    "predev": "node cli/copy-maplibre-worker.ts && node cli/make-debug-page.ts",
+    "prebuild": "node cli/copy-maplibre-worker.ts && node cli/make-debug-page.ts"
   },
   "dependencies": {
     "@deck.gl/core": "^9.4.1",
