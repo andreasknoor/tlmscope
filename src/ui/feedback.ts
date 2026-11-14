@@ -53,9 +53,10 @@ export function feedbackContext(o: { files: LogFile[]; locale: Locale; device: "
 /**
  * The address of the form for the iframe. Tally fills hidden fields from query parameters of the same name.
  * Without a context (the user switched it off) only the display options are in the address.
+ * The form keeps its own light background: its labels are drawn for it, so a transparent one is unreadable in dark mode.
  */
 export function feedbackUrl(locale: Locale, ctx: FeedbackContext | null): string {
-  const q = new URLSearchParams({ alignLeft: "1", hideTitle: "1", transparentBackground: "1" });
+  const q = new URLSearchParams({ alignLeft: "1", hideTitle: "1" });
   if (ctx) for (const [k, v] of Object.entries(ctx)) q.set(k, v);
   return `https://tally.so/embed/${FEEDBACK_FORMS[locale]}?${q}`;
 }

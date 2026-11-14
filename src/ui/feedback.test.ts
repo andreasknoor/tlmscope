@@ -17,7 +17,7 @@ describe("feedback", () => {
 
   it("passes exactly the five agreed fields and no content of a log", () => {
     const url = new URL(feedbackUrl("de", ctxOf()));
-    expect([...url.searchParams.keys()].sort()).toEqual(["alignLeft", "device", "hideTitle", "locale", "sensors", "transparentBackground", "version", "where"]);
+    expect([...url.searchParams.keys()].sort()).toEqual(["alignLeft", "device", "hideTitle", "locale", "sensors", "version", "where"]);
     expect(url.searchParams.get("version")).toBe("1.58");
     expect(url.searchParams.get("where")).toBe("sessions/link · tab");
     // The demo log has a model name, a file name and a GPS track: none of them may be in the address.
@@ -31,7 +31,7 @@ describe("feedback", () => {
 
   it("sends no context at all when the user switched it off", () => {
     const url = new URL(feedbackUrl("en", null));
-    expect([...url.searchParams.keys()].sort()).toEqual(["alignLeft", "hideTitle", "transparentBackground"]);
+    expect([...url.searchParams.keys()].sort()).toEqual(["alignLeft", "hideTitle"]);
   });
 
   it("passes on only sensor type codes, never other source keys", () => {

@@ -185,7 +185,8 @@ kbd { font: 500 11px var(--code); border: 1px solid var(--line); border-bottom-w
 .fbdlg .ctx dd { margin: 0; font-family: var(--code); font-size: 13px; overflow-wrap: anywhere; }
 @media (max-width: 600px) { .fbdlg .ctx { grid-template-columns: minmax(0, 1fr); gap: 0; } .fbdlg .ctx dd { margin-bottom: 8px; } }
 .fbdlg .check { display: flex; gap: 8px; align-items: center; font-weight: 600; cursor: pointer; }
-.fbdlg iframe { width: 100%; height: min(60vh, 470px); border: 0; border-radius: 10px; background: transparent; color-scheme: normal; }
+/* The form is a light card in both themes (it is drawn for a light background). */
+.fbdlg iframe { width: 100%; height: min(60vh, 470px); border: 1px solid var(--line); border-radius: 10px; background: #fff; color-scheme: light; }
 .linkbtn.inline { font-size: inherit; display: inline; }
 .linkbtn { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 600; cursor: pointer; font-size: 13.5px; text-decoration: underline; text-underline-offset: 2px; }
 .navbtns { display: flex; gap: 6px; margin-left: auto; }
