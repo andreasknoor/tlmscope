@@ -136,12 +136,12 @@ function Spark({ e }: { e: Entry }) {
 
 function Sidebar() {
   const t = useTranslations();
-  const { entries, visible, selected, select, step, settings, setSettings, addFiles, files, closeFile, closeAll, models, modelFilter } = useStore();
+  const { entries, visible, selected, select, step, settings, filter, setFilter, addFiles, files, closeFile, closeAll, models, modelFilter } = useStore();
   const modelName = useModelName();
   const airtime = useAirtime();
   const multi = models.length > 1;
   const kindEntries = modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter);
-  const count = (m: string | null) => entries.filter((e) => (m === null || e.model.key === m) && (settings.filter === "all" || e.a.kind === "flight")).length;
+  const count = (m: string | null) => entries.filter((e) => (m === null || e.model.key === m) && (filter === "all" || e.a.kind === "flight")).length;
   const [over, setOver] = useState(false);
   // The list scrolls on its own: keep the chosen session in view (arrow keys, buttons, links).
   const list = useRef<HTMLDivElement>(null);
@@ -157,7 +157,7 @@ function Sidebar() {
   };
   useEffect(() => {
     list.current?.querySelector<HTMLElement>('[aria-current="true"]')?.scrollIntoView({ block: "nearest" });
-  }, [selected?.key, settings.filter, modelFilter]);
+  }, [selected?.key, filter, modelFilter]);
   const input = useRef<HTMLInputElement>(null);
   const loc = settings.locale;
   const U = useUnits();
@@ -197,8 +197,8 @@ function Sidebar() {
       <div className="sidehead">
         <h2>{t("app.sessions")}</h2>
         <div className="seg" role="group" aria-label={t("app.sessions")}>
-          <button aria-pressed={settings.filter === "flights"} onClick={() => setSettings({ filter: "flights" })}>{t("app.flights", { n: kindEntries.filter((e) => e.a.kind === "flight").length })}</button>
-          <button aria-pressed={settings.filter === "all"} onClick={() => setSettings({ filter: "all" })}>{t("app.all", { n: kindEntries.length })}</button>
+          <button aria-pressed={filter === "flights"} onClick={() => setFilter("flights")}>{t("app.flights", { n: kindEntries.filter((e) => e.a.kind === "flight").length })}</button>
+          <button aria-pressed={filter === "all"} onClick={() => setFilter("all")}>{t("app.all", { n: kindEntries.length })}</button>
         </div>
       </div>
       {multi && (

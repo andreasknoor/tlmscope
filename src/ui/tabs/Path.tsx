@@ -82,8 +82,8 @@ function GpsView() {
       <div className="grid g4">
         <Tile label={t("path.farthest")} value={U.n("distance", tr.maxDistanceM)} unit={` ${U.u("distance")}`} />
         <Tile label={t("path.distance")} value={U.n("longDistance", tr.pathLengthM, 2)} unit={` ${U.u("longDistance")}`} />
-        <Tile label={t("path.typicalSpeed")} value={U.n("speed", tr.medianSpeed ?? 0)} unit={` ${U.u("speed")}`} sub={t("path.overGround")} />
-        <Tile label={t("path.topSpeed")} value={U.n("speed", tr.maxSpeed ?? 0)} unit={` ${U.u("speed")}`} sub={t("path.overGround")} />
+        <Tile label={t("path.typicalSpeed")} value={tr.medianSpeed === null ? "–" : U.n("speed", tr.medianSpeed)} unit={tr.medianSpeed === null ? "" : ` ${U.u("speed")}`} sub={t("path.overGround")} />
+        <Tile label={t("path.topSpeed")} value={tr.maxSpeed === null ? "–" : U.n("speed", tr.maxSpeed)} unit={tr.maxSpeed === null ? "" : ` ${U.u("speed")}`} sub={t("path.overGround")} />
       </div>
       <div id="map" className={`mapgroup${full ? " full" : ""}`} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("path.map") : undefined}>
       <div className="chart">

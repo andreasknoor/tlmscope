@@ -118,7 +118,10 @@ export const minOf = (a: readonly (number | null)[]): number | null => {
   return m;
 };
 export const sumOf = (a: Series): number => a.reduce<number>((s, v) => s + (v ?? 0), 0);
+/** Median; for an even count the mean of the two middle values. */
 export const medianOf = (a: Series): number | null => {
   const v = valid(a).sort((x, y) => x - y);
-  return v.length ? v[Math.floor(v.length / 2)] : null;
+  if (!v.length) return null;
+  const mid = v.length >> 1;
+  return v.length % 2 ? v[mid] : (v[mid - 1] + v[mid]) / 2;
 };

@@ -88,7 +88,7 @@ export const CATALOGUE: CatalogueEntry[] = [
   // gps
   e("gps.lat", "°", "gps", "Latitude", "Breitengrad", "Latitude, WGS84, north positive."),
   e("gps.lon", "°", "gps", "Longitude", "Längengrad", "Longitude, WGS84, east positive."),
-  e("gps.altitude", "m", "gps", "GPS altitude", "GPS-Höhe", "Altitude above sea level from GPS."),
+  e("gps.altitude", "m", "gps", "GPS altitude", "GPS-Höhe", "Altitude reported by the GPS sensor. In the logs checked it equals the vario height, relative to the take-off spot, not the height above sea level."),
   e("gps.satellites", "count", "gps", "Satellites", "Satelliten", "Number of satellites in use."),
   e("gps.fix", "", "gps", "GPS fix", "GPS-Fix", "Fix state.", { kind: "categorical" }),
   e("gps.hdop", "", "gps", "HDOP", "HDOP", "Horizontal dilution of precision. Lower is better."),

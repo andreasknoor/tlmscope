@@ -37,15 +37,18 @@ describe.skipIf(!hasSamples)("flight profile (same results as the prototype)", (
   });
 
   it("measures airtime from first to last moment above 3 m", () => {
-    expect(FLIGHTS.map((i) => value(flight(i).profile).airtimeS)).toEqual([381, 723, 258, 326, 148]);
+    // Both the first and the last second count, so one more than the difference of the two (it was 381, 723, 258, 326, 148).
+    expect(FLIGHTS.map((i) => value(flight(i).profile).airtimeS)).toEqual([382, 724, 259, 327, 149]);
   });
 
   it("compares climb efficiency with the median of the same model", () => {
     expect(logs().baselines.get("easy glider 4")!.efficiency).toBeCloseTo(49.8, 1);
-    expect(flight(15).baseline!.efficiency).toBeCloseTo(49.8, 1);
+    // The other four flights give an even count: the median is the mean of the two middle values (46.1 and 49.8), not the upper one.
+    expect(flight(15).baseline!.efficiency).toBeCloseTo(47.93, 1);
     expect(flight(15).efficiency!.level).toBe(4); // 62 m per 100 mAh: better than usual
-    // 40 m per 100 mAh against the other four flights (not itself): well below usual
-    expect(flight(29).efficiency!.level).toBe(1);
+    // 40 m per 100 mAh against the other four flights (not itself). Their median is the mean of the two middle
+    // values, 56 m (it was the upper one, 62 m, and the level 1): 40 / 56 = 0.71 is just above the limit of 0.7.
+    expect(flight(29).efficiency!.level).toBe(2);
     expect(flight(29).baseline!.flights).toBe(4);
   });
 

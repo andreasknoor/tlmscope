@@ -63,6 +63,10 @@ export interface Store {
   view: View;
   tab: Tab;
   settings: Settings;
+  /** The session list filter in effect: the saved choice, or "all" for now after opening a session that is not a flight. */
+  filter: Settings["filter"];
+  /** Sets and saves the filter. */
+  setFilter(f: Settings["filter"]): void;
   /** Models in the loaded files, in order of first session. */
   models: Model[];
   /** Key of the model the session list is limited to; null for all models. */

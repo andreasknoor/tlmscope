@@ -221,7 +221,7 @@ Ids may also be `stick.*`, `switch.*` (control inputs) or `raw:*` (decoded but u
 | `attitude.yaw` | ° | numeric | motion | Heading-like yaw angle from a flight controller. |
 | `gps.lat` | ° | numeric | gps | Latitude, WGS84, north positive. |
 | `gps.lon` | ° | numeric | gps | Longitude, WGS84, east positive. |
-| `gps.altitude` | m | numeric | gps | Altitude above sea level from GPS. |
+| `gps.altitude` | m | numeric | gps | Altitude reported by the GPS sensor. In the logs checked it equals the vario height, relative to the take-off spot, not the height above sea level. |
 | `gps.satellites` | count | numeric | gps | Number of satellites in use. |
 | `gps.fix` | – | categorical | gps | Fix state. |
 | `gps.hdop` | – | numeric | gps | Horizontal dilution of precision. Lower is better. |

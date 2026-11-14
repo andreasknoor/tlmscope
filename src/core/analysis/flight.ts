@@ -56,8 +56,8 @@ export const FLIGHT = {
   liftMotorOffS: 8,
   /** … for at least this long (s). */
   liftMinS: 10,
-  /** Climbs shorter than this (s) are throttle blips. */
-  climbMinS: 2,
+  /** Motor runs shorter than this (s, first and last second included) are throttle blips. */
+  climbMinS: 3,
   /**
    * Sinking faster than this (m/s, median with the motor off) is not a glide: a powered model diving
    * and flying figures. Its motor-off time is then shown as "motor off", without glide values.
@@ -227,9 +227,10 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
     });
     // Short pieces are noise: a short lift is glide, a short motor climb or motor-on piece joins its neighbour.
     const first = runs(raw).map((p, k, all) => {
-      const len = p.end - p.start;
-      if (p.kind === "lift" && len < FLIGHT.liftMinS) return { ...p, kind: "glide" as PhaseKind };
-      if ((p.kind === "motor" || p.kind === "powered") && len < FLIGHT.climbMinS && all[k - 1]?.kind !== "ground") {
+      // Both ends count: a piece from second 10 to 19 lasts 10 s.
+      const secs = p.end - p.start + 1;
+      if (p.kind === "lift" && secs < FLIGHT.liftMinS) return { ...p, kind: "glide" as PhaseKind };
+      if ((p.kind === "motor" || p.kind === "powered") && secs < FLIGHT.climbMinS && all[k - 1]?.kind !== "ground") {
         const nb = all[k - 1]?.kind ?? all[k + 1]?.kind;
         if (nb === "motor" || nb === "powered") return { ...p, kind: nb };
         return { ...p, kind: (alt ? "glide" : "unpowered") as PhaseKind };
@@ -251,18 +252,29 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
     const runLabels = Array.from({ length: n }, (_, i) => (motorMerged[i] ? "m" : inAir(i) ? "a" : "g"));
     const reachesAir = (p: { start: number; end: number }) => airStart === null || (p.end >= airStart && p.start <= airEnd!);
     const motorRuns = runs(runLabels)
-      .filter((p, k, all) => p.kind === "m" && !(p.end - p.start < FLIGHT.climbMinS && all[k - 1]?.kind !== "g") && reachesAir(p))
+      .filter((p, k, all) => p.kind === "m" && !(p.end - p.start + 1 < FLIGHT.climbMinS && all[k - 1]?.kind !== "g") && reachesAir(p))
       .map(({ start, end }) => ({ start, end }));
+    // The height where a climb or lift starts is the first known value in it: with the first second missing,
+    // 0 m as the start would make the gain the absolute height.
+    const knownFrom = (from: number, to: number): number | null => {
+      for (let i = from; i <= Math.min(n - 1, to); i++) if (alt![i] !== null) return alt![i];
+      return null;
+    };
+    const knownUpTo = (from: number, to: number): number | null => {
+      for (let i = Math.min(n - 1, to); i >= from; i--) if (alt![i] !== null) return alt![i];
+      return null;
+    };
     const climbs: Climb[] = !alt ? [] : motorRuns.map((p) => {
-      const a0 = alt[p.start] ?? 0;
-      let top = a0;
+      const a0 = knownFrom(p.start, p.end + 8);
+      let top = a0 ?? 0;
       for (let i = p.start; i <= Math.min(n - 1, p.end + 8); i++) if (alt[i] !== null) top = Math.max(top, alt[i]!);
+      const gainM = a0 === null ? 0 : top - a0;
       const mah = g.has("motor_current") ? sumOf(amps.slice(p.start, p.end + 1)) / 3.6 : null;
-      return { kind: "motor", start: p.start, end: p.end, gainM: top - a0, mah, mPer100mAh: mah !== null && mah > 5 ? ((top - a0) / mah) * 100 : null };
+      return { kind: "motor", start: p.start, end: p.end, gainM, mah, mPer100mAh: mah !== null && mah > 5 ? (gainM / mah) * 100 : null };
     });
     const lifts: Lift[] = !alt ? [] : phases.filter((p) => p.kind === "lift").map((p) => {
-      const a0 = alt[p.start] ?? 0;
-      return { kind: "lift", start: p.start, end: p.end, gainM: (alt[p.end] ?? a0) - a0 };
+      const a0 = knownFrom(p.start, p.end);
+      return { kind: "lift", start: p.start, end: p.end, gainM: a0 === null ? 0 : (knownUpTo(p.start, p.end) ?? a0) - a0 };
     });
     const glideIdx: number[] = [];
     if (alt) for (let i = 0; i < n; i++) if (raw[i] === "glide" && (alt[i] ?? 0) > 5) glideIdx.push(i);
@@ -274,14 +286,15 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
     for (const p of phases) for (let i = p.start; i <= p.end; i++) phaseAt[i] = p.kind;
     const climbMah = climbs.reduce((s, c) => s + (c.mah ?? 0), 0);
     const climbGain = climbs.reduce((s, c) => s + c.gainM, 0);
-    const airtimeS = airStart === null ? 0 : airEnd! - airStart;
+    // Seconds in the air, first and last second included (like the lift seconds); the charge rate below uses the interval between the two readings.
+    const airtimeS = airStart === null ? 0 : airEnd! - airStart + 1;
 
     // charge per minute in the air, from the consumed-charge channel
     let mahPerMin: number | null = null;
     if (airStart !== null && airtimeS >= 60 && g.has("consumed_mah")) {
       const used = g.filled("consumed_mah", "last");
       const a = used[airStart], b = used[airEnd!];
-      if (a !== null && b !== null && b > a) mahPerMin = (b - a) / (airtimeS / 60);
+      if (a !== null && b !== null && b > a) mahPerMin = (b - a) / ((airEnd! - airStart) / 60);
     }
 
     return {

@@ -75,6 +75,8 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const [settings, setSettingsState] = useState<Settings>({ ...DEFAULTS, locale: initialLocale });
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [modelChoice, setModelChoice] = useState<string | null>(null);
+  /** "All sessions" for now: set when a session that is not a flight is opened, never saved (the saved filter stays as the user chose it). */
+  const [showAll, setShowAll] = useState(false);
   const [view, setView] = useState<View>("sessions");
   const [tab, setTabState] = useState<Tab>("overview");
   /** Tab chosen by the user (counted); `select` sets tabs without counting. */
@@ -154,8 +156,11 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   // A filter for a model that is no longer loaded shows all models.
   const modelFilter = modelChoice !== null && models.some((m) => m.key === modelChoice) ? modelChoice : null;
   const hasFlights = entries.some((e) => e.a.kind === "flight");
-  const visible = useMemo(() => entries.filter((e) => (settings.filter === "all" || !hasFlights || e.a.kind === "flight") && (modelFilter === null || e.model.key === modelFilter)),
-    [entries, settings.filter, hasFlights, modelFilter]);
+  const filter = showAll ? "all" : settings.filter;
+  const visible = useMemo(() => entries.filter((e) => (filter === "all" || !hasFlights || e.a.kind === "flight") && (modelFilter === null || e.model.key === modelFilter)),
+    [entries, filter, hasFlights, modelFilter]);
+  /** The user's choice: saved, and it ends a temporary "all". */
+  const setFilter = useCallback((f: Settings["filter"]) => { setShowAll(false); setSettings({ filter: f }); }, [setSettings]);
   // Without an explicit choice: the latest flight, else the latest session.
   const selected = entries.find((e) => e.key === selectedKey) ?? (hasFlights ? entries.filter((e) => e.a.kind === "flight").at(-1) : entries.at(-1)) ?? null;
 
@@ -177,10 +182,10 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     setSelectedKey(key);
     setView("sessions");
     const entry = entries.find((e) => e.key === key);
-    if (entry && entry.a.kind !== "flight") setSettings({ filter: "all" });
+    if (entry && entry.a.kind !== "flight") setShowAll(true);
     if (entry && modelFilter !== null && entry.model.key !== modelFilter) setModelChoice(null);
     history.replaceState(null, "", `#s-${key}`);
-  }, [entries, setSettings, modelFilter]);
+  }, [entries, modelFilter]);
 
   /** Limits the list to one model; keeps the session if it fits, else shows the model's latest flight. */
   const setModelFilter = useCallback((key: string | null) => {
@@ -190,9 +195,9 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     const next = own.filter((e) => e.a.kind === "flight").at(-1) ?? own.at(-1);
     if (!next) return;
     setSelectedKey(next.key);
-    if (next.a.kind !== "flight") setSettings({ filter: "all" });
+    if (next.a.kind !== "flight") setShowAll(true);
     history.replaceState(null, "", `#s-${next.key}`);
-  }, [entries, selected, setSettings]);
+  }, [entries, selected]);
 
   const go = useCallback((v: View) => {
     setView(v);
@@ -264,7 +269,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     const rest = files.filter((f) => f.fileName !== fileName);
     setFiles(rest);
     setSelectedKey(null);
-    if (!rest.length) { setView("sessions"); setMessages([]); }
+    if (!rest.length) { setView("sessions"); setMessages([]); setShowAll(false); }
     history.replaceState(null, "", rest.length && view !== "sessions" ? `#${view}` : location.pathname);
   }, [files, view]);
 
@@ -273,6 +278,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     setSelectedKey(null);
     setView("sessions");
     setMessages([]);
+    setShowAll(false);
     history.replaceState(null, "", location.pathname);
   }, []);
 
@@ -289,7 +295,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   }, [view, step]);
 
   const store: Store = {
-    files, analysis, entries, selected, view, tab, settings, visible, models, modelFilter, setModelFilter,
+    files, analysis, entries, selected, view, tab, settings, filter, setFilter, visible, models, modelFilter, setModelFilter,
     demo: files.some((f) => f.fileName === DEMO_FILE),
     setTab, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll,
     openHelp: () => helpRef.current?.showModal(),
