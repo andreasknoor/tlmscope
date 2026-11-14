@@ -61,6 +61,12 @@ export default function LegalPage() {
           Dabei erhält dieser Dienst wie jede Website deine IP-Adresse und den angefragten Kartenausschnitt, also ungefähr die Gegend des Flugs. Deine Log-Datei wird nicht übertragen.
           Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (Darstellung der Karte, die du aufrufst).
         </p>
+        <p>
+          Nur wenn du im Tab „Flugweg“ zusätzlich „Relief (Beta)“ einschaltest, lädt die Karte Höhendaten (Kacheln mit Geländehöhen) aus einem öffentlichen Datensatz, der bei Amazon Web Services (Amazon S3, s3.amazonaws.com) liegt, Server in den USA.
+          Dabei erhält der Dienst wie jede Website deine IP-Adresse und die angefragten Kartenausschnitte, also ungefähr die Gegend des Flugs. Deine Log-Datei wird nicht übertragen.
+          Die Daten stammen aus dem Terrain-Datensatz von Mapzen/Tilezen ({ext("https://github.com/tilezen/joerd/blob/master/docs/attribution.md", "Quellenangaben")}).
+          Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (Darstellung des Reliefs, das du einschaltest).
+        </p>
 
         <h2>5. Besucherzählung (Umami)</h2>
         <p>
@@ -150,6 +156,12 @@ export default function LegalPage() {
           Only when you open a log with GPS data and go to the Flight path tab, the map loads map images from OpenFreeMap ({ext("https://openfreemap.org")}, server tiles.openfreemap.org).
           Like any website, that service receives your IP address and the requested map area, so roughly where the flight was. Your log file is not sent.
           Legal basis: Art. 6(1)(f) GDPR (showing the map you asked for).
+        </p>
+        <p>
+          Only if you also switch on “Relief (beta)” in the Flight path tab, the map loads elevation data (tiles with terrain heights) from a public data set hosted by Amazon Web Services (Amazon S3, s3.amazonaws.com), servers in the USA.
+          Like any website, that service receives your IP address and the requested map area, so roughly where the flight was. Your log file is not sent.
+          The data comes from the Mapzen/Tilezen terrain data set ({ext("https://github.com/tilezen/joerd/blob/master/docs/attribution.md", "sources")}).
+          Legal basis: Art. 6(1)(f) GDPR (showing the relief you switched on).
         </p>
 
         <h2>5. Visitor count (Umami)</h2>

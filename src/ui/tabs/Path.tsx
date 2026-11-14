@@ -1,5 +1,6 @@
 "use client";
 
+import { attitudeFromPath } from "@/core/analysis";
 import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useOnline } from "../offline";
@@ -45,6 +46,10 @@ function GpsView() {
   const [pathMode, setPathMode] = useState<PathMode>("full");
   const [markerStyle, setMarkerStyle] = useState<MarkerStyle>("plane");
   const [shadow, setShadow] = useState(true);
+  const [relief, setRelief] = useState(false);
+  const [chase, setChase] = useState(false);
+  /** Height of the model above the ground below it, reported by the map while the relief or chase view is on. */
+  const [agl, setAgl] = useState<number | null>(null);
   const [marker, setMarker] = useState<number | null>(null);
   // Full screen: map and replay fill the browser window. Esc closes; the page behind does not scroll.
   const [full, setFull] = useState(false);
@@ -74,6 +79,8 @@ function GpsView() {
   const followSeries = useMemo(() => hasHeight
     ? [{ data: U.series("height", alt), color: "--s-alt", unit: U.u("height"), fill: 0.12 }]
     : [{ data: g.get(thrId), color: "--s-motor", unit: "%", fill: 0.15 }], [hasHeight, alt, g, thrId, U]);
+  const course = useMemo(() => attitudeFromPath(tr?.east ?? [], tr?.north ?? [], alt).heading, [tr, alt]);
+  const climbSeries = g.get("climb_rate");
   const distSeries = useMemo(() => [{ data: U.series("distance", tr?.distance ?? []), color: "--s-5", unit: U.u("distance"), digits: 0, fill: 0.1 }], [tr, U]);
   if (!tr) return null;
 
@@ -112,10 +119,23 @@ function GpsView() {
             <select className="mapselect" aria-label={t("path.marker")} value={markerStyle} onChange={(ev) => setMarkerStyle(ev.target.value as MarkerStyle)}>
               {MARKER_STYLES.map((k) => <option key={k} value={k}>{t(`path.marker_${k}`)}</option>)}
             </select>
-            <div className="seg"><button aria-pressed={shadow} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
+            <div className="seg"><button aria-pressed={shadow && !relief} disabled={relief} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
+            <div className="seg" role="group">
+              <button aria-pressed={relief} onClick={() => setRelief(!relief)} title={t("path.reliefHint")}>{t("path.relief")}</button>
+              <button aria-pressed={chase} onClick={() => { setChase(!chase); if (!chase && pitch === 0) setPitch(55); }} title={t("path.chaseHint")}>{t("path.chase")}</button>
+            </div>
           </div>}
           <div className="mapwrap">
-            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} failedText={t("path.mapFailed")} />}
+            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} relief={relief} chase={chase} onChaseEnd={() => setChase(false)} onGround={setAgl} failedText={t("path.mapFailed")} />}
+            {online && (relief || chase) && marker !== null && (
+              <div className="hud" aria-label={t("path.hud")}>
+                <div><span>{t("path.hudHeight")}</span><b>{U.fmt("height", Math.max(0, alt[marker] ?? 0))}</b></div>
+                {agl !== null && <div><span>{t("path.hudAgl")}</span><b>{U.fmt("height", agl)}</b></div>}
+                <div><span>{t("path.hudSpeed")}</span><b>{tr.speed[marker] != null ? U.fmt("speed", tr.speed[marker]!) : "–"}</b></div>
+                <div><span>{t("path.hudClimb")}</span><b>{climbSeries[marker] != null ? U.fmt("vspeed", climbSeries[marker]!, 1) : "–"}</b></div>
+                <div><span>{t("path.hudCourse")}</span><b>{Number.isFinite(course[marker]) ? `${Math.round((course[marker] + 360) % 360)}°` : "–"}</b></div>
+              </div>
+            )}
           </div>
         </div>
         {!online ? null : colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />
