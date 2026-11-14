@@ -15,7 +15,8 @@ export type AppEvent =
   | { name: "file-opened"; format: string; size: SizeBucket }
   | { name: "file-error"; kind: "unsupported" | "read-error" | "too-large" }
   | { name: "view-error"; view: string }
-  | { name: "tab-opened"; tab: string };
+  | { name: "tab-opened"; tab: string }
+  | { name: "feedback-opened"; from: "header" | "rating" | "tab" | "error" | "start" };
 
 export type SizeBucket = "<1 MB" | "1-10 MB" | ">10 MB";
 

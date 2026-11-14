@@ -68,16 +68,32 @@ export default function LegalPage() {
           Umami setzt keine Cookies und speichert keine IP-Adressen. Erfasst werden die aufgerufene Seite (ohne die Teile hinter „#“ und „?“), die verweisende Seite,
           Browser, Betriebssystem, Gerätetyp, Bildschirmgröße, Sprache und das aus der IP-Adresse abgeleitete Land. Daraus entstehen nur zusammengefasste Statistiken;
           einzelne Besucher lassen sich damit nicht identifizieren. Außerdem zähle ich einige Bedienschritte ohne Bezug zum Inhalt: Demo geladen, Datei geöffnet
-          (nur Dateiformat und grobe Größenklasse), Datei konnte nicht gelesen werden (nur die Art des Fehlers), Ansicht konnte nicht angezeigt werden und welcher Tab geöffnet wurde.
+          (nur Dateiformat und grobe Größenklasse), Datei konnte nicht gelesen werden (nur die Art des Fehlers), Ansicht konnte nicht angezeigt werden, welcher Tab geöffnet wurde und von welcher Stelle der App aus das Feedback-Formular geöffnet wurde (ohne Inhalt).
           Namen, Inhalte oder Werte deiner Log-Dateien werden nicht übertragen.
           Wenn dein Browser „Do Not Track“ sendet, wird nichts gezählt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer anonymen Nutzungsstatistik).
           Die Daten können in die USA übermittelt werden.
         </p>
 
-        <h2>6. Schriften</h2>
+        <h2>6. Feedback-Formular (Tally)</h2>
+        <p>
+          Wenn du über die Schaltfläche „Feedback“ Rückmeldung geben möchtest, lädt TLMscope das Formular von Tally ({ext("https://tally.so")}), einem Dienst mit Sitz in Belgien. Das geschieht erst,
+          nachdem du im Dialog auf „Weiter zum Formular“ geklickt hast. Vorher findet keine Verbindung zu Tally statt. Tally erhält dabei wie jede Website deine IP-Adresse
+          und verarbeitet die Daten, die du eingibst: deine Nachricht, optional deine E-Mail-Adresse, wenn du eine Antwort möchtest, und &ndash; solange du das Häkchen nicht entfernst &ndash; die im Dialog angezeigten technischen Angaben
+          (App-Version, Sprache, Handy oder Computer, die Stelle in der App und die Codes der Sensortypen in deinen Dateien).
+          Log-Dateien, Dateinamen, Modellnamen, Positionen, Akku-IDs und Flugwerte werden nicht übertragen.
+        </p>
+        <p>
+          Ich nutze die Angaben, um deine Rückmeldung zu lesen, TLMscope zu verbessern und dir zu antworten. Die Meldung wird mir per E-Mail zugestellt.
+          Ich speichere sie nur so lange, wie ich sie dafür brauche, und lösche sie danach.
+          Nach Angaben von Tally werden die Daten auf Servern in der Europäischen Union gespeichert; Tally verarbeitet sie in meinem Auftrag ({ext("https://tally.so/help/data-processing-agreement", "Auftragsverarbeitungsvertrag")}, {ext("https://tally.so/help/privacy-policy", "Datenschutzerklärung von Tally")}).
+          Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du durch das Laden und Absenden des Formulars erteilst. Die Angaben sind freiwillig; du kannst die Einwilligung jederzeit
+          mit Wirkung für die Zukunft widerrufen, indem du mir an die oben genannte E-Mail-Adresse schreibst.
+        </p>
+
+        <h2>7. Schriften</h2>
         <p>Die Schriftarten werden von dieser Website selbst ausgeliefert. Es besteht keine Verbindung zu Google Fonts oder anderen Schriftanbietern.</p>
 
-        <h2>7. Gespeicherte Einstellungen</h2>
+        <h2>8. Gespeicherte Einstellungen</h2>
         <p>
           Sprache, Farbschema, Einheiten, Detailansicht, Sitzungsfilter sowie von dir eingetragene Akkukapazitäten und Akku-Namen werden im lokalen Speicher deines Browsers (localStorage) abgelegt, damit sie beim nächsten Besuch erhalten bleiben.
           Diese Daten verlassen dein Gerät nicht und du kannst sie jederzeit über die Browser-Einstellungen löschen (§ 25 Abs. 2 Nr. 2 TDDDG).
@@ -87,10 +103,10 @@ export default function LegalPage() {
           Deine Log-Dateien werden dabei nicht gespeichert. Auch diese Daten verlassen dein Gerät nicht und lassen sich über die Browser-Einstellungen löschen (§ 25 Abs. 2 Nr. 2 TDDDG).
         </p>
 
-        <h2>8. Externe Links</h2>
+        <h2>9. Externe Links</h2>
         <p>Links, z. B. zum Quellcode auf GitHub, führen zu Angeboten anderer Anbieter. Dort gelten deren Datenschutzbestimmungen.</p>
 
-        <h2>9. Deine Rechte</h2>
+        <h2>10. Deine Rechte</h2>
         <p>
           Du hast das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung, auf Datenübertragbarkeit sowie das Recht,
           der Verarbeitung zu widersprechen (Art. 15–21 DSGVO). Wende dich dazu an die oben genannte E-Mail-Adresse.
@@ -142,16 +158,32 @@ export default function LegalPage() {
           Umami sets no cookies and stores no IP addresses. It records the page visited (without the parts after “#” and “?”), the referring page,
           browser, operating system, device type, screen size, language and the country derived from the IP address. Only aggregated statistics result;
           individual visitors cannot be identified from them. I also count a few actions, unrelated to content: demo loaded, file opened
-          (only the file format and a rough size class), file could not be read (only the kind of error), view could not be shown, and which tab was opened.
+          (only the file format and a rough size class), file could not be read (only the kind of error), view could not be shown, which tab was opened, and from which place in the app the feedback form was opened (without any content).
           Names, contents or values of your log files are not sent.
           If your browser sends “Do Not Track”, nothing is counted. Legal basis: Art. 6(1)(f) GDPR (legitimate interest in anonymous usage statistics).
           The data may be transferred to the USA.
         </p>
 
-        <h2>6. Fonts</h2>
+        <h2>6. Feedback form (Tally)</h2>
+        <p>
+          If you want to give feedback with the “Feedback” button, TLMscope loads the form from Tally ({ext("https://tally.so")}), a service based in Belgium. This happens only after you click
+          “Continue to the form” in the dialog. Before that, there is no connection to Tally. Like any website, Tally receives your IP address and processes what you enter:
+          your message, optionally your e-mail address if you want a reply, and &ndash; unless you untick the box &ndash; the technical details shown in the dialog
+          (app version, language, phone or computer, the place in the app and the codes of the sensor types in your files).
+          Log files, file names, model names, positions, battery IDs and flight values are not sent.
+        </p>
+        <p>
+          I use the information to read your feedback, improve TLMscope and reply to you. The message is delivered to me by e-mail.
+          I keep it only as long as I need it for that and delete it afterwards.
+          According to Tally, the data is stored on servers in the European Union; Tally processes it on my behalf ({ext("https://tally.so/help/data-processing-agreement", "data processing agreement")}, {ext("https://tally.so/help/privacy-policy", "Tally privacy policy")}).
+          Legal basis: your consent (Art. 6(1)(a) GDPR), which you give by loading and submitting the form. The information is voluntary; you can withdraw your consent
+          at any time with effect for the future by writing to the e-mail address above.
+        </p>
+
+        <h2>7. Fonts</h2>
         <p>Fonts are served by this website itself. There is no connection to Google Fonts or other font services.</p>
 
-        <h2>7. Saved settings</h2>
+        <h2>8. Saved settings</h2>
         <p>
           Language, colour scheme, units, detail view, session filter, and the battery capacities and battery names you entered are kept in your browser&apos;s local storage so they are still set on your next visit.
           This data does not leave your device, and you can delete it at any time in your browser settings (§ 25(2) no. 2 TDDDG).
@@ -161,10 +193,10 @@ export default function LegalPage() {
           Your log files are not stored. This data does not leave your device either, and you can delete it in your browser settings (§ 25(2) no. 2 TDDDG).
         </p>
 
-        <h2>8. External links</h2>
+        <h2>9. External links</h2>
         <p>Links, for example to the source code on GitHub, lead to other providers. Their privacy policies apply there.</p>
 
-        <h2>9. Your rights</h2>
+        <h2>10. Your rights</h2>
         <p>
           You have the right of access, rectification, erasure, restriction of processing, data portability and the right to object (Art. 15–21 GDPR).
           Write to the e-mail address above. You can also lodge a complaint with a data protection supervisory authority.

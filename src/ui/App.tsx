@@ -8,6 +8,7 @@ import type { LogFile } from "@/core/model/types";
 import de from "@/i18n/de.json";
 import en from "@/i18n/en.json";
 import { sizeBucket, track } from "./analytics";
+import type { FeedbackFrom } from "./feedback";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { batteryLetter, type Locale } from "./format";
 import { loadBuffer } from "./loader";
@@ -81,6 +82,8 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const [messages, setMessages] = useState<LoadMessage[]>([]);
   const helpRef = useRef<HTMLDialogElement>(null);
   const settingsRef = useRef<HTMLDialogElement>(null);
+  const feedbackRef = useRef<HTMLDialogElement>(null);
+  const [feedbackFrom, setFeedbackFrom] = useState<FeedbackFrom | null>(null);
 
   // Browser-only storage can only be read after hydration; the server render uses the defaults.
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -276,7 +279,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   // keyboard: arrows step through sessions
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (view !== "sessions" || helpRef.current?.open || settingsRef.current?.open) return;
+      if (view !== "sessions" || helpRef.current?.open || settingsRef.current?.open || feedbackRef.current?.open) return;
       if ((e.target as HTMLElement).closest("input,select,textarea")) return;
       if (e.key === "ArrowLeft") step(-1);
       if (e.key === "ArrowRight") step(1);
@@ -291,13 +294,20 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     setTab, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll,
     openHelp: () => helpRef.current?.showModal(),
     openSettings: () => settingsRef.current?.showModal(),
+    openFeedback: (entry, detail) => {
+      setFeedbackFrom({ entry, detail });
+      feedbackRef.current?.showModal();
+      track({ name: "feedback-opened", from: entry });
+    },
+    feedbackFrom,
+    closeFeedback: () => setFeedbackFrom(null),
   };
 
   return (
     <ErrorBoundary fallback={() => <PageError />} onError={() => track({ name: "view-error", view: "page" })}>
       <NextIntlClientProvider locale={settings.locale} messages={MESSAGES[settings.locale]} timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}>
         <StoreContext.Provider value={store}>
-          <Shell helpRef={helpRef} settingsRef={settingsRef} messages={messages} dismiss={(i) => setMessages((m) => m.filter((_, k) => k !== i))} />
+          <Shell helpRef={helpRef} settingsRef={settingsRef} feedbackRef={feedbackRef} messages={messages} dismiss={(i) => setMessages((m) => m.filter((_, k) => k !== i))} />
         </StoreContext.Provider>
       </NextIntlClientProvider>
     </ErrorBoundary>

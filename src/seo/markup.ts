@@ -5,13 +5,13 @@ import { homePath, legalPath, pagePath, PAGE_IDS, type Lang, type PageId } from 
 export const TOKEN = /(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`)/;
 export const LINK = /^\[([^\]]+)\]\(([^)]+)\)$/;
 
-/** Where a link target in the content points: `home`, `legal`, `page:<id>` or an https address. */
+/** Where a link target in the content points: `home`, `legal`, `page:<id>` (optionally `page:<id>#<anchor>`) or an https address. */
 export function resolveTarget(lang: Lang, target: string): { href: string; external: boolean } | null {
   if (target === "home") return { href: homePath(lang), external: false };
   if (target === "legal") return { href: legalPath(lang), external: false };
   if (target.startsWith("page:")) {
-    const id = target.slice(5) as PageId;
-    return (PAGE_IDS as readonly string[]).includes(id) ? { href: pagePath(lang, id), external: false } : null;
+    const [id, anchor] = target.slice(5).split("#") as [PageId, string | undefined];
+    return (PAGE_IDS as readonly string[]).includes(id) ? { href: pagePath(lang, id) + (anchor ? `#${anchor}` : ""), external: false } : null;
   }
   return /^https:\/\//.test(target) ? { href: target, external: true } : null;
 }

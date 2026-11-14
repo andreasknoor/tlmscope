@@ -278,7 +278,7 @@ export const de: Content = {
         {
           h2: "Hilf mit, die Unterstützung zu erweitern",
           blocks: [
-            { t: "p", text: "Bisher sind Logs von NX- und iX-Sendern getestet. Wenn du einen DX-Sender oder andere Spektrum-Sensoren fliegst, hilft eine Logdatei sehr, um die Dekodierung zu prüfen und zu erweitern. Schreibe über den Kontakt im [Impressum](legal) oder eröffne ein Issue im [GitHub-Projekt](https://github.com/andreasknoor/tlmscope). Teile nur Logs, bei denen du dich wohlfühlst: Logs mit GPS zeigen, wo du fliegst." },
+            { t: "p", text: "Bisher sind Logs von NX- und iX-Sendern getestet. Wenn du einen DX-Sender oder andere Spektrum-Sensoren fliegst, hilft eine Logdatei sehr, um die Dekodierung zu prüfen und zu erweitern. Sag Bescheid über den Knopf **Feedback** in TLMscope (siehe [Wie schicke ich Feedback oder ein Log?](page:faq#feedback-senden)) oder eröffne ein Issue im [GitHub-Projekt](https://github.com/andreasknoor/tlmscope). Teile nur Logs, bei denen du dich wohlfühlst: Logs mit GPS zeigen, wo du fliegst." },
             { t: "p", text: "TLMscope ist ein unabhängiges Projekt und wird nicht von Spektrum oder Horizon Hobby hergestellt oder unterstützt." },
           ],
         },
@@ -396,6 +396,11 @@ export const de: Content = {
           ] },
           { t: "p", text: "Öffne TLMscope danach einmal mit Internet und warte, bis unten **Funktioniert offline** steht. Ab dann öffnet es sich auch ohne Verbindung, nur die Karte braucht Internet." },
           { t: "p", text: "Deine Log-Dateien werden nie hochgeladen oder gespeichert." },
+        ] },
+        { id: "feedback-senden", q: "Wie schicke ich Feedback oder ein Log?", a: [
+          { t: "p", text: "Nutze den Knopf **Feedback** oben in TLMscope oder die kleinen Links unter den Bewertungen, am Ende jedes Tabs und auf der Startseite:" },
+          { t: "ol", items: ["Öffne den Feedback-Dialog und prüfe die technischen Angaben, die mitgesendet würden. Du kannst sie abschalten.", "Wähle **Weiter zum Formular**, suche die Art der Nachricht aus und schreibe sie auf.", "Gib deine E-Mail-Adresse nur an, wenn du eine Antwort möchtest."] },
+          { t: "p", text: "Das Formular stellt Tally (Belgien) bereit und lädt erst, nachdem du fortgefahren bist. Logdateien, Dateinamen, Modellnamen, Positionen und Flugwerte werden nie gesendet. Brauche ich ein Log, frage ich in meiner Antwort danach, und du kannst es per E-Mail schicken. Logs mit GPS zeigen, wo du fliegst, teile also nur, womit du dich wohlfühlst." },
         ] },
         { q: "Welche Sender und Sensoren werden unterstützt?", a: "Logs von Spektrum-NX- und iX-Sendern sind getestet. DX-Logs sollten funktionieren, sind aber noch nicht getestet. Funkverbindung, Motor, Akku, Höhe, GPS und mehr erscheinen je nachdem, welche Sensoren dein Modell hat. Siehe [Unterstützte Sender und Sensoren](page:radios)." },
         { q: "Wie viele Frame Losses sind bei einem Spektrum-Empfänger normal?", a: [

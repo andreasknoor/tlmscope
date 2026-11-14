@@ -90,7 +90,7 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .setbtn { padding: 4px 10px 4px 6px; }
 .setbtn svg { color: var(--accent); flex: none; }
 .st-bar .setbtn svg { color: #dcebf0; }
-.setdlg { width: min(560px, calc(100% - 32px)); }
+.setdlg, .fbdlg { width: min(560px, calc(100% - 32px)); }
 .setting { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
 .setting > span:first-child, .setting > label { font-weight: 600; color: var(--ink-2); }
 .helpbtn i { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--surface); font: 700 12px/18px var(--text); text-align: center; font-style: normal; }
@@ -176,6 +176,16 @@ kbd { font: 500 11px var(--code); border: 1px solid var(--line); border-bottom-w
 .shead .sub { color: var(--ink-2); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
 @keyframes flash { from { box-shadow: 0 0 0 3px var(--accent); } to { box-shadow: 0 0 0 3px transparent; } }
 .flash { animation: flash 1.6s ease-out; scroll-margin: 80px; }
+/* Feedback: quiet links in context, the dialog with its details, the embedded form. */
+.fbnote { margin: 4px 0 0; font-size: 13.5px; color: var(--ink-3); }
+.st-fb { margin: -4px 0 0; color: rgb(255 255 255 / .78); text-align: center; }
+.st-fb .linkbtn { color: #dcebf0; }
+.fbdlg .ctx { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; font-size: 14px; }
+.fbdlg .ctx dt { color: var(--ink-3); }
+.fbdlg .ctx dd { margin: 0; font-family: var(--code); font-size: 13px; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .fbdlg .ctx { grid-template-columns: minmax(0, 1fr); gap: 0; } .fbdlg .ctx dd { margin-bottom: 8px; } }
+.fbdlg .check { display: flex; gap: 8px; align-items: center; font-weight: 600; cursor: pointer; }
+.fbdlg iframe { width: 100%; height: min(60vh, 470px); border: 0; border-radius: 10px; background: transparent; color-scheme: normal; }
 .linkbtn.inline { font-size: inherit; display: inline; }
 .linkbtn { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 600; cursor: pointer; font-size: 13.5px; text-decoration: underline; text-underline-offset: 2px; }
 .navbtns { display: flex; gap: 6px; margin-left: auto; }
@@ -450,7 +460,9 @@ body > .start, body > .app, body > .legal, body > .doc { flex: 1 0 auto; width: 
 }
 .st-panel { background: var(--st-deep); color: #eaf4f7; padding-bottom: 36px; }
 .st-wrap { width: min(1080px, 100% - 32px); margin: 0 auto; }
-.st-bar { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding-top: 12px; }
+.st-bar { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; padding-top: 12px; }
+/* Phones: icons only, like the app header, so the four controls and the offline badge fit in one row. */
+@media (max-width: 760px) { .st-bar .long { display: none; } }
 .st-bar .seg { background: rgb(255 255 255 / .08); border-color: rgb(255 255 255 / .2); }
 .st-bar .seg button { color: #bcd3db; }
 .st-bar .seg button[aria-pressed="true"] { background: rgb(255 255 255 / .16); color: #fff; box-shadow: none; }

@@ -4,7 +4,7 @@ import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import type { FlightProfile } from "@/core/analysis/flight";
-import { Legend, Tile, useAirtime, useLevelWord, useRich } from "../bits";
+import { FeedbackLink, Legend, Tile, useAirtime, useLevelWord, useRich } from "../bits";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { jumpTo } from "../charts/sync";
 import { axisNum, clock, duration, num } from "../format";
@@ -111,6 +111,7 @@ export function OverviewTab() {
         <LinkCard a={a} /><SignalCard a={a} /><UsedCard a={a} /><ConditionCard a={a} />
         <TempCard a={a} /><RxCard a={a} /><StyleCard a={a} /><DataCard a={a} />
       </div>
+      <p className="fbnote"><FeedbackLink entry="rating">{t("feedback.rating")}</FeedbackLink></p>
       {a.moments.length > 0 && (
         <div className="card">
           <h3>{t("overview.moments")}</h3>

@@ -11,7 +11,7 @@ import { homePath, pagePath, PAGE_IDS } from "@/seo/pages";
 import { Logo, Wordmark } from "../brand";
 import { Icon } from "../icons";
 import { useLogoClicks } from "../StorkRace";
-import { OfflineBadge, SettingsButton } from "../bits";
+import { FeedbackButton, FeedbackLink, OfflineBadge, SettingsButton } from "../bits";
 import { useStore } from "../store";
 
 /** The flight of the demo: motor climbs, glides and a thermal, in the colours of the app. Drawn once when the page opens. */
@@ -95,6 +95,7 @@ export function Start({ notices }: { notices: ReactNode }) {
               ))}
             </div>
             <SettingsButton onClick={openSettings} label={t("settings")} />
+            <FeedbackButton />
             <button className="helpbtn" aria-label={t("help")} onClick={openHelp}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>
           </div>
           <div className="st-grid">
@@ -129,6 +130,7 @@ export function Start({ notices }: { notices: ReactNode }) {
                 <Image src={`/img/overview-${lang}.jpg`} alt={h.demo.alt} width={1200} height={539} sizes="(max-width: 900px) 100vw, 470px" />
                 <span><Icon name="play" />{h.demo.label}</span>
               </button>
+              <p className="fbnote st-fb">{t("feedbackStart")} <FeedbackLink entry="start">{t("feedbackStartLink")}</FeedbackLink></p>
             </div>
           </div>
         </div>

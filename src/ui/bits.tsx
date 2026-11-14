@@ -7,6 +7,7 @@ import type { Need } from "@/core/analysis/requirements";
 import { catalogue } from "@/core/model/catalogue";
 import type { FlightProfile } from "@/core/analysis/flight";
 import { clock } from "./format";
+import type { FeedbackEntry } from "./feedback";
 import { useOnline } from "./offline";
 import { useStore } from "./store";
 import { TAB_TAGS, type LinkTarget } from "./tab-tags";
@@ -164,7 +165,6 @@ export function Missing({ missing }: { missing: Need[] }) {
   return <div className="card empty">{t("missingNeeds", { channels: parts.join(", ") })}</div>;
 }
 
-/** Opens the settings; the gear stays, the label hides on narrow screens like the help button's. */
 /** Shown only while the browser is offline; a tap or click explains what still works. */
 export function OfflineBadge() {
   const t = useTranslations("app");
@@ -183,6 +183,7 @@ export function OfflineBadge() {
   );
 }
 
+/** Opens the settings; the gear stays, the label hides on narrow screens like the help button's. */
 export function SettingsButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <button className="helpbtn setbtn" aria-label={label} title={label} onClick={onClick}>
@@ -190,4 +191,22 @@ export function SettingsButton({ onClick, label }: { onClick: () => void; label:
       <span className="long">{label}</span>
     </button>
   );
+}
+
+/** Opens the feedback dialog from the header; like the settings button, only the icon shows on phones. */
+export function FeedbackButton() {
+  const t = useTranslations("app");
+  const { openFeedback } = useStore();
+  return (
+    <button className="helpbtn setbtn" aria-label={t("feedback")} title={t("feedback")} onClick={() => openFeedback("header")}>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9.5L5 21.5V18H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /></svg>
+      <span className="long">{t("feedback")}</span>
+    </button>
+  );
+}
+
+/** A small text button that opens the feedback dialog from where the user is. */
+export function FeedbackLink({ entry, detail, children }: { entry: FeedbackEntry; detail?: string; children: ReactNode }) {
+  const { openFeedback } = useStore();
+  return <button className="linkbtn" onClick={() => openFeedback(entry, detail)}>{children}</button>;
 }

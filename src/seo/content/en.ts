@@ -278,7 +278,7 @@ export const en: Content = {
         {
           h2: "Help to widen the support",
           blocks: [
-            { t: "p", text: "Logs from NX and iX transmitters have been tested so far. If you fly a DX transmitter, or other Spektrum sensors, a log file helps a lot to check and extend the decoding. Write via the contact in the [legal notice](legal) or open an issue in the [GitHub project](https://github.com/andreasknoor/tlmscope). Only share logs you are comfortable sharing: logs with GPS show where you fly." },
+            { t: "p", text: "Logs from NX and iX transmitters have been tested so far. If you fly a DX transmitter, or other Spektrum sensors, a log file helps a lot to check and extend the decoding. Tell me through the **Feedback** button in TLMscope (see [How can I send feedback or a log?](page:faq#send-feedback)), or open an issue in the [GitHub project](https://github.com/andreasknoor/tlmscope). Only share logs you are comfortable sharing: logs with GPS show where you fly." },
             { t: "p", text: "TLMscope is an independent project and is not made or endorsed by Spektrum or Horizon Hobby." },
           ],
         },
@@ -396,6 +396,11 @@ export const en: Content = {
           ] },
           { t: "p", text: "Then open TLMscope once with internet and wait until the footer says **Works offline**. After that it also opens without a connection; only the map needs internet." },
           { t: "p", text: "Your log files are never uploaded or stored." },
+        ] },
+        { id: "send-feedback", q: "How can I send feedback or a log?", a: [
+          { t: "p", text: "Use the **Feedback** button at the top of TLMscope, or the small links under the ratings, at the end of each tab and on the start page:" },
+          { t: "ol", items: ["Open the feedback dialog and check the technical details that would be sent. You can switch them off.", "Choose **Continue to the form**, pick the kind of message and write it down.", "Add your email address only if you want an answer."] },
+          { t: "p", text: "The form is provided by Tally (Belgium) and loads only after you continue. Log files, file names, model names, positions and flight values are never sent. If I need a log, I ask you in my reply, and you can send it by email. Logs with GPS show where you fly, so only share what you are comfortable with." },
         ] },
         { q: "Which transmitters and sensors does it support?", a: "Logs from Spektrum NX and iX transmitters are tested. DX logs should work but are not tested yet. Radio link, motor, battery, height, GPS and more show up depending on the sensors your model carries. See [Supported transmitters and sensors](page:radios)." },
         { q: "How many frame losses are normal on a Spektrum receiver?", a: [

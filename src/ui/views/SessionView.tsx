@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Alert, useAirtime } from "../bits";
+import { Alert, FeedbackLink, useAirtime } from "../bits";
 import { dayLabel, duration, timeLabel } from "../format";
 import { KIND_COLOR, ModelBadge, ModelSelect, useModelName } from "../Shell";
 import { useBatteryName, useStore, type Tab } from "../store";
@@ -92,6 +92,7 @@ export function SessionView() {
             {current === "aircraft" && <AircraftTab />}
             {current === "raw" && <RawTab />}
           </div>
+          <p className="fbnote">{t("feedback.tabNote")} <FeedbackLink entry="tab">{t("feedback.tabLink")}</FeedbackLink></p>
         </>
       )}
     </>

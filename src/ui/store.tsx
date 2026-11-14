@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { createContext, useContext, useMemo } from "react";
 import type { LogsAnalysis, SessionAnalysis } from "@/core/analysis";
 import type { LogFile } from "@/core/model/types";
+import type { FeedbackEntry, FeedbackFrom } from "./feedback";
 import type { Locale } from "./format";
 import type { Theme } from "./theme";
 import { makeUnits, type UnitSystem, type Units } from "./units";
@@ -82,6 +83,11 @@ export interface Store {
   closeAll(): void;
   openHelp(): void;
   openSettings(): void;
+  /** Opens the feedback dialog; `detail` is a fixed word such as the kind of file error. */
+  openFeedback(entry: FeedbackEntry, detail?: string): void;
+  /** Where the open feedback dialog was started from; null while it is closed. */
+  feedbackFrom: FeedbackFrom | null;
+  closeFeedback(): void;
   visible: Entry[];
 }
 

@@ -5,13 +5,14 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
 import { cssVar, clock, dayLabel, num, timeLabel } from "./format";
 import { Help } from "./views/Help";
+import { FeedbackDialog } from "./views/FeedbackDialog";
 import { SettingsDialog } from "./views/Settings";
 import { Batteries } from "./views/Batteries";
 import { Inventory } from "./views/Inventory";
 import { SessionView } from "./views/SessionView";
 import { Start } from "./views/Start";
 import { useStore, useUnits, type Entry, type Model } from "./store";
-import { OfflineBadge, SettingsButton, useAirtime } from "./bits";
+import { FeedbackButton, FeedbackLink, OfflineBadge, SettingsButton, useAirtime } from "./bits";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
@@ -93,6 +94,7 @@ function Header() {
           ))}
         </div>
         <SettingsButton onClick={openSettings} label={t("settings")} />
+        <FeedbackButton />
         <button className="helpbtn" aria-label={t("help")} onClick={openHelp}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>
       </div>
     </header>
@@ -291,6 +293,9 @@ function UpdateBar({ sw }: { sw: OfflineState }) {
   );
 }
 
+/** The kind of file error as a fixed word for the feedback context (never the file name). */
+const ERROR_KIND: Record<string, string> = { "app.unsupported": "unsupported", "app.readError": "read-error", "app.tooLarge": "too-large" };
+
 /** Files larger than this get the "takes a few seconds" note. */
 const LARGE_FILE_BYTES = 5e6;
 
@@ -316,7 +321,7 @@ function LoadCard({ m }: { m: LoadMessage }) {
   );
 }
 
-export function Shell({ helpRef, settingsRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; settingsRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
+export function Shell({ helpRef, settingsRef, feedbackRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; settingsRef: RefObject<HTMLDialogElement | null>; feedbackRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
   const t = useTranslations();
   const { files, view, selected, tab } = useStore();
   const sw = useServiceWorker();
@@ -324,7 +329,7 @@ export function Shell({ helpRef, settingsRef, messages, dismiss }: { helpRef: Re
     <div className="stack" role="status">
       {messages.map((m, i) => m.kind === "loading" ? <LoadCard key={i} m={m} /> : (
         <div key={i} className={m.kind === "error" ? "errorbox" : "infobox"} style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
-          <span>{t(m.text, m.values)}</span>
+          <span>{t(m.text, m.values)}{m.kind === "error" && <> <FeedbackLink entry="error" detail={ERROR_KIND[m.text]}>{t("feedback.errorLink")}</FeedbackLink></>}</span>
           <button className="btn" onClick={() => dismiss(i)}>{t("app.close")}</button>
         </div>
       ))}
@@ -344,7 +349,7 @@ export function Shell({ helpRef, settingsRef, messages, dismiss }: { helpRef: Re
               <div className="errorbox stack">
                 <b>{t("app.viewError")}</b>
                 <span>{t("app.viewErrorText")}</span>
-                <div><button className="btn" onClick={reset}>{t("app.tryAgain")}</button></div>
+                <div><button className="btn" onClick={reset}>{t("app.tryAgain")}</button> <FeedbackLink entry="error" detail="view">{t("feedback.errorLink")}</FeedbackLink></div>
               </div>
             )}>
               {view === "batteries" ? <Batteries /> : view === "inventory" ? <Inventory /> : selected ? <SessionView key={selected.key} /> : null}
@@ -357,6 +362,7 @@ export function Shell({ helpRef, settingsRef, messages, dismiss }: { helpRef: Re
       <UpdateBar sw={sw} />
       <Help dialogRef={helpRef} />
       <SettingsDialog dialogRef={settingsRef} />
+      <FeedbackDialog dialogRef={feedbackRef} />
     </>
   );
 }

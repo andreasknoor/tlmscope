@@ -59,7 +59,12 @@ describe("guide pages", () => {
   it("only links to pages and addresses that exist, and closes all markup", () => {
     for (const lang of LANGS) {
       for (const text of strings(lang)) {
-        for (const m of text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) expect(resolveTarget(lang, m[1]), `${lang}: ${m[1]}`).not.toBeNull();
+        for (const m of text.matchAll(/\[[^\]]+\]\(([^)]+)\)/g)) {
+          expect(resolveTarget(lang, m[1]), `${lang}: ${m[1]}`).not.toBeNull();
+          // A link to an anchor must point to a question that exists on that page.
+          const [page, anchor] = m[1].startsWith("page:") ? m[1].slice(5).split("#") : [];
+          if (anchor) expect((CONTENT[lang].guides[page as (typeof PAGE_IDS)[number]].faq ?? []).map(faqId), `${lang}: ${m[1]}`).toContain(anchor);
+        }
         const bare = text.replace(new RegExp(LINK.source.slice(1, -1), "g"), "x");
         expect((bare.match(/\*\*/g) ?? []).length % 2, text).toBe(0);
         expect((bare.match(/`/g) ?? []).length % 2, text).toBe(0);
