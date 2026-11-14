@@ -241,26 +241,27 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x7a/1": {
     label: "Transmitter stick positions",
     understood: "partial",
-    note: "Only in AutoLog files. Signed 12-bit values (−2047…2047), little-endian. Offset 4 is the throttle stick (matches the ESC throttle, r = 0.88). Offsets 6, 8, 10 rest around 0 and are probably aileron, elevator and rudder (unverified). Offset 2 is unknown.",
+    note: "Only in AutoLog files. Signed 12-bit values (−2047…2047), little-endian, about 35 per second. Offset 4 is the throttle stick (matches the ESC throttle, r = 0.88). In flight, offset 6 follows the pitch rate (r = −0.72) and offset 8 the roll rate (r = +0.76): elevator and aileron. Offset 10 is probably the rudder (no link to the yaw rate in the sample flights; the model may not use it). Offset 2 changes only between sessions, like a knob or slider. Signs and whether trims and rates are included are not verified.",
     decode: (p) => {
       const v = (o: number) => (((p[o] | (p[o + 1] << 8)) << 16) >> 16);
       return [
-        { name: "Value @2 (unknown)", unit: "", value: v(2), channel: "raw:spektrum.0x7a.@2" },
+        { name: "Knob or slider? @2", unit: "", value: v(2), channel: "raw:spektrum.0x7a.@2" },
         { name: "Throttle stick", unit: "%", value: Math.round(((v(4) + 2047) / 4094) * 1000) / 10, channel: "throttle_command" },
-        { name: "Stick @6 (aileron?)", unit: "", value: v(6), channel: "raw:spektrum.0x7a.@6" },
-        { name: "Stick @8 (elevator?)", unit: "", value: v(8), channel: "raw:spektrum.0x7a.@8" },
-        { name: "Stick @10 (rudder?)", unit: "", value: v(10), channel: "raw:spektrum.0x7a.@10" },
+        { name: "Elevator stick @6", unit: "", value: v(6), channel: "raw:spektrum.0x7a.@6" },
+        { name: "Aileron stick @8", unit: "", value: v(8), channel: "raw:spektrum.0x7a.@8" },
+        { name: "Rudder stick? @10", unit: "", value: v(10), channel: "raw:spektrum.0x7a.@10" },
         { name: "Value @12", unit: "", value: v(12) },
       ];
     },
   },
   "0x7a/0": {
     label: "Transmitter status bits",
-    understood: "none",
-    note: "Only in AutoLog files, alternating with the stick positions. Bytes 2–3 look like a bit field (switch positions?). Not decoded.",
+    understood: "partial",
+    note: "Only in AutoLog files, alternating with the stick positions. Bytes 2–3 are a 16-bit field (little-endian) that changes only when a switch is moved; it looks like eight two-bit switch positions. Bit 14 is the throttle hold: set means the motor is locked (checked against the ESC: the motor never ran with it set). The other switch fields are not mapped yet.",
     decode: (p) => [
       { name: "Byte 2", unit: "", value: p[2] },
       { name: "Byte 3", unit: "", value: p[3] },
+      { name: "Throttle hold (bit 14)", unit: "", value: (p[3] >> 6) & 1 },
     ],
   },
   "0x00": { label: "Empty slot", understood: "none", note: "No sensor id. Mostly zeros; some records carry fragments of other packets.", decode: () => [] },

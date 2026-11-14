@@ -118,8 +118,11 @@ describe.skipIf(!hasSamples)("Spektrum TLM: all sample files", () => {
     const iEsc = esc.v.findIndex((v) => v > 99);
     const iStick = stick.t.findIndex((t) => t >= esc.t[iEsc]);
     expect(stick.v[iStick]).toBeGreaterThan(95);
-    // The status bits page stays raw.
-    expect(s.raw.find((x) => x.key === "0x7a/0")!.understood).toBe("none");
+    // The status page: only the throttle hold (bit 14) is decoded; it is set (motor locked) and cleared in this session.
+    const status = s.raw.find((x) => x.key === "0x7a/0")!;
+    expect(status.understood).toBe("partial");
+    const hold = status.fields.find((f) => f.name.startsWith("Throttle hold"))!;
+    expect([hold.min, hold.max]).toEqual([0, 1]);
   });
 
   it("finds the 3 Oct morning flight that only the AutoLog file contains", () => {
