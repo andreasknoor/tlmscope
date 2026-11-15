@@ -45,10 +45,10 @@ export function AircraftTab() {
         <TempCard a={a} /><RxCard a={a} /><StyleCard a={a} />
         <Tile label={t("aircraft.flightMode")} value={modes.length ? t("aircraft.modes", { list: modes.map((m) => m + 1).join(", ") }) : t("aircraft.disabled")} sub={t("aircraft.flightModeHint")} />
       </div>
-      {temps.length > 0 && <LineChart syncKey={e!.key} title={t("rating.temps")} series={temps} height={160} yMin={U.v("temp", 0)!} yFormat={(x) => `${axisNum(loc, x)} ${U.u("temp")}`}
+      {temps.length > 0 && <LineChart syncKey={e!.key} title={t("rating.temps")} series={temps} height={160} yMin={U.v("temp", 0)!} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("temp")}`}
         extra={<Legend items={temps.map((s) => [`var(${s.color})`, s.label, true])} />} />}
       {power.length > 0 && <div className="lv-more"><LineChart syncKey={e!.key} title={t("rating.rx")} series={power} height={140} yMin={4} yMax={6.5}
-        yFormat={(x) => `${num(loc, x, 1)} V`} bands={[{ from: 4, to: 4.8, color: "--crit", alpha: 0.1 }]}
+        yFormat={(x) => `${num(loc, x, 1)}\u00a0V`} bands={[{ from: 4, to: 4.8, color: "--crit", alpha: 0.1 }]}
         extra={<Legend items={power.map((s) => [`var(${s.color})`, s.label, true])} />} /></div>}
       {g.has("accel.x") && <div className="lv-more"><LineChart syncKey={e!.key} title={t("aircraft.load")} series={load} phases={a.kind === "flight" ? p?.phases : null} height={140} yFormat={(x) => `${axisNum(loc, x)} g`} /></div>}
       {modes.length > 0 && <div className="lv-more"><Strip syncKey={e!.key} label={t("aircraft.fmOverTime")} n={g.n} colorAt={fmColor}

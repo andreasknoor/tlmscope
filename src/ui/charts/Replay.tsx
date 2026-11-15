@@ -215,7 +215,7 @@ export function Replay({ a, syncKey, clatter = false }: { a: SessionAnalysis; sy
     moveAll(syncKey, Math.round(next));
   };
 
-  const val = (v: number | null | undefined, d: number, unit: string) => (v === null || v === undefined ? "–" : `${num(loc, v, d)} ${unit}`);
+  const val = (v: number | null | undefined, d: number, unit: string) => (v === null || v === undefined ? "–" : `${num(loc, v, d)}\u00a0${unit}`);
   const ph = p?.phaseAt[i];
   const hasHeight = p?.basis === "height";
   const hud: [string, string][] = [

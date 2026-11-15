@@ -25,7 +25,7 @@ export function LinkCard({ a }: { a: SessionAnalysis }) {
         [t("frameLossesPerMin"), num(loc, l.frameLossesPerMinute, 0)],
         [t("holds"), l.holdsAirborne ?? "–"],
         ...fades.map(([k, n]): [string, string] => [t("fades", { antenna: k.toUpperCase() }), `${n}${(n ?? 0) > 500 ? " · " + t("moveAntenna") : ""}`]),
-        [t("weakTime"), `${num(loc, (o?.weakShare ?? 0) * 100, 0)} %`],
+        [t("weakTime"), `${num(loc, (o?.weakShare ?? 0) * 100, 0)}\u00a0%`],
         [t("levels"), t("levelsLink")],
       ] : null} />
   );
@@ -40,7 +40,7 @@ export function SignalCard({ a }: { a: SessionAnalysis }) {
   const hint = t(a.kind === "flight" ? "signalHintAir" : "signalHint") + (o && o.weakShare > 0.05 ? " " + t("signalWeakShare", { pct: num(loc, o.weakShare * 100, 0) }) : "");
   return (
     <RatingCard name={t("signal")} level={o?.level ?? null} word={word("signal", o?.level ?? null)} hint={s ? hint : ""}
-      rows={s ? [[t("typical"), `${num(loc, s.medianDbm, 0)} dBm`], [t("weakest"), `${num(loc, s.minDbm, 0)} dBm`], [t("levels"), t("levelsSignal")]] : null} />
+      rows={s ? [[t("typical"), `${num(loc, s.medianDbm, 0)}\u00a0dBm`], [t("weakest"), `${num(loc, s.minDbm, 0)}\u00a0dBm`], [t("levels"), t("levelsSignal")]] : null} />
   );
 }
 
@@ -56,7 +56,7 @@ export function UsedCard({ a }: { a: SessionAnalysis }) {
     : rich("rating.usedNoCapacity", { used: num(loc, u.usedMah, 0) });
   return (
     <RatingCard name={t("used")} level={u?.level ?? null} word={word("used", u?.level ?? null)} hint={hint}
-      rows={u ? [[t("usedByMotor"), `${num(loc, u.usedMah, 0)} mAh`], [t("cellStart"), `${num(loc, c?.startCellV, 2)} V`], [t("cellEnd"), `${num(loc, c?.endCellV, 2)} V`]] : null} />
+      rows={u ? [[t("usedByMotor"), `${num(loc, u.usedMah, 0)}\u00a0mAh`], [t("cellStart"), `${num(loc, c?.startCellV, 2)}\u00a0V`], [t("cellEnd"), `${num(loc, c?.endCellV, 2)}\u00a0V`]] : null} />
   );
 }
 
@@ -70,9 +70,9 @@ export function ConditionCard({ a }: { a: SessionAnalysis }) {
     <RatingCard name={t("condition")} level={b?.level ?? null} word={word("condition", b?.level ?? null)}
       hint={b ? t("conditionHint") : frozen ? t("conditionFrozen") : t("conditionNone")}
       rows={b ? [
-        [t("dropAt20"), `${num(loc, b.dropAt20A, 2)} V`],
-        [t("resistance"), `${num(loc, b.resistancePerCellMilliOhm, 1)} mΩ`],
-        [t("lowestLoaded"), `${num(loc, b.lowestLoadedV, 2)} V`],
+        [t("dropAt20"), `${num(loc, b.dropAt20A, 2)}\u00a0V`],
+        [t("resistance"), `${num(loc, b.resistancePerCellMilliOhm, 1)}\u00a0mΩ`],
+        [t("lowestLoaded"), `${num(loc, b.lowestLoadedV, 2)}\u00a0V`],
         [t("levels"), t("levelsCondition")],
       ] : null} />
   );
@@ -96,7 +96,7 @@ export function RxCard({ a }: { a: SessionAnalysis }) {
   const x = v(a.receiverPower);
   return (
     <RatingCard name={t("rx")} level={x?.level ?? null} word={x?.holdInAir ? t("rxHold") : word("rx", x?.level ?? null)} hint={x ? t("rxHint") : ""}
-      rows={x ? [[t("rxMin"), `${num(loc, x.rxMinV, 2)} V`], [t("becMin"), `${num(loc, x.becMinV, 2)} V`]] : null} />
+      rows={x ? [[t("rxMin"), `${num(loc, x.rxMinV, 2)}\u00a0V`], [t("becMin"), `${num(loc, x.becMinV, 2)}\u00a0V`]] : null} />
   );
 }
 
@@ -155,7 +155,7 @@ export function IssueAlerts({ a }: { a: SessionAnalysis }) {
             <b>{t(`issue.${i.kind}`)}</b>
             <span className="hint">
               {i.kind === "frozen"
-                ? t("issue.frozenText", { amps: num(loc, maxA, 1), values: Object.entries(i.values).map(([id, val]) => `${catalogue(id)?.label[loc] ?? id} ${num(loc, val, 3)} V`).join(", ") })
+                ? t("issue.frozenText", { amps: num(loc, maxA, 1), values: Object.entries(i.values).map(([id, val]) => `${catalogue(id)?.label[loc] ?? id} ${num(loc, val, 3)}\u00a0V`).join(", ") })
                 : t(`issue.${i.kind}Text`)}
             </span>
           </div>

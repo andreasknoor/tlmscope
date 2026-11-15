@@ -6,19 +6,19 @@ describe("units", () => {
   const i = makeUnits("imperial", "en");
 
   it("shows SI values unchanged in metric, except speed in km/h and long distances in km", () => {
-    expect(m.fmt("height", 123.4)).toBe("123 m");
-    expect(m.fmt("vspeed", 1.25, 1)).toBe("1.3 m/s");
-    expect(m.fmt("speed", 10)).toBe("36 km/h");
-    expect(m.fmt("longDistance", 2500, 2)).toBe("2.50 km");
+    expect(m.fmt("height", 123.4)).toBe("123\u00a0m");
+    expect(m.fmt("vspeed", 1.25, 1)).toBe("1.3\u00a0m/s");
+    expect(m.fmt("speed", 10)).toBe("36\u00a0km/h");
+    expect(m.fmt("longDistance", 2500, 2)).toBe("2.50\u00a0km");
   });
 
   it("converts to feet, ft/s, mph, miles and °F", () => {
-    expect(i.fmt("height", 100)).toBe("328 ft");
-    expect(i.fmt("vspeed", 1, 1)).toBe("3.3 ft/s");
-    expect(i.fmt("speed", 10)).toBe("22 mph");
-    expect(i.fmt("longDistance", 1609.344, 2)).toBe("1.00 mi");
-    expect(i.fmt("temp", 0)).toBe("32 °F");
-    expect(i.fmt("temp", 100)).toBe("212 °F");
+    expect(i.fmt("height", 100)).toBe("328\u00a0ft");
+    expect(i.fmt("vspeed", 1, 1)).toBe("3.3\u00a0ft/s");
+    expect(i.fmt("speed", 10)).toBe("22\u00a0mph");
+    expect(i.fmt("longDistance", 1609.344, 2)).toBe("1.00\u00a0mi");
+    expect(i.fmt("temp", 0)).toBe("32\u00a0°F");
+    expect(i.fmt("temp", 100)).toBe("212\u00a0°F");
   });
 
   it("keeps missing values missing", () => {

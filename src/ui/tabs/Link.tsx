@@ -52,7 +52,7 @@ export function LinkTab() {
       {sig && <div className="lv-more"><LineChart syncKey={e!.key} title={t("link.dbm")} series={dbm} height={160} yMin={-100} yMax={-30}
         bands={[{ from: -100, to: -85, color: "--crit" }, { from: -85, to: -80, color: "--warn" }]} /></div>}
       {g.has("frame_losses") && <div className="lv-more"><LineChart syncKey={e!.key} title={t("link.fl")} series={fl} height={130} /></div>}
-      {g.has("altitude") && <LineChart syncKey={e!.key} title={t("link.heightCompare")} series={alt} phases={a.kind === "flight" ? p?.phases : null} height={130} yFormat={(x) => `${axisNum(loc, x)} ${U.u("height")}`} />}
+      {g.has("altitude") && <LineChart syncKey={e!.key} title={t("link.heightCompare")} series={alt} phases={a.kind === "flight" ? p?.phases : null} height={130} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("height")}`} />}
       {sigVsHeight.length > 0 && <div className="lv-more"><Scatter title={t("link.sigVsHeight")} note={t("link.dot")} points={sigVsHeight} xLabel={`${t("overview.height")} (${U.u("height")})`} yLabel="dBm" color="--s-alt" /></div>}
       <p className="note">{t("link.note")}</p>
     </>

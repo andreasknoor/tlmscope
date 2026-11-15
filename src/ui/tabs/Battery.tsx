@@ -54,16 +54,16 @@ export function BatteryTab() {
         <div className="card">
           <div className="lbl">{t("battery.charge")}</div>
           <div className="num" style={{ display: "flex", gap: 12, alignItems: "baseline", font: "600 30px var(--display)" }}>
-            {ch?.startPct != null ? `${num(loc, ch.startPct, 0)} %` : "–"} <span style={{ fontSize: 18, color: "var(--ink-3)" }}>→</span> {ch?.endPct != null ? `${num(loc, ch.endPct, 0)} %` : "–"}
+            {ch?.startPct != null ? `${num(loc, ch.startPct, 0)}\u00a0%` : "–"} <span style={{ fontSize: 18, color: "var(--ink-3)" }}>→</span> {ch?.endPct != null ? `${num(loc, ch.endPct, 0)}\u00a0%` : "–"}
           </div>
           <div className="hint">{t("battery.chargeHint")}</div>
-          <DetailRows rows={ch ? [[t("battery.perCellStart"), `${num(loc, ch.startCellV, 2)} V`], [t("battery.perCellEnd"), `${num(loc, ch.endCellV, 2)} V`]] : null} />
+          <DetailRows rows={ch ? [[t("battery.perCellStart"), `${num(loc, ch.startCellV, 2)}\u00a0V`], [t("battery.perCellEnd"), `${num(loc, ch.endCellV, 2)}\u00a0V`]] : null} />
         </div>
         <ConditionCard a={a} />
       </div>
       {g.has("pack_voltage") && (
         <LineChart syncKey={e!.key} title={t("battery.voltage")} series={perCell} phases={a.kind === "flight" ? p?.phases : null} height={170} yMin={3.3} yMax={4.3}
-          yFormat={(x) => `${num(loc, x, 1)} V`} bands={[{ from: 3.3, to: 3.5, color: "--crit", alpha: 0.1 }, { from: 3.5, to: 3.7, color: "--warn", alpha: 0.1 }]}
+          yFormat={(x) => `${num(loc, x, 1)}\u00a0V`} bands={[{ from: 3.3, to: 3.5, color: "--crit", alpha: 0.1 }, { from: 3.5, to: 3.7, color: "--warn", alpha: 0.1 }]}
           extra={<div className="sub">{t("battery.voltageHint")}</div>} />
       )}
       {cellSeries.length > 0 && (

@@ -62,7 +62,7 @@ export function ThermalsCard({ thermals }: { thermals: Thermals }) {
             <td className="r num lv-more">{U.fmt("vspeed", x.best10s, 1)}</td>
             <td className="num">{x.circles.length || "–"}<span className="lv-more"><CircleBars th={x} /></span></td>
             {hasDrift && <td className="num lv-more">{x.drift ? t("driftValue", { d: U.fmt("distance", x.drift.distanceM), dir: t(DIRS[Math.round(x.drift.bearingDeg / 45) % 8]) }) : "–"}</td>}
-            <td className="r num">{x.savedMah !== null ? `${num(loc, x.savedMah, 0)} mAh` : x.savedMotorS !== null ? `${num(loc, x.savedMotorS, 0)} s` : "–"}</td>
+            <td className="r num">{x.savedMah !== null ? `${num(loc, x.savedMah, 0)}\u00a0mAh` : x.savedMotorS !== null ? `${num(loc, x.savedMotorS, 0)}\u00a0s` : "–"}</td>
           </tr>
         ))}</tbody>
       </table></div>

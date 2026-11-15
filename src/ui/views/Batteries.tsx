@@ -63,7 +63,7 @@ export function Batteries() {
     const temp = e.a.grid.has("temperature.battery") ? medianOf(e.a.grid.get("temperature.battery")) : null;
     return { timeMs: e.startMs, cycles: e.a.session.battery?.chargeCycles ?? null, resistance: r, tempC: temp };
   };
-  const used = (e: Entry) => (e.a.batteryUse.available ? `${num(loc, e.a.batteryUse.value.usedMah, 0)} mAh` : "–");
+  const used = (e: Entry) => (e.a.batteryUse.available ? `${num(loc, e.a.batteryUse.value.usedMah, 0)}\u00a0mAh` : "–");
   const card = (list: Entry[], others: Model[]) => {
         const b = list[0].a.session.battery!;
         const flights = list.filter((e) => e.a.kind === "flight");
@@ -106,7 +106,7 @@ export function Batteries() {
                     <td className="r num">{e.a.session.battery?.chargeCycles}</td>
                     <td className="r num">{used(e)}</td>
                     <td className="r num lv-more">{num(loc, ch?.startCellV, 2)} → {num(loc, ch?.endCellV, 2)} V</td>
-                    <td className="r num lv-more">{resPerCell(e) === null ? "–" : `${num(loc, resPerCell(e), 1)} mΩ`}</td>
+                    <td className="r num lv-more">{resPerCell(e) === null ? "–" : `${num(loc, resPerCell(e), 1)}\u00a0mΩ`}</td>
                     <td>{condCell(e)}</td>
                   </tr>
                 );

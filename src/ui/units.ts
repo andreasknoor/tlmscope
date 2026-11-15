@@ -68,7 +68,7 @@ export function makeUnits(system: UnitSystem, locale: Locale): Units {
     v,
     series: (q, si) => si.map((x) => v(q, x)),
     n,
-    fmt: (q, si, digits = 0) => { const s = n(q, si, digits); return s === "–" ? s : `${s} ${t[q].unit}`; },
+    fmt: (q, si, digits = 0) => { const s = n(q, si, digits); return s === "–" ? s : `${s}\u00a0${t[q].unit}`; },
     byChannel: (id, unit, si) => {
       const q = BY_CHANNEL[id] ?? BY_SI_UNIT[unit];
       return q ? { value: v(q, si), unit: t[q].unit } : { value: si, unit };

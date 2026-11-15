@@ -65,7 +65,7 @@ export function OverviewTab() {
       case "best-lift": return `+${U.fmt("height", value)}`;
       case "longest-circling": return t("overview.circlesN", { n: value });
       case "hardest-load": return `${num(loc, value, 1)} g`;
-      case "weakest-signal": return `${num(loc, value, 0)} dBm`;
+      case "weakest-signal": return `${num(loc, value, 0)}\u00a0dBm`;
       default: return t("overview.perSecond", { n: value });
     }
   };
@@ -78,13 +78,13 @@ export function OverviewTab() {
       {a.kind === "flight" && p && p.basis !== "height" ? (
         <>
           <div className="grid g4">
-            <Tile label={t("overview.airtime")} value={airtime(p)} unit=" min" />
+            <Tile label={t("overview.airtime")} value={airtime(p)} unit={"\u00a0min"} />
             <Tile label={t("overview.highest")} value="–" sub={t("overview.noHeightShort")} />
-            <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit=" min" sub={t("overview.climbs", { n: runsOf(p) })} />
+            <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit={"\u00a0min"} sub={t("overview.climbs", { n: runsOf(p) })} />
             <Tile label={t("overview.lift")} value="–" sub={t("overview.noHeightShort")} />
           </div>
           {thrSeries[0].data.some((x) => x !== null) && (
-            <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thrSeries} phases={p.phases} yMax={100} yFormat={(x) => `${axisNum(loc, x)} %`}
+            <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thrSeries} phases={p.phases} yMax={100} yFormat={(x) => `${axisNum(loc, x)}\u00a0%`}
               extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />}
               readout={(i) => `${num(loc, thrSeries[0].data[i], 0)} % · ${p.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} />
           )}
@@ -92,19 +92,19 @@ export function OverviewTab() {
       ) : a.kind === "flight" && p ? (
         <>
           <div className="grid g4">
-            <Tile label={t("overview.airtime")} value={airtime(p)} unit=" min" />
-            <Tile label={t("overview.highest")} value={U.n("height", p.maxAltitudeM)} unit={` ${U.u("height")}`} />
-            <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit=" min" sub={t("overview.climbs", { n: p.climbs.length })} />
-            <Tile label={t("overview.lift")} value={p.lifts.length ? `+${U.n("height", p.liftGainM)}` : "0"} unit={p.lifts.length ? ` ${U.u("height")}` : ""}
-              sub={p.lifts.length ? `${p.lifts.length}× · ${clock(p.liftSecs)} min` : t("overview.noThermals")} />
+            <Tile label={t("overview.airtime")} value={airtime(p)} unit={"\u00a0min"} />
+            <Tile label={t("overview.highest")} value={U.n("height", p.maxAltitudeM)} unit={`\u00a0${U.u("height")}`} />
+            <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit={"\u00a0min"} sub={t("overview.climbs", { n: p.climbs.length })} />
+            <Tile label={t("overview.lift")} value={p.lifts.length ? `+${U.n("height", p.liftGainM)}` : "0"} unit={p.lifts.length ? `\u00a0${U.u("height")}` : ""}
+              sub={p.lifts.length ? `${p.lifts.length}× · ${clock(p.liftSecs)}\u00a0min` : t("overview.noThermals")} />
           </div>
           <LineChart syncKey={e!.key} title={t("overview.height")} series={altSeries} phases={p.phases} height={210}
-            extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)} ${U.u("height")}`}
+            extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("height")}`}
             rest={`max ${U.fmt("height", p.maxAltitudeM, 1)}`}
-            readout={(i) => `${num(loc, altSeries[0].data[i], 1)} ${U.u("height")} · ${p.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} />
+            readout={(i) => `${num(loc, altSeries[0].data[i], 1)}\u00a0${U.u("height")} · ${p.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} />
         </>
       ) : (
-        thrSeries[0].data.some((x) => x !== null) && <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thrSeries} yMax={100} yFormat={(x) => `${axisNum(loc, x)} %`} />
+        thrSeries[0].data.some((x) => x !== null) && <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thrSeries} yMax={100} yFormat={(x) => `${axisNum(loc, x)}\u00a0%`} />
       )}
       <div className="sectionhead"><h2>{t("overview.health")}</h2><p>{t("overview.healthHint")}</p></div>
       <div className="grid g4">

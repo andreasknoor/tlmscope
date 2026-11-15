@@ -19,7 +19,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 export const clock = (s: number) => `${Math.floor(s / 60)}:${pad(Math.floor(s % 60))}`;
 
 export function duration(locale: Locale, s: number): string {
-  return s >= 60 ? `${clock(s)} min` : `${num(locale, s, 1)} s`;
+  return s >= 60 ? `${clock(s)}\u00a0min` : `${num(locale, s, 1)}\u00a0s`;
 }
 
 export function dayLabel(locale: Locale, ms: number): string {

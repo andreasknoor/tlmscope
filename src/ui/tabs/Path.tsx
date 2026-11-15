@@ -110,10 +110,10 @@ function GpsView() {
   return (
     <>
       <div className="grid g4">
-        <Tile label={t("path.farthest")} value={U.n("distance", tr.maxDistanceM)} unit={` ${U.u("distance")}`} />
-        <Tile label={t("path.distance")} value={U.n("longDistance", tr.pathLengthM, 2)} unit={` ${U.u("longDistance")}`} />
-        <Tile label={t("path.typicalSpeed")} value={tr.medianSpeed === null ? "–" : U.n("speed", tr.medianSpeed)} unit={tr.medianSpeed === null ? "" : ` ${U.u("speed")}`} sub={t("path.overGround")} />
-        <Tile label={t("path.topSpeed")} value={tr.maxSpeed === null ? "–" : U.n("speed", tr.maxSpeed)} unit={tr.maxSpeed === null ? "" : ` ${U.u("speed")}`} sub={t("path.overGround")} />
+        <Tile label={t("path.farthest")} value={U.n("distance", tr.maxDistanceM)} unit={`\u00a0${U.u("distance")}`} />
+        <Tile label={t("path.distance")} value={U.n("longDistance", tr.pathLengthM, 2)} unit={`\u00a0${U.u("longDistance")}`} />
+        <Tile label={t("path.typicalSpeed")} value={tr.medianSpeed === null ? "–" : U.n("speed", tr.medianSpeed)} unit={tr.medianSpeed === null ? "" : `\u00a0${U.u("speed")}`} sub={t("path.overGround")} />
+        <Tile label={t("path.topSpeed")} value={tr.maxSpeed === null ? "–" : U.n("speed", tr.maxSpeed)} unit={tr.maxSpeed === null ? "" : `\u00a0${U.u("speed")}`} sub={t("path.overGround")} />
       </div>
       {tr.airborneOnly && <p className="note">{t("path.gpsNote")}{tr.jumps > 0 && ` ${t("path.gpsJumps", { n: tr.jumps })}`}</p>}
       <div id="map" className={`mapgroup${full ? " full" : ""}`} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? t("path.map") : undefined}>
@@ -190,7 +190,7 @@ function GpsView() {
       <LineChart syncKey={e!.key} title={t(hasHeight ? "path.follow" : "path.followThrottle")} series={followSeries} phases={p?.phases} height={150}
         yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? U.u("height") : "%"}`}
         readout={(i) => `${num(loc, followSeries[0].data[i], 0)} ${hasHeight ? U.u("height") : "%"} · ${t("path.away", { d: U.fmt("distance", tr.distance[i]) })}`} onCursor={setMarker} />
-      <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)} ${U.u("distance")}`} onCursor={setMarker} /></div>
+      <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("distance")}`} onCursor={setMarker} /></div>
     </>
   );
 }
@@ -224,7 +224,7 @@ function NoGpsView() {
           <div className="sectionhead"><h2 style={{ fontSize: 18 }}>{t("path.rotationTitle")}</h2></div>
           <div className="grid g3">
             <Tile label={t("path.circles")} value={c.circles} sub={t("path.periods", { n: c.periods.length })} />
-            <Tile label={t("path.turning")} value={num(loc, (c.turningSecs / Math.max(1, p.airtimeS)) * 100, 0)} unit=" %" sub={t("path.ofAirtime", { turning: clock(c.turningSecs), airtime: clock(p.airtimeS) })} />
+            <Tile label={t("path.turning")} value={num(loc, (c.turningSecs / Math.max(1, p.airtimeS)) * 100, 0)} unit={"\u00a0%"} sub={t("path.ofAirtime", { turning: clock(c.turningSecs), airtime: clock(p.airtimeS) })} />
             <Tile label={t("path.direction")} value={<>{oneWay}<small> {t("path.oneWay")}</small> · {c.circles - oneWay}<small> {t("path.otherWay")}</small></>} sub={t("path.directionNote")} />
           </div>
           <Strip syncKey={e!.key} label={t("path.circling")} n={a.grid.n} colorAt={circleColor}

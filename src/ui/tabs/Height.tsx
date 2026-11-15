@@ -42,7 +42,7 @@ export function HeightTab() {
     <>
       <div className="sectionhead"><h2>{t("height.title")}</h2><p>{t("height.hint")}</p></div>
       <LineChart syncKey={e!.key} title={t("overview.height")} series={altSeries} phases={p.phases} height={220}
-        extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)} ${U.u("height")}`}
+        extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("height")}`}
         readout={(i) => `${U.fmt("height", alt[i], 1)} · ${p.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} />
       <Strip syncKey={e!.key} label={t("height.phases")} n={p.n} colorAt={phaseColor} height={18} />
       <div className="lv-more">
@@ -51,11 +51,11 @@ export function HeightTab() {
       </div>
       <div className="grid g3">
         <Tile label={t("height.motorClimbs")} value={p.climbs.length} sub={t("height.withMotor", { gain: U.fmt("height", p.climbs.reduce((s, c) => s + c.gainM, 0)) })} />
-        <Tile label={t("height.lift")} value={p.lifts.length} sub={p.lifts.length ? `+${U.fmt("height", p.liftGainM)} · ${clock(p.liftSecs)} min` : t("height.noneFound")} />
+        <Tile label={t("height.lift")} value={p.lifts.length} sub={p.lifts.length ? `+${U.fmt("height", p.liftGainM)} · ${clock(p.liftSecs)}\u00a0min` : t("height.noneFound")} />
         {p.fastSink ? (
-          <Tile label={t("phase.unpowered")} value={clock(p.fastSink.secs)} unit=" min" sub={t("height.notGliding", { rate: U.fmt("vspeed", p.fastSink.rate, 1) })} />
+          <Tile label={t("phase.unpowered")} value={clock(p.fastSink.secs)} unit={"\u00a0min"} sub={t("height.notGliding", { rate: U.fmt("vspeed", p.fastSink.rate, 1) })} />
         ) : (
-          <Tile label={t("height.gliding")} value={clock(p.glideSecs)} unit=" min"
+          <Tile label={t("height.gliding")} value={clock(p.glideSecs)} unit={"\u00a0min"}
             sub={p.glideSinkRate !== null ? t("height.sinking", { rate: U.fmt("vspeed", p.glideSinkRate, 1), cmp }) : undefined} />
         )}
       </div>

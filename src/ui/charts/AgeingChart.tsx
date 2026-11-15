@@ -42,7 +42,7 @@ export function AgeingChart({ ageing, title, note }: { ageing: Ageing; title: st
       const step = y1 - y0 > 10 ? 4 : 2;
       for (let v = Math.ceil(y0 / step) * step; v <= y1; v += step) {
         ctx.beginPath(); ctx.moveTo(L, Y(v)); ctx.lineTo(W - R, Y(v)); ctx.stroke();
-        ctx.textAlign = "right"; ctx.fillText(`${v} mΩ`, L - 6, Y(v) + 4);
+        ctx.textAlign = "right"; ctx.fillText(`${v}\u00a0mΩ`, L - 6, Y(v) + 4);
       }
       ctx.textAlign = "left"; ctx.fillText(dateShort(loc, t0), L, H - 6);
       if (t1 !== t0) { ctx.textAlign = "right"; ctx.fillText(dateShort(loc, t1), W - R, H - 6); }
