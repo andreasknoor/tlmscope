@@ -280,8 +280,16 @@ details.sessionlist[open] summary { margin-bottom: 8px; }
 .hud div { display: flex; flex-direction: column; gap: 1px; }
 .hud span { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
 .hud b { font: 600 16px var(--code); color: var(--ink); white-space: nowrap; }
-.mapbox > .tools { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 2; pointer-events: none; }
+.mapbox > .tools { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 6; pointer-events: none; }
 .mapbox > .tools > * { pointer-events: auto; }
+.mapselect[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+.optwrap { position: relative; }
+.optpanel { position: absolute; top: calc(100% + 6px); left: 0; width: 300px; max-height: 360px; overflow: auto; padding: 4px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgb(0 0 0 / .22); z-index: 6; }
+.optpanel details { padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.optpanel details:last-child { border-bottom: 0; }
+.optpanel summary { cursor: pointer; font-weight: 700; padding: 9px 0; display: flex; justify-content: space-between; gap: 8px; }
+.optpanel summary small { font-weight: 500; color: var(--ink-3); text-align: right; }
+.optrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0; color: var(--ink-2); font-weight: 600; font-size: 13.5px; }
 .mapselect { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink-2); font: inherit; font-weight: 600; font-size: 13.5px; padding: 4px 8px; cursor: pointer; }
 /* Map and replay; in full screen they fill the browser window. */
 .mapgroup { display: contents; }
@@ -373,6 +381,8 @@ body:not([data-details="on"]) .lv-more { display: none !important; }
   .mapwrap { height: 340px; }
   /* Phones: the map tools stand above the map instead of covering it. */
   .mapbox > .tools { position: static; margin-bottom: 8px; pointer-events: auto; }
+  .optwrap { width: 100%; }
+  .optpanel { position: static; width: 100%; margin-top: 6px; box-shadow: none; }
 }
 /* Storks flying across the screen. */
 .race { position: fixed; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }

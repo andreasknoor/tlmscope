@@ -7,7 +7,7 @@ import type { SessionAnalysis } from "@/core/analysis";
 import { clock, cssVar, num, withAlpha } from "../format";
 import { useStore, useUnits } from "../store";
 import { PHASE_COLOR } from "./LineChart";
-import { ADEBAR_LANDED, moveAll, onCursorMove } from "./sync";
+import { ADEBAR_LANDED, moveAll, onCursorMove, onPlayRequest } from "./sync";
 import { useThemeVersion } from "./useTheme";
 
 const SPEEDS = [1, 10, 30, 60] as const;
@@ -148,6 +148,13 @@ export function Replay({ a, syncKey, clatter = false }: { a: SessionAnalysis; sy
     if (!playing && posRef.current >= n - 1) { posRef.current = 0; setPos(0); }
     setPlaying(!playing);
   }, [playing, n]);
+
+  // The follow view on the map starts the replay (from the start if it had run to the end).
+  useEffect(() => onPlayRequest(syncKey, () => {
+    if (playingRef.current) return;
+    if (posRef.current >= n - 1) { posRef.current = 0; setPos(0); }
+    setPlaying(true);
+  }), [syncKey, n]);
 
   // Space starts and stops the replay unless the focus is in a form field.
   useEffect(() => {

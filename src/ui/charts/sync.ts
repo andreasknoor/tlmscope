@@ -64,5 +64,17 @@ export function jumpTo(key: string, i: number): void {
   first?.root.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
+/** Asks the replay of a session to start playing (the follow view does this). */
+const playListeners = new Map<string, Set<() => void>>();
+export function onPlayRequest(key: string, fn: () => void): () => void {
+  let l = playListeners.get(key);
+  if (!l) playListeners.set(key, (l = new Set()));
+  l.add(fn);
+  return () => l!.delete(fn);
+}
+export function requestPlay(key: string): void {
+  for (const fn of playListeners.get(key) ?? []) fn();
+}
+
 /** Fired on window when the stork lands in its nest during the replay; the replay answers with a clatter. */
 export const ADEBAR_LANDED = "tlmscope:adebar-landed";

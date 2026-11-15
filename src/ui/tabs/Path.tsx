@@ -4,10 +4,11 @@ import { attitudeFromPath } from "@/core/analysis";
 import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useOnline } from "../offline";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Legend, Tile, useLevelWord } from "../bits";
 import { FlightMap, LINE_STYLES, MARKER_STYLES, PATH_MODES, type LineStyle, type MarkerStyle, type PathMode } from "../charts/FlightMap";
 import { Replay } from "../charts/Replay";
+import { requestPlay } from "../charts/sync";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
 import { axisNum, clock, cssVar, mix, num, withAlpha } from "../format";
@@ -41,13 +42,35 @@ function GpsView() {
   const sig = a.signal.available ? a.signal.value : null;
   const word = useLevelWord();
   const [colourBy, setColourBy] = useState<ColourBy>("phase");
-  const [pitch, setPitch] = useState(55);
+  /** How the map is viewed: from a tilted angle, from above, or with the camera following the model (always tilted). */
+  const [view, setViewState] = useState<"3d" | "map" | "follow">("3d");
+  const pitch = view === "map" ? 0 : 55;
+  const chase = view === "follow";
   const [lineStyle, setLineStyle] = useState<LineStyle>("thin");
   const [pathMode, setPathMode] = useState<PathMode>("full");
   const [markerStyle, setMarkerStyle] = useState<MarkerStyle>("plane");
   const [shadow, setShadow] = useState(true);
   const [relief, setRelief] = useState(false);
-  const [chase, setChase] = useState(false);
+  /** Relief before the follow view switched it on; null when not following or once changed by hand, so it is then kept. */
+  const reliefBefore = useRef<boolean | null>(null);
+  const chooseView = (v: "3d" | "map" | "follow") => {
+    if (v === view) return;
+    if (v === "follow") { reliefBefore.current = relief; setRelief(true); requestPlay(e!.key); }
+    else if (view === "follow" && reliefBefore.current !== null) { setRelief(reliefBefore.current); reliefBefore.current = null; }
+    setViewState(v);
+  };
+  const toggleRelief = () => { reliefBefore.current = null; setRelief(!relief); };
+  const [opts, setOpts] = useState(false);
+  const optRef = useRef<HTMLDivElement>(null);
+  // The options panel closes on Escape and on a click outside it.
+  useEffect(() => {
+    if (!opts) return;
+    const onKey = (ev: KeyboardEvent) => { if (ev.key === "Escape") setOpts(false); };
+    const onDown = (ev: MouseEvent) => { if (!optRef.current?.contains(ev.target as Node)) setOpts(false); };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("mousedown", onDown); };
+  }, [opts]);
   /** Height of the model above the ground below it, reported by the map while the relief or chase view is on. */
   const [agl, setAgl] = useState<number | null>(null);
   const [marker, setMarker] = useState<number | null>(null);
@@ -101,32 +124,51 @@ function GpsView() {
         {/* The tools sit over the map on wide screens and above it on phones (CSS). */}
         <div className="mapbox">
           {online && <div className="tools">
-            <div className="seg" role="group">
-              <button aria-pressed={pitch > 0} onClick={() => setPitch(55)}>{t("path.view3d")}</button>
-              <button aria-pressed={pitch === 0} onClick={() => setPitch(0)}>{t("path.viewTop")}</button>
+            <div className="seg" role="group" aria-label={t("path.view")}>
+              <button aria-pressed={view === "3d"} onClick={() => chooseView("3d")}>{t("path.view3d")}</button>
+              <button aria-pressed={view === "map"} onClick={() => chooseView("map")}>{t("path.viewTop")}</button>
+              <button aria-pressed={view === "follow"} onClick={() => chooseView("follow")} title={t("path.chaseHint")}>{t("path.chase")}</button>
             </div>
-            <div className="seg" role="group" aria-label={t("path.colour")}>
-              {(["phase", "height", "signal"] as const).map((c) => (
-                <button key={c} aria-pressed={colourBy === c} onClick={() => setColourBy(c)}>{t(`path.by${c[0].toUpperCase()}${c.slice(1)}`)}</button>
-              ))}
-            </div>
-            <select className="mapselect" aria-label={t("path.line")} value={lineStyle} onChange={(ev) => setLineStyle(ev.target.value as LineStyle)}>
-              {LINE_STYLES.map((l) => <option key={l} value={l}>{t(`path.line_${l}`)}</option>)}
-            </select>
-            <select className="mapselect" aria-label={t("path.pathMode")} title={t("path.pathModeHint")} value={pathMode} onChange={(ev) => setPathMode(ev.target.value as PathMode)}>
-              {PATH_MODES.map((m) => <option key={m} value={m}>{t(`path.pathMode_${m}`)}</option>)}
-            </select>
-            <select className="mapselect" aria-label={t("path.marker")} value={markerStyle} onChange={(ev) => setMarkerStyle(ev.target.value as MarkerStyle)}>
-              {MARKER_STYLES.map((k) => <option key={k} value={k}>{t(`path.marker_${k}`)}</option>)}
-            </select>
-            <div className="seg"><button aria-pressed={shadow && !relief} disabled={relief} onClick={() => setShadow(!shadow)} title={t("path.shadowHint")}>{t("path.shadow")}</button></div>
-            <div className="seg" role="group">
-              <button aria-pressed={relief} onClick={() => setRelief(!relief)} title={t("path.reliefHint")}>{t("path.relief")}</button>
-              <button aria-pressed={chase} onClick={() => { setChase(!chase); if (!chase && pitch === 0) setPitch(55); }} title={t("path.chaseHint")}>{t("path.chase")}</button>
+            <div className="optwrap" ref={optRef}>
+              <button className="mapselect" aria-expanded={opts} aria-haspopup="true" onClick={() => setOpts(!opts)}>{t("path.options")} ▾</button>
+              {opts && <div className="optpanel" role="group" aria-label={t("path.options")}>
+                <details open>
+                  <summary>{t("path.colour")}<small>{t(`path.by${colourBy[0].toUpperCase()}${colourBy.slice(1)}`)}</small></summary>
+                  <div className="seg" role="group" aria-label={t("path.colour")}>
+                    {(["phase", "height", "signal"] as const).map((c) => (
+                      <button key={c} aria-pressed={colourBy === c} onClick={() => setColourBy(c)}>{t(`path.by${c[0].toUpperCase()}${c.slice(1)}`)}</button>
+                    ))}
+                  </div>
+                </details>
+                <details>
+                  <summary>{t("path.secPath")}<small>{t(`path.line_${lineStyle}`)} · {t(`path.pathMode_${pathMode}`)}</small></summary>
+                  <label className="optrow"><span>{t("path.line")}</span>
+                    <select className="mapselect" value={lineStyle} onChange={(ev) => setLineStyle(ev.target.value as LineStyle)}>
+                      {LINE_STYLES.map((l) => <option key={l} value={l}>{t(`path.line_${l}`)}</option>)}
+                    </select></label>
+                  <label className="optrow" title={t("path.pathModeHint")}><span>{t("path.pathMode")}</span>
+                    <select className="mapselect" value={pathMode} onChange={(ev) => setPathMode(ev.target.value as PathMode)}>
+                      {PATH_MODES.map((m) => <option key={m} value={m}>{t(`path.pathMode_${m}`)}</option>)}
+                    </select></label>
+                </details>
+                <details>
+                  <summary>{t("path.secModel")}<small>{t(`path.marker_${markerStyle}`)}</small></summary>
+                  <div className="seg" role="group" aria-label={t("path.marker")}>
+                    {MARKER_STYLES.map((k) => <button key={k} aria-pressed={markerStyle === k} onClick={() => setMarkerStyle(k)}>{t(`path.marker_${k}`)}</button>)}
+                  </div>
+                </details>
+                <details>
+                  <summary>{t("path.secGround")}<small>{relief ? t("path.relief") : shadow ? t("path.shadow") : t("path.plain")}</small></summary>
+                  <label className="optrow" title={relief ? t("path.shadowRelief") : t("path.shadowHint")}><span>{t("path.shadow")}</span>
+                    <input type="checkbox" checked={shadow && !relief} disabled={relief} onChange={() => setShadow(!shadow)} /></label>
+                  <label className="optrow" title={t("path.reliefHint")}><span>{t("path.relief")}</span>
+                    <input type="checkbox" checked={relief} onChange={toggleRelief} /></label>
+                </details>
+              </div>}
             </div>
           </div>}
           <div className="mapwrap">
-            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} relief={relief} chase={chase} onChaseEnd={() => setChase(false)} onGround={setAgl} failedText={t("path.mapFailed")} />}
+            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} relief={relief} chase={chase} onChaseEnd={() => chooseView("3d")} onGround={setAgl} failedText={t("path.mapFailed")} />}
             {online && (relief || chase) && marker !== null && (
               <div className="hud" aria-label={t("path.hud")}>
                 <div><span>{t("path.hudHeight")}</span><b>{U.fmt("height", Math.max(0, alt[marker] ?? 0))}</b></div>
