@@ -59,3 +59,8 @@ export function batteryLetter(k: number): string {
   for (let n = k + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
   return s;
 }
+
+/** A voltage with two decimals, or "–" alone when there is none (not "– V"). */
+export function volts(locale: Locale, v: number | null | undefined): string {
+  return v === null || v === undefined || !Number.isFinite(v) ? "–" : `${num(locale, v, 2)}\u00a0V`;
+}

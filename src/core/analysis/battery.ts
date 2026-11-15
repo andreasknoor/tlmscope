@@ -1,5 +1,5 @@
 import { Q, type Session } from "../model/types.ts";
-import type { FlightProfile } from "./flight.ts";
+import { FLIGHT, type FlightProfile } from "./flight.ts";
 import { Grid, maxOf, medianOf, minOf, valid } from "./grid.ts";
 import { withNeeds, type Result } from "./requirements.ts";
 import { rate, THRESHOLDS, type Level } from "./thresholds.ts";
@@ -48,6 +48,8 @@ export interface ChargeEstimate {
   endCellV: number | null;
   startPct: number | null;
   endPct: number | null;
+  /** No end value because the motor was under load until the log ended (no resting voltage to read). */
+  endUnderLoad: boolean;
 }
 
 export interface CellBalance {
@@ -114,6 +116,9 @@ export function batteryCondition(session: Session, g = new Grid(session)): Resul
   });
 }
 
+/** The end voltage is read in the last this many seconds of the log, where the motor is off. */
+const END_REST_WINDOW_S = 25;
+
 /** Charge at start and end, from the resting pack voltage. */
 export function chargeEstimate(session: Session, profile: FlightProfile | null, g = new Grid(session)): Result<ChargeEstimate> {
   return withNeeds(session, ["pack_voltage"], () => {
@@ -122,13 +127,17 @@ export function chargeEstimate(session: Session, profile: FlightProfile | null, 
     if (!cells) return null;
     // Voltage only drops under load, so the early maximum is the resting value.
     const start = maxOf(volts.slice(0, 30));
+    // Under load means current flowing, where the log has a current: after landing the throttle channel can
+    // stay above zero (throttle hold, a disarmed controller) while the motor stands still.
     const motor = profile?.motor ?? new Array(g.n).fill(false);
+    const amps = session.channels.has("motor_current") ? g.get("motor_current") : null;
+    const loaded = (i: number) => i >= 0 && (amps?.[i] != null ? amps[i]! > FLIGHT.motorCurrentA : motor[i]);
     const restIdx: number[] = [];
-    for (let i = Math.max(0, g.n - 25); i < g.n; i++) if (!motor[i] && !motor[i - 1] && !motor[i - 2]) restIdx.push(i);
+    for (let i = Math.max(0, g.n - END_REST_WINDOW_S); i < g.n; i++) if (!loaded(i) && !loaded(i - 1) && !loaded(i - 2)) restIdx.push(i);
     const end = medianOf(restIdx.map((i) => volts[i]));
     const startCellV = start === null ? null : start / cells;
     const endCellV = end === null ? null : end / cells;
-    return { cells, startCellV, endCellV, startPct: lipoChargePct(startCellV), endPct: lipoChargePct(endCellV) };
+    return { cells, startCellV, endCellV, startPct: lipoChargePct(startCellV), endPct: lipoChargePct(endCellV), endUnderLoad: restIdx.length === 0 };
   });
 }
 

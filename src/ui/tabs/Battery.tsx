@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { DetailRows, Legend, RatingCard, useLevelWord, useRich } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { Scatter } from "../charts/Scatter";
-import { num } from "../format";
+import { num, volts } from "../format";
 import { useBatteryName, useStore } from "../store";
 import { cellCount } from "@/core/analysis/battery";
 import { ConditionCard, IssueAlerts } from "./ratings";
@@ -57,7 +57,7 @@ export function BatteryTab() {
             {ch?.startPct != null ? `${num(loc, ch.startPct, 0)}\u00a0%` : "–"} <span style={{ fontSize: 18, color: "var(--ink-3)" }}>→</span> {ch?.endPct != null ? `${num(loc, ch.endPct, 0)}\u00a0%` : "–"}
           </div>
           <div className="hint">{t("battery.chargeHint")}</div>
-          <DetailRows rows={ch ? [[t("battery.perCellStart"), `${num(loc, ch.startCellV, 2)}\u00a0V`], [t("battery.perCellEnd"), `${num(loc, ch.endCellV, 2)}\u00a0V`]] : null} />
+          <DetailRows rows={ch ? [[t("battery.perCellStart"), volts(loc, ch.startCellV)], [t("battery.perCellEnd"), ch.endUnderLoad ? t("battery.endUnderLoad") : volts(loc, ch.endCellV)]] : null} />
         </div>
         <ConditionCard a={a} />
       </div>

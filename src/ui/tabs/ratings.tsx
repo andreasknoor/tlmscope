@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import type { SessionAnalysis } from "@/core/analysis";
 import { catalogue } from "@/core/model/catalogue";
 import { RatingCard, useLevelWord, useRich } from "../bits";
-import { num } from "../format";
+import { num, volts } from "../format";
 import { useStore, useUnits } from "../store";
 
 const v = <T,>(r: { available: true; value: T } | { available: false }): T | null => (r.available ? r.value : null);
@@ -46,6 +46,7 @@ export function SignalCard({ a }: { a: SessionAnalysis }) {
 
 export function UsedCard({ a }: { a: SessionAnalysis }) {
   const t = useTranslations("rating");
+  const tAll = useTranslations();
   const word = useLevelWord();
   const rich = useRich();
   const loc = useStore().settings.locale;
@@ -56,7 +57,7 @@ export function UsedCard({ a }: { a: SessionAnalysis }) {
     : rich("rating.usedNoCapacity", { used: num(loc, u.usedMah, 0) });
   return (
     <RatingCard name={t("used")} level={u?.level ?? null} word={word("used", u?.level ?? null)} hint={hint}
-      rows={u ? [[t("usedByMotor"), `${num(loc, u.usedMah, 0)}\u00a0mAh`], [t("cellStart"), `${num(loc, c?.startCellV, 2)}\u00a0V`], [t("cellEnd"), `${num(loc, c?.endCellV, 2)}\u00a0V`]] : null} />
+      rows={u ? [[t("usedByMotor"), `${num(loc, u.usedMah, 0)}\u00a0mAh`], [t("cellStart"), volts(loc, c?.startCellV)], [t("cellEnd"), c?.endUnderLoad ? tAll("battery.endUnderLoad") : volts(loc, c?.endCellV)]] : null} />
   );
 }
 
@@ -85,7 +86,9 @@ export function TempCard({ a }: { a: SessionAnalysis }) {
   const x = v(a.temperatures);
   return (
     <RatingCard name={t("temps")} level={x?.level ?? null} word={word("temp", x?.level ?? null)} hint={x ? t("tempsHint") : ""}
-      rows={x ? [[t("escMax"), U.fmt("temp", x.escMaxC)], [t("becMax"), U.fmt("temp", x.becMaxC)], [t("battMax"), U.fmt("temp", x.batteryMaxC)]] : null} />
+      rows={x ? ([[t("escMax"), x.escMaxC], [t("becMax"), x.becMaxC], [t("battMax"), x.batteryMaxC]] as const)
+        // Only the sensors the model has: a missing one is left out, not shown as "–".
+        .filter(([, c]) => c !== null).map(([label, c]): [string, string] => [label, U.fmt("temp", c)]) : null} />
   );
 }
 
