@@ -89,7 +89,7 @@ describe.skipIf(!hasSamples)("Spektrum TLM: all sample files", () => {
     "TelemetryLog supra .tlm": 130,
   };
 
-  it("covers every sample in the folder", () => {
+  it("covers every reference sample", () => {
     expect(sampleNames()).toEqual(Object.keys(expectedSessions).sort());
   });
 
@@ -118,7 +118,7 @@ describe.skipIf(!hasSamples)("Spektrum TLM: all sample files", () => {
     const iEsc = esc.v.findIndex((v) => v > 99);
     const iStick = stick.t.findIndex((t) => t >= esc.t[iEsc]);
     expect(stick.v[iStick]).toBeGreaterThan(95);
-    // The status page: only the throttle hold (bit 14) is decoded; it is set (motor locked) and cleared in this session.
+    // The status page: the throttle hold (bit 14) is set (motor locked) and cleared in this session.
     const status = s.raw.find((x) => x.key === "0x7a/0")!;
     expect(status.understood).toBe("partial");
     const hold = status.fields.find((f) => f.name.startsWith("Throttle hold"))!;

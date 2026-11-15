@@ -76,15 +76,13 @@ export const SENSORS: Record<string, SensorDef> = {
     label: "Flight log (link quality)",
     understood: "full",
     note: "Counters are cumulative since receiver power-up; channels hold counts since session start.",
-    decode: (p) => [
-      { name: "Fades A", unit: "count", value: none16(u16be(p, 2), 1), channel: "fades.a", counter: true },
-      { name: "Fades B", unit: "count", value: none16(u16be(p, 4), 1), channel: "fades.b", counter: true },
-      { name: "Fades L", unit: "count", value: none16(u16be(p, 6), 1), channel: "fades.l", counter: true },
-      { name: "Fades R", unit: "count", value: none16(u16be(p, 8), 1), channel: "fades.r", counter: true },
-      { name: "Frame losses", unit: "count", value: none16(u16be(p, 10), 1), channel: "frame_losses", counter: true },
-      { name: "Holds", unit: "count", value: none16(u16be(p, 12), 1), channel: "holds", counter: true },
-      { name: "Receiver voltage", unit: "V", value: r(none16(u16be(p, 14), 0.01)), channel: "rx_voltage" },
-    ],
+    decode: (p) => decodeFlightLog(p),
+  },
+  "0xff": {
+    label: "Flight log (link quality, id 0xFF)",
+    understood: "full",
+    note: "Same layout as 0x7F. Some receivers send it instead of 0x7F, about 10 times per second, with only antenna A filled in; the counters only go up and the receiver voltage is steady. It feeds the link quality only when the session has no 0x7F: next to 0x7F it turns up once or twice per session with counters that do not match.",
+    decode: (p) => decodeFlightLog(p),
   },
   "0x7e": {
     label: "RPM / signal",
@@ -139,11 +137,11 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x05": {
     label: "Flight controller status (AS3X / SAFE)",
     understood: "partial",
-    note: "Byte 2 looks like the stabilization mode index (0-based, unverified); byte 4 is 0x80 + the same index. Byte 5 cycles 0x80–0x82 like a page number. Pages 0x81 and 0x82 stay the same within a mode (gains?); page 0x80 changes in flight (live values, not decoded).",
+    note: "Byte 4 is 0x80 + the receiver flight mode (0 = FM1, 1 = FM2, 2 = FM3); checked against the flight mode switch, it follows the switch within half a second. Byte 2 lists the active functions: 0 = stabilization off, 1 = AS3X, 3 = SAFE; 5 was seen with AS3X plus heading hold (bit 2 = heading hold, unverified). Byte 3 is 0 for a few seconds after power-up, then 2. Byte 5 cycles 0x80–0x82 like a page number. Pages 0x81 and 0x82 stay the same within a flight mode and change with it (settings per mode, not decoded); page 0x80 changes in flight (live values, not decoded).",
     decode: (p) => [
-      { name: "Stabilization mode index (unverified)", unit: "", value: p[2], channel: "flight_mode", categorical: true },
+      { name: "Flight mode", unit: "", value: p[4] >= 0x80 && p[4] < 0x90 ? p[4] - 0x80 : null, channel: "flight_mode", categorical: true },
+      { name: "Active functions (byte 2)", unit: "", value: p[2] },
       { name: "Byte 3", unit: "", value: p[3] },
-      { name: "Byte 4", unit: "", value: p[4] },
       { name: "Page (byte 5)", unit: "", value: p[5] },
       { name: "Page value 1", unit: "", value: p[6] },
       { name: "Page value 2", unit: "", value: p[7] },
@@ -242,7 +240,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x7a/1": {
     label: "Transmitter stick positions",
     understood: "partial",
-    note: "Only in AutoLog files. Signed 12-bit values (−2047…2047), little-endian, about 35 per second. Offset 4 is the throttle stick (matches the ESC throttle, r = 0.88). In flight, offset 6 follows the pitch rate (r = −0.72) and offset 8 the roll rate (r = +0.76): elevator and aileron. Offset 10 is probably the rudder (no link to the yaw rate in the sample flights; the model may not use it). Offset 2 changes only between sessions, like a knob or slider. Signs and whether trims and rates are included are not verified.",
+    note: "Only in AutoLog files. Signed 12-bit values (−2047…2047), little-endian, 5 to 35 per second depending on the log. Offset 4 is the throttle stick (matches the ESC throttle, r = 0.88). In flight, offset 6 follows the pitch rate (elevator), offset 8 the roll rate (aileron) and offset 10 the yaw rate (rudder), checked on several models. The values reach ±2047 with low rates as well, so they are the stick positions before dual rates and expo. The sign against the gyro differs between receivers, so stick directions cannot be taken from the gyro. Offset 2 changes little within a session, like a knob, slider or trim. Offsets 12 and 14 are 0 on some transmitters and about −2047 on others (unknown controls); receiver channels such as a flight mode channel are not in this packet.",
     decode: (p) => {
       const v = (o: number) => (((p[o] | (p[o + 1] << 8)) << 16) >> 16);
       return [
@@ -250,23 +248,40 @@ export const SENSORS: Record<string, SensorDef> = {
         { name: "Throttle stick", unit: "%", value: Math.round(((v(4) + 2047) / 4094) * 1000) / 10, channel: "throttle_command" },
         { name: "Elevator stick @6", unit: "", value: v(6), channel: "raw:spektrum.0x7a.@6" },
         { name: "Aileron stick @8", unit: "", value: v(8), channel: "raw:spektrum.0x7a.@8" },
-        { name: "Rudder stick? @10", unit: "", value: v(10), channel: "raw:spektrum.0x7a.@10" },
+        { name: "Rudder stick @10", unit: "", value: v(10), channel: "raw:spektrum.0x7a.@10" },
         { name: "Value @12", unit: "", value: v(12) },
+        { name: "Value @14", unit: "", value: v(14) },
       ];
     },
   },
   "0x7a/0": {
     label: "Transmitter status bits",
     understood: "partial",
-    note: "Only in AutoLog files, alternating with the stick positions. Bytes 2–3 are a 16-bit field (little-endian) that changes only when a switch is moved; it looks like eight two-bit switch positions. Bit 14 is the throttle hold: set means the motor is locked (checked against the ESC: the motor never ran with it set). The other switch fields are not mapped yet.",
+    note: "Only in AutoLog files, alternating with the stick positions. Bytes 2–3 are a 16-bit field (little-endian) of eight two-bit switch positions (0, 1, 2), changing only when a switch is moved. Bits 2–3 are switch B and bits 4–5 switch C, with the value equal to the switch position (checked against the flight mode the receiver reports). Bit 14 is the throttle hold: set means the motor is locked (checked against the ESC on two transmitters: the motor never ran with it set). Bits 0–1 change too; which switch they belong to is not known.",
     decode: (p) => [
       { name: "Byte 2", unit: "", value: p[2] },
       { name: "Byte 3", unit: "", value: p[3] },
+      { name: "Bits 0–1", unit: "", value: p[2] & 3 },
+      { name: "Switch B (bits 2–3)", unit: "", value: (p[2] >> 2) & 3 },
+      { name: "Switch C (bits 4–5)", unit: "", value: (p[2] >> 4) & 3 },
       { name: "Throttle hold (bit 14)", unit: "", value: (p[3] >> 6) & 1 },
     ],
   },
   "0x00": { label: "Empty slot", understood: "none", note: "No sensor id. Mostly zeros; some records carry fragments of other packets.", decode: () => [] },
 };
+
+/** Flight log layout (0x7F, and 0xFF from some receivers). Big-endian, 0xFFFF = no data. */
+function decodeFlightLog(p: Uint8Array): Field[] {
+  return [
+    { name: "Fades A", unit: "count", value: none16(u16be(p, 2), 1), channel: "fades.a", counter: true },
+    { name: "Fades B", unit: "count", value: none16(u16be(p, 4), 1), channel: "fades.b", counter: true },
+    { name: "Fades L", unit: "count", value: none16(u16be(p, 6), 1), channel: "fades.l", counter: true },
+    { name: "Fades R", unit: "count", value: none16(u16be(p, 8), 1), channel: "fades.r", counter: true },
+    { name: "Frame losses", unit: "count", value: none16(u16be(p, 10), 1), channel: "frame_losses", counter: true },
+    { name: "Holds", unit: "count", value: none16(u16be(p, 12), 1), channel: "holds", counter: true },
+    { name: "Receiver voltage", unit: "V", value: r(none16(u16be(p, 14), 0.01)), channel: "rx_voltage" },
+  ];
+}
 
 /** Labels for sensors we know by name but do not decode. */
 export const KNOWN_UNDECODED: Record<string, string> = {
@@ -274,7 +289,6 @@ export const KNOWN_UNDECODED: Record<string, string> = {
   "0x12": "Altitude sensor (declared; the Supra header pairs it with 0x40, the vario)",
   "0x11": "Airspeed sensor (declared, only zeros seen)",
   "0x50": "User-defined sensor (probably; content unknown)",
-  "0xff": "Damaged record (no sensor)",
 };
 
 /** GPS flags, byte 15 of 0x16. */

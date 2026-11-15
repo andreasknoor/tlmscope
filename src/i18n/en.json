@@ -417,8 +417,8 @@
     "note": "Without GPS, height is the only distance hint: higher usually means farther away."
   },
   "aircraft": {
-    "flightMode": "Stabilization",
-    "flightModeHint": "Modes used, as reported by the receiver (meaning unverified)",
+    "flightMode": "Flight mode",
+    "flightModeHint": "Receiver flight modes used (set by the flight mode switch)",
     "modes": "Mode {list}",
     "mode": "Mode {n}",
     "disabled": "Disabled",
@@ -428,7 +428,7 @@
     "receiver": "Receiver",
     "becOut": "BEC output",
     "load": "Load (total g)",
-    "fmOverTime": "Stabilization over time"
+    "fmOverTime": "Flight mode over time"
   },
   "raw": {
     "title": "Sensors in this session",
@@ -547,7 +547,7 @@
     "d5n": "Receiver with AS3X / SAFE",
     "d6": "Throttle stick position",
     "d6n": "Recent NX firmware (AutoLog files)",
-    "d7": "Stabilization mode",
+    "d7": "Flight mode",
     "d7n": "Receiver with AS3X / SAFE",
     "d8": "Map, distance, speed over ground",
     "d8n": "Spektrum GPS telemetry sensor",

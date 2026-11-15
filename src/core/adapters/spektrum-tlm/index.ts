@@ -71,6 +71,8 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
   let gpsAltHigh = 0;
   let prevTick = -Infinity;
   let backwards = 0;
+  // 0xFF carries the flight log on receivers that send no 0x7F. Next to 0x7F it is a stray copy with other counters.
+  const flightLogFromFf = !rs.packetOffsets.some((o) => data[o] === 0x7f);
 
   for (let i = 0; i < n; i++) {
     const tick = rs.ticks[i];
@@ -114,7 +116,7 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
     }
 
     // channels
-    for (const f of fields) {
+    if (key !== "0xff" || flightLogFromFf) for (const f of fields) {
       if (!f.channel) continue;
       const unit = f.channel.startsWith("raw:") ? "?" : (f.unit as never);
       const kind = f.counter ? "counter" : f.categorical ? "categorical" : "numeric";
@@ -171,7 +173,7 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
     let top = 0;
     for (const v of fm.v) if (!Number.isNaN(v)) top = Math.max(top, v);
     fm.categories = Array.from({ length: top + 1 }, (_, k) => `Mode ${k + 1}`);
-    fm.source.note = "Index from byte 2 of the 0x05 packet. Meaning not verified.";
+    fm.source.note = "Receiver flight mode from byte 4 of the 0x05 packet (0 = FM1). Follows the flight mode switch.";
   }
   const gf = channels.get("gps.fix");
   if (gf) gf.categories = GPS_FIX_CATEGORIES;

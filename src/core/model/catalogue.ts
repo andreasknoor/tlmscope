@@ -96,7 +96,7 @@ export const CATALOGUE: CatalogueEntry[] = [
   e("heading", "°", "gps", "Course", "Kurs", "Course over ground from GPS, 0 = north."),
   // controls and status
   e("throttle_command", "%", "controls", "Throttle stick", "Gasknüppel", "Throttle stick position at the transmitter."),
-  e("flight_mode", "", "status", "Stabilization mode", "Stabilisierungsmodus", "Stabilization mode (AS3X / SAFE) reported by the receiver or flight controller.", { kind: "categorical" }),
+  e("flight_mode", "", "status", "Flight mode", "Flugmodus", "Receiver flight mode (FM1, FM2, FM3), set by the flight mode switch; each mode can use AS3X, heading hold or SAFE.", { kind: "categorical" }),
 ];
 
 const byId = new Map(CATALOGUE.map((c) => [c.id, c]));

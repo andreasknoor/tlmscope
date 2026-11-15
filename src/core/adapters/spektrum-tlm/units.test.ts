@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { integrateMah, toSessionCounter } from "../../model/normalise.ts";
 import { Q, type Channel } from "../../model/types.ts";
+import { parseLog } from "../registry.ts";
 import { readBlocks } from "./blocks.ts";
+import { encodeTlm, modelHeader, Packet } from "./encode.ts";
 import { bcdLe } from "./bytes.ts";
 import { decodeGpsLoc, decodeGpsStat, GPS_FLAG, SENSORS } from "./sensors.ts";
 
@@ -96,5 +98,44 @@ describe("GPS packets (from the specification, no real log yet)", () => {
     const f = decodeGpsStat(packet([0x17, 0, 0x50, 0x01, 0, 0, 0, 0, 0x09, 0x01]));
     expect(field(f, "Ground speed")).toBeCloseTo(15 * 0.514444, 3); // 15.0 knots
     expect(field(f, "Satellites")).toBe(9);
+  });
+});
+
+describe("flight controller status (0x05)", () => {
+  it("takes the flight mode from byte 4 and keeps byte 2 as the active functions", () => {
+    const f = SENSORS["0x05"].decode(packet([0x05, 0, 0x03, 0x02, 0x82, 0x81]));
+    expect(field(f, "Flight mode")).toBe(2);
+    expect(field(f, "Active functions (byte 2)")).toBe(3);
+    expect(field(SENSORS["0x05"].decode(packet([0x05, 0, 0x05, 0x02, 0x80])), "Flight mode")).toBe(0);
+    expect(field(SENSORS["0x05"].decode(packet([0x05, 0, 0x05, 0x02, 0x00])), "Flight mode")).toBeNull();
+  });
+});
+
+describe("transmitter switches (0x7a/0)", () => {
+  it("reads switch B, switch C and the throttle hold", () => {
+    const f = SENSORS["0x7a/0"].decode(packet([0x7a, 0, 0b0010_1001, 0x40]));
+    expect(field(f, "Switch B (bits 2–3)")).toBe(2);
+    expect(field(f, "Switch C (bits 4–5)")).toBe(2);
+    expect(field(f, "Bits 0–1")).toBe(1);
+    expect(field(f, "Throttle hold (bit 14)")).toBe(1);
+  });
+});
+
+describe("flight log with id 0xFF", () => {
+  const flightLog = (id: number, fades: number, losses: number) =>
+    new Packet(id).u16be(2, fades).u16be(4, 0xffff).u16be(6, 0xffff).u16be(8, 0xffff).u16be(10, losses).u16be(12, 0).u16be(14, 614).b;
+  const parse = (records: Uint8Array[]) =>
+    parseLog(encodeTlm([{ headers: [modelHeader("Test")], records: records.map((packet, k) => ({ tick: 1000 + k * 10, packet })) }]), "t.TLM").sessions[0];
+
+  it("feeds link quality and receiver voltage when the session has no 0x7F", () => {
+    const s = parse([flightLog(0xff, 3, 4), flightLog(0xff, 5, 7)]);
+    expect([...s.channels.get("frame_losses")!.v]).toEqual([0, 3]);
+    expect(s.channels.get("rx_voltage")!.v[0]).toBeCloseTo(6.14, 6);
+    expect(s.channels.has("fades.b")).toBe(false);
+  });
+
+  it("is ignored next to 0x7F, whose counters it does not match", () => {
+    const s = parse([flightLog(0x7f, 0, 0), flightLog(0xff, 90, 90), flightLog(0x7f, 1, 2)]);
+    expect([...s.channels.get("frame_losses")!.v]).toEqual([0, 2]);
   });
 });

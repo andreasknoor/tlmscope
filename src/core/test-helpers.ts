@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseLog } from "./adapters/registry.ts";
 import type { LogFile, Session } from "./model/types.ts";
@@ -21,7 +21,19 @@ export function loadSample(name: string): LogFile {
   return log;
 }
 
-export const sampleNames = (): string[] => (existsSync(SAMPLES_DIR) ? readdirSync(SAMPLES_DIR).filter((f) => /\.tlm$/i.test(f)).sort() : []);
+/** The reference logs the tests know. Other files in samples/ are for local study only and are ignored. */
+export const REFERENCE_SAMPLES = [
+  "002~Easy Glider 4_20260917.TLM",
+  "002~Easy Glider 4_20260919.TLM",
+  "002~Easy Glider 4_20260926.TLM",
+  "002~Easy Glider 4_20261002.TLM",
+  "002~Easy Glider 4_20261003.TLM",
+  "Easy_Glider_4.TLM",
+  "TelemetryLog supra .tlm",
+];
+
+/** Reference logs present in samples/. */
+export const sampleNames = (): string[] => REFERENCE_SAMPLES.filter((f) => existsSync(join(SAMPLES_DIR, f))).sort();
 
 export function channelMax(s: Session, id: string): number | null {
   const ch = s.channels.get(id);
