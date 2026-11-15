@@ -279,6 +279,10 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
       map?.remove();
       mapRef.current = null;
       overlayRef.current = null;
+      // deck.gl cannot reuse the layers of a removed map: drop them, they are rebuilt for the next map (see mapGen).
+      staticRef.current = [];
+      pathLayerRef.current = null;
+      trailRef.current = { lines: null, sec: -1, data: [] };
     };
   }, [track, pitch === 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -366,7 +370,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
   const mesh = useMemo(() => planeMesh(), []);
   const stork = useMemo(() => storkMeshes(), []);
 
-  // Static layers: rebuilt when the path, its look or the thermals change.
+  // Static layers: rebuilt when the path, its look or the thermals change, and for every new map.
   useEffect(() => {
     const layers = layersRef.current, ext = extRef.current;
     if (!ready || !layers || !ext) return;
@@ -396,7 +400,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
       new layers.ScatterplotLayer({ id: "home", data: [track.home], getPosition: (d: Track["home"]) => [d.lon, d.lat, elev], getFillColor: toRgb(cssVar("--ink")), getRadius: 6, radiusUnits: "pixels", billboard: true }),
     ];
     drawRef.current();
-  }, [ready, track, pathData, spots, lineStyle, showShadow, pathMode, relief, elev]);
+  }, [ready, mapGen, track, pathData, spots, lineStyle, showShadow, pathMode, relief, elev]);
 
   // The model layers for the shown (fractional) second, drawn together with the static layers.
   useEffect(() => {
@@ -530,7 +534,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
     };
     drawRef.current = draw;
     draw();
-  }, [ready, track, height, attitude, mesh, stork, markerStyle, spots, air, pathMode, pathData, elev, relief, chase]);
+  }, [ready, mapGen, track, height, attitude, mesh, stork, markerStyle, spots, air, pathMode, pathData, elev, relief, chase]);
 
   // Replay cursor: glide from the shown second to the new one over about the time between two updates.
   useEffect(() => {
