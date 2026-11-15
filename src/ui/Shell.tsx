@@ -284,11 +284,12 @@ function PhoneFiles() {
 function UpdateBar({ sw }: { sw: OfflineState }) {
   const t = useTranslations("app");
   const { files } = useStore();
-  if (!sw.update) return null;
+  // Stays while the reload waits for the newest version to be stored.
+  if (!sw.update && !sw.applying) return null;
   return (
     <div className="infobox updatebar" role="status">
       <span>{t("updateReady")}{files.length > 0 && ` ${t("updateCloses")}`}</span>
-      <button className="btn" onClick={sw.applyUpdate}>{t("updateReload")}</button>
+      <button className="btn" onClick={sw.applyUpdate} disabled={sw.applying}>{t(sw.applying ? "updateApplying" : "updateReload")}</button>
     </div>
   );
 }

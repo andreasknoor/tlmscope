@@ -38,6 +38,7 @@
     "updateReady": "Eine neue Version von TLMscope ist bereit.",
     "updateCloses": "Beim Neuladen werden die offenen Dateien geschlossen.",
     "updateReload": "Neu laden",
+    "updateApplying": "Wird aktualisiert …",
     "tooLarge": "{name} ist größer als {max} MB und wurde nicht geöffnet. Telemetrie-Logs sind meist nur wenige MB groß.",
     "replaced": "{name} war schon geöffnet und wurde durch die eben hinzugefügte Datei ersetzt.",
     "viewError": "Diese Ansicht konnte nicht angezeigt werden.",
