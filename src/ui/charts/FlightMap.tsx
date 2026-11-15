@@ -72,6 +72,8 @@ const CHASE_PLANE_PX = 120;
 const CHASE_PAD_TOP = 0.3;
 /** Share of the remaining course difference the chase camera turns per frame. */
 const CHASE_TURN = 0.06;
+/** How often the ground height at the launch spot is read again while the relief is on (ms). */
+const ELEV_READ_MS = 500;
 const isDark = () => document.documentElement.dataset.theme === "dark" || (document.documentElement.dataset.theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
 /** Space around the track (px); in 3D a third of the height stays free at the top, where the path rises. */
@@ -296,6 +298,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
     const m = mapRef.current;
     if (!ready || !m) return;
     let off = false;
+    let detach = () => {};
     const sky = () => (isDark()
       ? { "sky-color": "#1b2a4a", "horizon-color": "#3a4a68", "fog-color": "#2a3550", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.8, "fog-ground-blend": 0.4 }
       : { "sky-color": "#7db9f0", "horizon-color": "#e8f2fb", "fog-color": "#dbe8f2", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.8, "fog-ground-blend": 0.4 });
@@ -309,14 +312,24 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
         }
         m.setTerrain({ source: "dem", exaggeration: 1 });
         m.setSky(sky());
-        // Read the ground height at the launch spot as soon as the tiles are loaded.
-        const read = () => {
-          if (off) return;
+        // Read the ground height at the launch spot while the relief is on, a few times a second and on every
+        // idle map: in the follow view the camera moves every frame, so the map is never idle, and a finer tile
+        // can replace a coarse one. Before its tile is loaded the map answers 0, not "unknown", so 0 counts only
+        // once all elevation tiles are in and no other height was read before (a launch spot at sea level).
+        let last: number | null = null, at = 0;
+        const read = (force = false) => {
+          const now = performance.now();
+          if (off || (!force && now - at < ELEV_READ_MS)) return;
+          at = now;
           const h = m.queryTerrainElevation([track.home.lon, track.home.lat]);
-          if (h !== null && Number.isFinite(h)) setElev(h);
+          if (h === null || !Number.isFinite(h) || (h === 0 && (last !== null || !m.isSourceLoaded("dem")))) return;
+          if (last === null || Math.abs(h - last) > 0.5) { last = h; setElev(h); }
         };
-        m.once("idle", read);
-        m.once("idle", () => setTimeout(read, 400));
+        const onRender = () => read();
+        const onIdle = () => read(true);
+        m.on("render", onRender);
+        m.on("idle", onIdle);
+        detach = () => { m.off("render", onRender); m.off("idle", onIdle); };
       } else {
         m.setTerrain(null);
         if (m.getLayer("relief-shade")) m.removeLayer("relief-shade");
@@ -325,7 +338,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
       }
     };
     if (m.isStyleLoaded()) apply(); else m.once("load", apply);
-    return () => { off = true; };
+    return () => { off = true; detach(); };
   }, [ready, mapGen, relief, track]);
 
   // Chase view: tilt and zoom the camera behind the model; the tick below moves it with the replay.
