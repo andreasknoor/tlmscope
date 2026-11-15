@@ -8,6 +8,9 @@ import { Meter, RatingCard, Tile, useLevelWord } from "../bits";
 import { dateShort, num, timeLabel } from "../format";
 import { ModelBadge, ModelSelect, useModelName } from "../Shell";
 import { BatteryHeading } from "./BatteryHeading";
+
+/** Channels the internal resistance is estimated from. */
+const RESISTANCE_INPUTS = ["pack_voltage", "motor_current"];
 import { useStore, useUnits, type Entry, type Model } from "../store";
 
 export function Batteries() {
@@ -54,8 +57,9 @@ export function Batteries() {
   /** One trend point per flight with a resistance estimate; the battery temperature decides whether it counts. */
   const ageingPoint = (e: Entry): AgeingPoint | null => {
     const r = resPerCell(e);
-    // Flights with stuck sensor data give unreliable estimates and stay out of the trend.
-    if (r === null || e.startMs === null || e.a.issues.some((i) => i.kind === "frozen")) return null;
+    // Flights where the readings behind the estimate (pack voltage, current) are stuck stay out of the trend;
+    // stuck cell values do not affect it.
+    if (r === null || e.startMs === null || e.a.issues.some((i) => i.kind === "frozen" && i.channels.some((c) => RESISTANCE_INPUTS.includes(c)))) return null;
     const temp = e.a.grid.has("temperature.battery") ? medianOf(e.a.grid.get("temperature.battery")) : null;
     return { timeMs: e.startMs, cycles: e.a.session.battery?.chargeCycles ?? null, resistance: r, tempC: temp };
   };

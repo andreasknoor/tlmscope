@@ -154,19 +154,20 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x42/0x00": {
     label: "Smart battery · live values",
     understood: "partial",
-    note: "Little-endian. Fields often arrive partly filled; current and used mAh are sparse and not used.",
+    note: "Little-endian. Fields often arrive partly filled; current and used mAh are sparse and not used. Cell fields are 0 or 0xFFFF without data (0xFFFF would read as 65.535 V).",
     decode: (p) => {
-      const vmin = u16le(p, 10);
-      const vmax = u16le(p, 12);
-      const cellsValid = vmin > 0 && vmax > 0;
+      const cell = (v: number) => (v === 0 || v === 0xffff ? null : v / 1000);
+      const vmin = cell(u16le(p, 10));
+      const vmax = cell(u16le(p, 12));
+      const cellsValid = vmin !== null && vmax !== null;
       const cur = u32le(p, 4);
       const mah = u16le(p, 8);
       return [
         { name: "Battery temperature", unit: "°C", value: cellsValid ? i8(p, 3) : null, channel: "temperature.battery" },
         { name: "Current (unreliable)", unit: "A", value: cur === 0xffffffff ? null : cur / 1000 },
         { name: "Used (unreliable)", unit: "mAh", value: mah === 0xffff ? null : mah },
-        { name: "Lowest cell", unit: "V", value: vmin ? vmin / 1000 : null, channel: "cell_voltage_min" },
-        { name: "Highest cell", unit: "V", value: vmax ? vmax / 1000 : null, channel: "cell_voltage_max" },
+        { name: "Lowest cell", unit: "V", value: vmin, channel: "cell_voltage_min" },
+        { name: "Highest cell", unit: "V", value: vmax, channel: "cell_voltage_max" },
       ];
     },
   },

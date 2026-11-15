@@ -119,3 +119,27 @@ describe("battery names", () => {
     expect([0, 1, 25, 26, 27, 51, 52].map(batteryLetter)).toEqual(["A", "B", "Z", "AA", "AB", "AZ", "BA"]);
   });
 });
+
+describe("battery without cell data", () => {
+  // A motor controller with a regular (not smart) pack sends the battery packets with 0xFFFF for "no value".
+  // Read as millivolts that is 65.535 V, which never changes and was reported as stuck battery data.
+  it("treats 0xFFFF cell fields as missing, not as 65.535 V", () => {
+    const d = demo.slice();
+    let at = recordAt(d, 0);
+    let patched = 0;
+    for (; at + RECORD_SIZE <= d.length; at += RECORD_SIZE) {
+      const p = at + 4;
+      if (d[p] !== 0x42 || (d[p + 2] !== 0x00 && d[p + 2] !== 0x10)) continue;
+      d.fill(0xff, p + 4, p + 16);
+      patched++;
+    }
+    expect(patched).toBeGreaterThan(10);
+    const { a } = open(d);
+    const s = a[0];
+    expect(s.session.channels.has("cell_voltage_min")).toBe(false);
+    expect(s.session.channels.has("cell_voltage.1")).toBe(false);
+    expect(s.issues.map((i) => i.kind)).not.toContain("frozen");
+    expect(s.session.channels.has("pack_voltage")).toBe(true);
+  });
+});
+
