@@ -112,11 +112,13 @@ describe("flight controller status (0x05)", () => {
 });
 
 describe("transmitter switches (0x7a/0)", () => {
-  it("reads switch B, switch C and the throttle hold", () => {
+  it("reads switches A to H and the throttle hold", () => {
     const f = SENSORS["0x7a/0"].decode(packet([0x7a, 0, 0b0010_1001, 0x40]));
-    expect(field(f, "Switch B (bits 2–3)")).toBe(2);
-    expect(field(f, "Switch C (bits 4–5)")).toBe(2);
-    expect(field(f, "Bits 0–1")).toBe(1);
+    expect(field(f, "Switch A")).toBe(1);
+    expect(field(f, "Switch B")).toBe(2);
+    expect(field(f, "Switch C")).toBe(2);
+    expect(field(f, "Switch D")).toBe(0);
+    expect(field(f, "Switch H")).toBe(1);
     expect(field(f, "Throttle hold (bit 14)")).toBe(1);
   });
 });

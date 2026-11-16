@@ -428,7 +428,8 @@
     "receiver": "Receiver",
     "becOut": "BEC output",
     "load": "Load (total g)",
-    "fmOverTime": "Flight mode over time"
+    "fmOverTime": "Flight mode over time",
+    "fn": { "off": "stabilization off", "as3x": "AS3X", "safe": "SAFE", "hh": "heading hold", "as3xHh": "AS3X + heading hold", "safeHh": "SAFE + heading hold" }
   },
   "raw": {
     "title": "Sensors in this session",

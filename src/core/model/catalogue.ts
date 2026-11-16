@@ -97,6 +97,7 @@ export const CATALOGUE: CatalogueEntry[] = [
   // controls and status
   e("throttle_command", "%", "controls", "Throttle stick", "Gasknüppel", "Throttle stick position at the transmitter."),
   e("flight_mode", "", "status", "Flight mode", "Flugmodus", "Receiver flight mode (FM1, FM2, FM3), set by the flight mode switch; each mode can use AS3X, heading hold or SAFE.", { kind: "categorical" }),
+  e("stabilization", "", "status", "Stabilization functions", "Stabilisierungsfunktionen", "Functions set up for the current flight mode, as a bit field: 1 = AS3X, 2 = SAFE, 4 = heading hold; 0 = stabilization off. Heading hold counts as set up even when its gain is turned down.", { kind: "categorical" }),
 ];
 
 const byId = new Map(CATALOGUE.map((c) => [c.id, c]));

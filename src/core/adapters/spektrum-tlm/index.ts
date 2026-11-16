@@ -6,6 +6,8 @@ import { ascii, bcdLe, hex, u16le } from "./bytes.ts";
 import { GPS_FIX_CATEGORIES, GPS_FLAG, KNOWN_UNDECODED, SENSORS, streamKey, type Field } from "./sensors.ts";
 
 const FORMAT = "Spektrum TLM";
+/** Byte 2 of 0x05 by value: bit 0 = AS3X, bit 1 = SAFE (includes AS3X), bit 2 = heading hold. */
+const STABILIZATION_LABELS = ["Off", "AS3X", "SAFE", "SAFE", "Heading hold", "AS3X + heading hold", "SAFE + heading hold", "SAFE + heading hold"];
 const MAX_UNIQUE_SAMPLES = 4000;
 
 interface StreamAcc {
@@ -174,6 +176,11 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
     for (const v of fm.v) if (!Number.isNaN(v)) top = Math.max(top, v);
     fm.categories = Array.from({ length: top + 1 }, (_, k) => `Mode ${k + 1}`);
     fm.source.note = "Receiver flight mode from byte 4 of the 0x05 packet (0 = FM1). Follows the flight mode switch.";
+  }
+  const st = channels.get("stabilization");
+  if (st) {
+    st.categories = Array.from({ length: 8 }, (_, k) => STABILIZATION_LABELS[k]);
+    st.source.note = "Bit field from byte 2 of the 0x05 packet: 1 = AS3X, 2 = SAFE, 4 = heading hold.";
   }
   const gf = channels.get("gps.fix");
   if (gf) gf.categories = GPS_FIX_CATEGORIES;

@@ -428,7 +428,8 @@
     "receiver": "Empfänger",
     "becOut": "BEC-Ausgang",
     "load": "Last (gesamt g)",
-    "fmOverTime": "Flugmodus im Verlauf"
+    "fmOverTime": "Flugmodus im Verlauf",
+    "fn": { "off": "Stabilisierung aus", "as3x": "AS3X", "safe": "SAFE", "hh": "Heading Hold", "as3xHh": "AS3X + Heading Hold", "safeHh": "SAFE + Heading Hold" }
   },
   "raw": {
     "title": "Sensoren in dieser Sitzung",

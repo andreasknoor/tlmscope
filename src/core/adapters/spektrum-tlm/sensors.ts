@@ -31,6 +31,8 @@ const none16 = (v: number, scale: number) => (v === 0xffff ? null : v * scale);
 const none8 = (v: number, scale: number) => (v === 0xff ? null : v * scale);
 const r = (v: number | null, d = 3) => (v === null ? null : Math.round(v * 10 ** d) / 10 ** d);
 
+const SWITCHES = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
 /** Stream key: sensor id, plus the message type for Smart Battery packets. */
 export function streamKey(p: Uint8Array): string {
   const id = p[0];
@@ -81,7 +83,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0xff": {
     label: "Flight log (link quality, id 0xFF)",
     understood: "full",
-    note: "Same layout as 0x7F. Some receivers send it instead of 0x7F, about 10 times per second, with only antenna A filled in; the counters only go up and the receiver voltage is steady. It feeds the link quality only when the session has no 0x7F: next to 0x7F it turns up once or twice per session with counters that do not match.",
+    note: "Same layout as 0x7F. Some receivers (seen: AR631) send it instead of 0x7F, about 10 times per second, with only antenna A filled in; the counters only go up and the receiver voltage is steady. It feeds the link quality only when the session has no 0x7F: next to 0x7F it turns up once or twice per session with counters that do not match.",
     decode: (p) => decodeFlightLog(p),
   },
   "0x7e": {
@@ -137,10 +139,10 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x05": {
     label: "Flight controller status (AS3X / SAFE)",
     understood: "partial",
-    note: "Byte 4 is 0x80 + the receiver flight mode (0 = FM1, 1 = FM2, 2 = FM3); checked against the flight mode switch, it follows the switch within half a second. Byte 2 lists the active functions: 0 = stabilization off, 1 = AS3X, 3 = SAFE; 5 was seen with AS3X plus heading hold (bit 2 = heading hold, unverified). Byte 3 is 0 for a few seconds after power-up, then 2. Byte 5 cycles 0x80–0x82 like a page number. Pages 0x81 and 0x82 stay the same within a flight mode and change with it (settings per mode, not decoded); page 0x80 changes in flight (live values, not decoded).",
+    note: "Byte 4 is 0x80 + the receiver flight mode (0 = FM1, 1 = FM2, 2 = FM3); checked against the flight mode switch, it follows the switch within half a second. Byte 2 is a bit field of the functions set up for that flight mode: bit 0 = AS3X, bit 1 = SAFE, bit 2 = heading hold (1 = AS3X, 3 = SAFE, 5 = AS3X with heading hold, 0 = stabilization off; checked against known receiver setups). Heading hold shows as set up even when its gain is turned down. Byte 3 is 0 for a few seconds after power-up, then 2. Byte 5 cycles 0x80–0x82 like a page number. Pages 0x81 and 0x82 stay the same within a flight mode and change with it (settings per mode, not decoded); page 0x80 changes in flight (live values, not decoded).",
     decode: (p) => [
       { name: "Flight mode", unit: "", value: p[4] >= 0x80 && p[4] < 0x90 ? p[4] - 0x80 : null, channel: "flight_mode", categorical: true },
-      { name: "Active functions (byte 2)", unit: "", value: p[2] },
+      { name: "Active functions (byte 2)", unit: "", value: p[2], channel: "stabilization", categorical: true },
       { name: "Byte 3", unit: "", value: p[3] },
       { name: "Page (byte 5)", unit: "", value: p[5] },
       { name: "Page value 1", unit: "", value: p[6] },
@@ -240,7 +242,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x7a/1": {
     label: "Transmitter stick positions",
     understood: "partial",
-    note: "Only in AutoLog files. Signed 12-bit values (−2047…2047), little-endian, 5 to 35 per second depending on the log. Offset 4 is the throttle stick (matches the ESC throttle, r = 0.88). In flight, offset 6 follows the pitch rate (elevator), offset 8 the roll rate (aileron) and offset 10 the yaw rate (rudder), checked on several models. The values reach ±2047 with low rates as well, so they are the stick positions before dual rates and expo. The sign against the gyro differs between receivers, so stick directions cannot be taken from the gyro. Offset 2 changes little within a session, like a knob, slider or trim. Offsets 12 and 14 are 0 on some transmitters and about −2047 on others (unknown controls); receiver channels such as a flight mode channel are not in this packet.",
+    note: "Only in AutoLog files. Signed 12-bit values (−2047…2047), little-endian, 5 to 35 per second depending on the log. Offset 4 is the throttle stick (matches the ESC throttle, r = 0.88). In flight, offset 6 follows the pitch rate (elevator), offset 8 the roll rate (aileron) and offset 10 the yaw rate (rudder), checked on several models. The values reach ±2047 with low rates as well, so they are the stick positions before dual rates and expo. The sign against the gyro differs between installations (opposite on two receivers of the same type), so stick directions cannot be taken from the gyro. Offset 2 changes little within a session, like a knob, slider or trim. Offsets 12 and 14 are 0 on some transmitters and about −2047 on others (unknown controls); receiver channels such as a flight mode channel are not in this packet.",
     decode: (p) => {
       const v = (o: number) => (((p[o] | (p[o + 1] << 8)) << 16) >> 16);
       return [
@@ -257,13 +259,11 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x7a/0": {
     label: "Transmitter status bits",
     understood: "partial",
-    note: "Only in AutoLog files, alternating with the stick positions. Bytes 2–3 are a 16-bit field (little-endian) of eight two-bit switch positions (0, 1, 2), changing only when a switch is moved. Bits 2–3 are switch B and bits 4–5 switch C, with the value equal to the switch position (checked against the flight mode the receiver reports). Bit 14 is the throttle hold: set means the motor is locked (checked against the ESC on two transmitters: the motor never ran with it set). Bits 0–1 change too; which switch they belong to is not known.",
+    note: "Only in AutoLog files, alternating with the stick positions. Bytes 2–3 are a 16-bit field (little-endian) of eight two-bit switch positions (0, 1, 2), changing only when a switch is moved. The fields are switches A to H in order (bits 0–1 = A … bits 14–15 = H), with the value equal to the switch position: checked for A (retracts), B and C (against the flight mode the receiver reports) and H; D to G follow from the order. Same layout on an NX8+ and an iX14. Bit 14 is switch H in position 1, the throttle hold on the transmitters seen (checked against the ESC: the motor never ran with it set); which switch is the throttle hold is a setup choice.",
     decode: (p) => [
       { name: "Byte 2", unit: "", value: p[2] },
       { name: "Byte 3", unit: "", value: p[3] },
-      { name: "Bits 0–1", unit: "", value: p[2] & 3 },
-      { name: "Switch B (bits 2–3)", unit: "", value: (p[2] >> 2) & 3 },
-      { name: "Switch C (bits 4–5)", unit: "", value: (p[2] >> 4) & 3 },
+      ...SWITCHES.map((sw, k) => ({ name: `Switch ${sw}`, unit: "", value: ((p[2] | (p[3] << 8)) >> (2 * k)) & 3 })),
       { name: "Throttle hold (bit 14)", unit: "", value: (p[3] >> 6) & 1 },
     ],
   },
