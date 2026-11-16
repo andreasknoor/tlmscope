@@ -45,7 +45,7 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 | Height and climb rate | Vario / altimeter sensor, or a receiver that reports it | Tested |
 | Loads (g) and rotation rates | Receiver with AS3X / SAFE | Tested |
 | Throttle stick position | Recent NX firmware (AutoLog files) | Tested |
-| Flight mode (FM1–FM3) | Receiver with AS3X / SAFE | Tested |
+| Stabilization (AS3X, SAFE, heading hold) per flight mode | Receiver with AS3X / SAFE | Tested |
 | Map, distance, speed over ground | Spektrum GPS telemetry sensor | Tested with one real GPS log |
 | Other sensors (airspeed, extra current or temperature sensors, …) | X-Bus / SRXL2 sensors | Shown as raw data for now |
 

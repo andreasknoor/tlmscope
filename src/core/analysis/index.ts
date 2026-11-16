@@ -3,6 +3,7 @@ import type { LogFile, Session } from "../model/types.ts";
 import { batteryCondition, batteryUse, cellBalance, chargeEstimate, type BatteryCondition, type BatteryUse, type CellBalance, type ChargeEstimate } from "./battery.ts";
 import { altitudeFlat, circling, classify, flightProfile, type Circling, type FlightProfile, type SessionKind } from "./flight.ts";
 import { track, type Track } from "./gps.ts";
+import { stabilization, type Stabilization } from "./stabilization.ts";
 import { thermals, type Thermals } from "./thermals.ts";
 import { Grid, medianOf } from "./grid.ts";
 import { dataIssues, loads, moments, receiverPower, temperatures, type DataIssue, type Loads, type Moment, type ReceiverPower, type Temperatures } from "./health.ts";
@@ -28,6 +29,8 @@ export interface SessionAnalysis {
   temperatures: Result<Temperatures>;
   receiverPower: Result<ReceiverPower>;
   loads: Result<Loads>;
+  /** Time per set of stabilization functions (AS3X, SAFE, heading hold, off). */
+  stabilization: Stabilization;
   issues: DataIssue[];
   moments: Moment[];
   /** Usual values of the other flights of the same model (set by `analyseLogs`); null for sessions that are not flights and for a model's only flight. */
@@ -71,6 +74,7 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
     temperatures: temperatures(session, grid),
     receiverPower: receiverPower(session, val(link), grid),
     loads: ld,
+    stabilization: stabilization(grid, p && kind === "flight" ? p : null),
     issues: dataIssues(session, kind, opts.batteryExpected ?? false, altitudeFlat(session, grid)),
     moments: p && kind === "flight" ? moments(p, grid, { circling: val(circ), loads: val(ld), signal: val(signal), link: val(link) }) : [],
     baseline: null,

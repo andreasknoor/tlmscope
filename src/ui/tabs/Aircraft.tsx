@@ -5,25 +5,12 @@ import { useCallback, useMemo } from "react";
 import { Legend, Tile } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
-import { axisNum, cssVar, num } from "../format";
+import { axisNum, cssVar, duration, num } from "../format";
 import { useStore, useUnits } from "../store";
 import { RxCard, StyleCard, TempCard } from "./ratings";
 
 const MODE_COLORS = ["--s-alt", "--s-motor", "--s-4", "--s-lift", "--s-5"];
 const DISABLED_COLOR = "--s-ground";
-
-/** The stabilization value (0x05 bit field) seen most often in each flight mode. */
-function functionsPerMode(fm: (number | null)[], st: (number | null)[]): Map<number, number> {
-  const counts = new Map<number, Map<number, number>>();
-  fm.forEach((m, i) => {
-    const s = st[i];
-    if (m === null || s === null || s === undefined) return;
-    const c = counts.get(m) ?? new Map<number, number>();
-    c.set(s, (c.get(s) ?? 0) + 1);
-    counts.set(m, c);
-  });
-  return new Map([...counts].map(([m, c]) => [m, [...c].sort((a, b) => b[1] - a[1])[0][0]]));
-}
 
 /** i18n key for a stabilization bit field: bit 0 = AS3X, bit 1 = SAFE, bit 2 = heading hold. */
 function functionsKey(bits: number): string {
@@ -53,14 +40,20 @@ export function AircraftTab() {
   const fm = g.get("flight_mode", "last");
   const modes = [...new Set(fm.filter((x): x is number => x !== null))].sort();
   const hasGaps = fm.some((x) => x === null);
-  const fnByMode = useMemo(() => (g.has("stabilization") ? functionsPerMode(g.get("flight_mode", "last"), g.get("stabilization", "last")) : new Map<number, number>()), [g]);
+  const stab = a.stabilization;
+  // Functions of each flight mode, from the time counted for the card (modes left out there show their number only).
+  const bitsByMode = new Map(stab.uses.flatMap((u) => u.modes.map((m) => [m, u.bits] as const)));
+  const nameOf = (bits: number | null, modes: number[]) =>
+    bits === null ? t("aircraft.modes", { list: modes.map((m) => m + 1).join(", ") }) : t(functionsKey(bits));
   const modeLabel = (m: number) => {
-    const bits = fnByMode.get(m);
-    return bits === undefined ? t("aircraft.mode", { n: m + 1 }) : `${t("aircraft.mode", { n: m + 1 })} · ${t(functionsKey(bits))}`;
+    const bits = bitsByMode.get(m);
+    return bits === undefined || bits === null ? t("aircraft.mode", { n: m + 1 }) : `${t(functionsKey(bits))} (${t("aircraft.mode", { n: m + 1 })})`;
   };
+  const time = (sec: number) => (sec >= 60 ? duration(loc, sec) : `${sec}\u00a0s`);
+  const top = stab.uses[0];
   const fmColor = useCallback((i: number) => {
     const m = g.get("flight_mode", "last")[i];
-    // No value from the receiver counts as "disabled".
+    // No value from the receiver: shown as "not reported".
     return cssVar(m === null ? DISABLED_COLOR : MODE_COLORS[m % MODE_COLORS.length]);
   }, [g]);
 
@@ -68,7 +61,10 @@ export function AircraftTab() {
     <>
       <div className="grid g4">
         <TempCard a={a} /><RxCard a={a} /><StyleCard a={a} />
-        <Tile label={t("aircraft.flightMode")} value={modes.length ? t("aircraft.modes", { list: modes.map((m) => m + 1).join(", ") }) : t("aircraft.disabled")} sub={fnByMode.size ? modes.map((m) => <div key={m}>{modeLabel(m)}</div>) : t("aircraft.flightModeHint")} />
+        <Tile label={t(stab.inAir ? "aircraft.stabInAir" : "aircraft.stab")} value={top ? nameOf(top.bits, top.modes) : t("aircraft.notReported")}
+          sub={top ? stab.uses.map((u) => (
+            <div key={u.modes.join()}>{u.bits === null ? nameOf(null, u.modes) : `${nameOf(u.bits, u.modes)} (${t("aircraft.modes", { list: u.modes.map((m) => m + 1).join(", ") })})`}: {time(u.seconds)}</div>
+          )) : t("aircraft.notReportedHint")} />
       </div>
       {temps.length > 0 && <LineChart syncKey={e!.key} title={t("rating.temps")} series={temps} height={160} yMin={U.v("temp", 0)!} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("temp")}`}
         extra={<Legend items={temps.map((s) => [`var(${s.color})`, s.label, true])} />} />}
@@ -79,7 +75,7 @@ export function AircraftTab() {
       {modes.length > 0 && <div className="lv-more"><Strip syncKey={e!.key} label={t("aircraft.fmOverTime")} n={g.n} colorAt={fmColor}
         right={<Legend style={{ padding: 0 }} items={[
           ...modes.map((m): [string, string] => [`var(${MODE_COLORS[m % MODE_COLORS.length]})`, modeLabel(m)]),
-          ...(hasGaps ? [[`var(${DISABLED_COLOR})`, t("aircraft.disabled")] as [string, string]] : []),
+          ...(hasGaps ? [[`var(${DISABLED_COLOR})`, t("aircraft.notReported")] as [string, string]] : []),
         ]} />} /></div>}
     </>
   );

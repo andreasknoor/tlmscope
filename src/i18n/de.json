@@ -417,19 +417,20 @@
     "note": "Ohne GPS ist die Höhe der einzige Hinweis auf die Entfernung: höher heißt meist weiter weg."
   },
   "aircraft": {
-    "flightMode": "Flugmodus",
-    "flightModeHint": "Genutzte Flugmodi des Empfängers (vom Flugmodus-Schalter gewählt)",
     "modes": "Modus {list}",
     "mode": "Modus {n}",
-    "disabled": "Deaktiviert",
     "controller": "Regler",
     "bec": "BEC",
     "battery": "Akku",
     "receiver": "Empfänger",
     "becOut": "BEC-Ausgang",
     "load": "Last (gesamt g)",
-    "fmOverTime": "Flugmodus im Verlauf",
-    "fn": { "off": "Stabilisierung aus", "as3x": "AS3X", "safe": "SAFE", "hh": "Heading Hold", "as3xHh": "AS3X + Heading Hold", "safeHh": "SAFE + Heading Hold" }
+    "fmOverTime": "Stabilisierung im Verlauf",
+    "fn": { "off": "Keine Stabilisierung", "as3x": "AS3X", "safe": "SAFE", "hh": "Heading Hold", "as3xHh": "AS3X + Heading Hold", "safeHh": "SAFE + Heading Hold" },
+    "stab": "Stabilisierung",
+    "stabInAir": "Stabilisierung in der Luft",
+    "notReported": "Nicht gemeldet",
+    "notReportedHint": "Der Empfänger meldet keinen Flugmodus, das Log sagt also nichts über AS3X oder SAFE."
   },
   "raw": {
     "title": "Sensoren in dieser Sitzung",
@@ -548,7 +549,7 @@
     "d5n": "Empfänger mit AS3X / SAFE",
     "d6": "Stellung des Gasknüppels",
     "d6n": "Aktuelle NX-Firmware (AutoLog-Dateien)",
-    "d7": "Flugmodus",
+    "d7": "Stabilisierung (AS3X, SAFE, Heading Hold) je Flugmodus",
     "d7n": "Empfänger mit AS3X / SAFE",
     "d8": "Karte, Entfernung, Geschwindigkeit über Grund",
     "d8n": "Spektrum GPS-Telemetriesensor",

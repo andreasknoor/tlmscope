@@ -417,19 +417,20 @@
     "note": "Without GPS, height is the only distance hint: higher usually means farther away."
   },
   "aircraft": {
-    "flightMode": "Flight mode",
-    "flightModeHint": "Receiver flight modes used (set by the flight mode switch)",
     "modes": "Mode {list}",
     "mode": "Mode {n}",
-    "disabled": "Disabled",
     "controller": "Controller",
     "bec": "BEC",
     "battery": "Battery",
     "receiver": "Receiver",
     "becOut": "BEC output",
     "load": "Load (total g)",
-    "fmOverTime": "Flight mode over time",
-    "fn": { "off": "stabilization off", "as3x": "AS3X", "safe": "SAFE", "hh": "heading hold", "as3xHh": "AS3X + heading hold", "safeHh": "SAFE + heading hold" }
+    "fmOverTime": "Stabilization over time",
+    "fn": { "off": "No stabilization", "as3x": "AS3X", "safe": "SAFE", "hh": "Heading hold", "as3xHh": "AS3X + heading hold", "safeHh": "SAFE + heading hold" },
+    "stab": "Stabilization",
+    "stabInAir": "Stabilization in the air",
+    "notReported": "Not reported",
+    "notReportedHint": "The receiver sends no flight mode, so the log says nothing about AS3X or SAFE."
   },
   "raw": {
     "title": "Sensors in this session",
@@ -548,7 +549,7 @@
     "d5n": "Receiver with AS3X / SAFE",
     "d6": "Throttle stick position",
     "d6n": "Recent NX firmware (AutoLog files)",
-    "d7": "Flight mode",
+    "d7": "Stabilization (AS3X, SAFE, heading hold) per flight mode",
     "d7n": "Receiver with AS3X / SAFE",
     "d8": "Map, distance, speed over ground",
     "d8n": "Spektrum GPS telemetry sensor",
