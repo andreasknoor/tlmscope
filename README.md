@@ -155,7 +155,7 @@ Analyses work only on canonical channels, resampled to a 1-second grid, so they 
 | Charge estimate | `pack_voltage` | state of charge at start and end, from resting voltage |
 | Cell balance | `cell_voltage.1`, `cell_voltage.2` (…) | largest spread between cells |
 | Temperatures | any of `temperature.esc`, `.battery`, `.bec` | maxima and levels |
-| Receiver power | `rx_voltage` | lowest voltage, level |
+| Receiver power | `rx_voltage` | lowest voltage without the readings at switching off and on (unplugging the battery, power-up), level |
 | Loads | `accel.x/y/z` | highest total g, flying style |
 | Data check | – | frozen channels, battery not reporting, no cell voltages |
 

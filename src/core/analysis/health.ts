@@ -1,4 +1,4 @@
-import { Q, type Session } from "../model/types.ts";
+import { Q, type Channel, type Session } from "../model/types.ts";
 import type { Circling, FlightProfile } from "./flight.ts";
 import { Grid, maxOf, minOf } from "./grid.ts";
 import type { LinkAnalysis, SignalAnalysis } from "./link.ts";
@@ -37,11 +37,51 @@ export interface ReceiverPower {
   holdInAir: boolean;
 }
 
-export function receiverPower(session: Session, link: LinkAnalysis | null, g = new Grid(session)): Result<ReceiverPower> {
+/**
+ * Switching off and on: a receiver reports a collapsing voltage just before it goes quiet
+ * (battery unplugged) and some report a low first value after power-up. Readings within
+ * `edgeS` of the start or end of a run of readings (runs are split by pauses of at least
+ * `gapS`) are left out, but in the air only at a pause of at least `offS`: nobody plugs a
+ * battery in during a flight, while a brown-out restarts the receiver within moments.
+ */
+export const POWER_EDGE = { gapS: 1, edgeS: 0.5, offS: 5 } as const;
+
+/**
+ * Lowest voltage without the readings at switching off and on (see `POWER_EDGE`); `air` is
+ * the airborne time in seconds. When that leaves nothing (very few readings), all readings count.
+ */
+export function steadyMinV(ch: Channel | undefined, air: [number, number] | null): number | null {
+  if (!ch) return null;
+  const idx = [...ch.v.keys()].filter((i) => !Number.isNaN(ch.v[i]));
+  const t = idx.map((i) => ch.t[i]);
+  let min: number | null = null, all: number | null = null;
+  // Runs of readings without a pause of gapS; the pause before a run's start and after its end (Infinity at the ends of the data).
+  let runStart = 0;
+  for (let k = 0; k <= idx.length; k++) {
+    if (k < idx.length && (k === 0 || t[k] - t[k - 1] < POWER_EDGE.gapS)) continue;
+    const runEnd = k - 1;
+    const pauseBefore = runStart === 0 ? Infinity : t[runStart] - t[runStart - 1];
+    const pauseAfter = runEnd === idx.length - 1 ? Infinity : t[runEnd + 1] - t[runEnd];
+    for (let j = runStart; j <= runEnd; j++) {
+      const v = ch.v[idx[j]];
+      if (all === null || v < all) all = v;
+      const inAir = air !== null && t[j] >= air[0] && t[j] < air[1] + 1;
+      const leftOut = (pause: number) => (pause === Infinity ? !inAir : !inAir || pause >= POWER_EDGE.offS);
+      if (t[j] - t[runStart] <= POWER_EDGE.edgeS && leftOut(pauseBefore)) continue;
+      if (t[runEnd] - t[j] <= POWER_EDGE.edgeS && leftOut(pauseAfter)) continue;
+      if (min === null || v < min) min = v;
+    }
+    runStart = k;
+  }
+  return min ?? all;
+}
+
+export function receiverPower(session: Session, link: LinkAnalysis | null, profile: FlightProfile | null = null): Result<ReceiverPower> {
   return withNeeds(session, ["rx_voltage"], () => {
-    const rxMinV = minOf(g.get("rx_voltage", "min"));
+    const air: [number, number] | null = profile && profile.airStart !== null ? [profile.airStart, profile.airEnd!] : null;
+    const rxMinV = steadyMinV(session.channels.get("rx_voltage"), air);
     const holdInAir = (link?.holdsAirborne ?? 0) > 0;
-    return { rxMinV, becMinV: minOf(g.get("bec_voltage", "min")), holdInAir, level: holdInAir ? 1 : rate(rxMinV, THRESHOLDS.rxVoltage) };
+    return { rxMinV, becMinV: steadyMinV(session.channels.get("bec_voltage"), air), holdInAir, level: holdInAir ? 1 : rate(rxMinV, THRESHOLDS.rxVoltage) };
   });
 }
 

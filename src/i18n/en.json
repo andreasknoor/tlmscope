@@ -229,7 +229,7 @@
     "becMax": "BEC max",
     "battMax": "Battery max",
     "rx": "Receiver power",
-    "rxHint": "Voltage for receiver and servos.",
+    "rxHint": "Voltage for receiver and servos, without the moments of switching on and off.",
     "rxHold": "Hold in the air",
     "rxMin": "Receiver min",
     "becMin": "BEC min",

@@ -72,7 +72,7 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
     charge: chargeEstimate(session, p, grid),
     cellBalance: cellBalance(session, grid),
     temperatures: temperatures(session, grid),
-    receiverPower: receiverPower(session, val(link), grid),
+    receiverPower: receiverPower(session, val(link), p && kind === "flight" ? p : null),
     loads: ld,
     stabilization: stabilization(grid, p && kind === "flight" ? p : null),
     issues: dataIssues(session, kind, opts.batteryExpected ?? false, altitudeFlat(session, grid)),

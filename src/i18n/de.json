@@ -229,7 +229,7 @@
     "becMax": "BEC max.",
     "battMax": "Akku max.",
     "rx": "Empfängerstrom",
-    "rxHint": "Spannung für Empfänger und Servos.",
+    "rxHint": "Spannung für Empfänger und Servos, ohne die Momente beim Ein- und Ausschalten.",
     "rxHold": "Hold in der Luft",
     "rxMin": "Empfänger min.",
     "becMin": "BEC min.",
