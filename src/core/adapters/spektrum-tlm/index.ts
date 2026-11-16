@@ -122,7 +122,8 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
       if (!f.channel) continue;
       const unit = f.channel.startsWith("raw:") ? "?" : (f.unit as never);
       const kind = f.counter ? "counter" : f.categorical ? "categorical" : "numeric";
-      set.get(f.channel, unit, { sensor: `${key} ${def?.label ?? ""}`.trim(), field: f.name }, kind).push(t, f.value);
+      const source = { sensor: `${key} ${def?.label ?? ""}`.trim(), field: f.name, ...(key.startsWith("0x7a") ? { transmitter: true } : {}) };
+      set.get(f.channel, unit, source, kind).push(t, f.value);
     }
 
     // special packets

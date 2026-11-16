@@ -142,7 +142,8 @@ const count = (a: boolean[] | null) => (a ? a.reduce((s, x) => s + (x ? 1 : 0), 
 
 /** Classification of a session. Works with whatever channels exist: height, then GPS, then motion. */
 export function classify(session: Session, g = new Grid(session)): SessionKind {
-  if (session.channels.size === 0) return "transmitter-only";
+  // Only the transmitter's own sticks and switches (or nothing at all): no data came from the model.
+  if (![...session.channels.values()].some((c) => !c.source.transmitter)) return "transmitter-only";
   const alt = usableAltitude(g);
   if (alt) {
     if ((maxOf(alt) ?? 0) > FLIGHT.flightAltitudeM) return "flight";

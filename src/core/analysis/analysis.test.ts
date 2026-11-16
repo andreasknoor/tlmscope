@@ -165,6 +165,12 @@ describe("missing channels", () => {
     expect(analyseSession(empty([])).kind).toBe("transmitter-only");
   });
 
+  it("classifies a session with only the transmitter's own sticks as transmitter-only", () => {
+    const s = empty([["throttle_command", [0, 80, 98, 0]]]);
+    s.channels.get("throttle_command")!.source.transmitter = true;
+    expect(analyseSession(s).kind).toBe("transmitter-only");
+  });
+
   it("uses link quality when there are no frame-loss counters", () => {
     const a = analyseSession(empty([["link_quality", [100, 95, 60, 40]]]));
     expect(value(a.link).levels.slice(0, 4)).toEqual([4, 4, 2, 1]);

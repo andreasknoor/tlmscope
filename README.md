@@ -221,7 +221,7 @@ Ids may also be `stick.*`, `switch.*` (control inputs) or `raw:*` (decoded but u
 | `attitude.yaw` | ° | numeric | motion | Heading-like yaw angle from a flight controller. |
 | `gps.lat` | ° | numeric | gps | Latitude, WGS84, north positive. |
 | `gps.lon` | ° | numeric | gps | Longitude, WGS84, east positive. |
-| `gps.altitude` | m | numeric | gps | Altitude reported by the GPS sensor. In the logs checked it equals the vario height, relative to the take-off spot, not the height above sea level. |
+| `gps.altitude` | m | numeric | gps | Altitude reported by the GPS sensor. Depends on the GPS: some report the height relative to the take-off spot (equal to the vario), others an absolute altitude. |
 | `gps.satellites` | count | numeric | gps | Number of satellites in use. |
 | `gps.fix` | – | categorical | gps | Fix state. |
 | `gps.hdop` | – | numeric | gps | Horizontal dilution of precision. Lower is better. |
@@ -258,15 +258,15 @@ Byte 0 = sensor id, byte 1 = secondary id. Offsets below are within the 16-byte 
 | `0x40` | Vario | altitude ×0.1 m @2, climb ×0.1 m/s over 0.25/0.5/1.0/1.5/2.0/3.0 s @4…@14 (int16 BE) | Altitude is relative to power-on. |
 | `0x7F` | Flight log | fades A, B, L, R @2…@8, frame losses @10, holds @12 (uint16 BE), receiver V ×0.01 @14 | Counters are cumulative since receiver power-up. |
 | `0xFF` | Flight log (other id) | same layout as `0x7F` | Some receivers (seen: AR631) send it instead of `0x7F`, about 10 per second, only antenna A filled in. Used only in sessions without `0x7F`; next to `0x7F` it is a rare stray copy with other counters. |
-| `0x7E` | RPM / signal | signal dBm int8 @8 (if < −1), signal % int8 @9 (if > 0); @2/@4/@6 unused here | uint16 BE @14 counts up about once per second (unknown, possibly receiver uptime). |
+| `0x7E` | RPM / signal | signal dBm int8 @8 (if < −1 and not −128), signal % int8 @9 (if > 0); @2/@4/@6 unused here | uint16 BE @14 counts up about once per second (unknown, possibly receiver uptime). |
 | `0x14` | G-meter | x, y, z, max x, max y, max z, min z ×0.01 g @2…@14 (int16 BE) | |
 | `0x1A` | Gyro | x, y, z, max x, max y, max z ×0.1 °/s @2…@12 (int16 BE) | x = roll, y = pitch, z = yaw on the sample flights. |
-| `0x05` | Flight controller | byte 4 = 0x80 + flight mode (0 = FM1); byte 2 = functions set up for the mode, bit 0 AS3X, bit 1 SAFE, bit 2 heading hold (0 = off); byte 5 cycles 0x80–0x82 like a page, pages 0x81/0x82 hold settings per flight mode, page 0x80 live values | Flight mode checked against the flight mode switch. Rest partly understood. |
+| `0x05` | Flight controller | byte 4 = 0x80 + flight mode (0 = FM1); byte 2 = functions set up for the mode, bit 0 AS3X, bit 1 SAFE, bit 2 heading hold (0 = off); byte 5 cycles 0x80–0x82 like a page, pages 0x81/0x82 hold settings per flight mode, page 0x80 changes in flight on some receivers; byte 4 = 0xBE while byte 3 is still 0 after power-up | Flight mode checked against the flight mode switch. Rest partly understood. |
 | `0x42` | Smart battery (**little-endian**) | type = byte 2 & 0xF0. `0x00` live: temp int8 @3, current mA uint32 @4, used mAh @8, min/max cell mV @10/@12. `0x10` cells: temp @3, cells 1–6 mV @4…@14. `0x80` identity: chemistry @3 (1 = LiPo), cells @4, manufacturer @5, cycles uint16 @6, id 8 bytes @8. `0x90` limits: capacity mAh @4, discharge rating @6 (0.1 C?), empty/0 %/full mV @8/@10/@12, min/max °C int8 @14/@15. | Fields often arrive partly filled; all-zero records mean “not reporting”. Live current and used mAh are sparse and not used. |
-| `0x16` / `0x17` | GPS | **Little-endian BCD**. `0x16`: altitude low (0.1 m) @2, latitude DDMM.MMMM @4, longitude @8, course (0.1°) @12, HDOP (0.1) @14, flags @15 (bit 0 north, 1 east, 2 longitude > 99°, 3 fix valid, 5 3D fix, 7 negative altitude). `0x17`: speed (0.1 kn) @2, UTC HHMMSS.S @4, satellites @8, altitude thousands @9. | From the specification. No real GPS log yet. |
+| `0x16` / `0x17` | GPS | **Little-endian BCD**. `0x16`: altitude low (0.1 m) @2, latitude DDMM.MMMM @4, longitude @8, course (0.1°) @12, HDOP (0.1) @14, flags @15 (bit 0 north, 1 east, 2 longitude > 99°, 3 fix valid, 5 3D fix, 7 negative altitude). `0x17`: speed (0.1 kn) @2, UTC HHMMSS.S @4, satellites @8, altitude thousands @9. | Checked against real GPS logs. The altitude is relative to the take-off spot with one GPS and absolute with another; the negative-altitude flag can be wrong. |
 | `0x7C` | Clock | Unix time (s, uint32 LE) @8 | Once per session. |
 | `0x0C` | Text generator | line number @2, 13 ASCII characters @3 | Here: the Avian ESC programming-menu text. |
-| `0x7A` | Transmitter (AutoLog only) | byte 1 = page. Page 1: int16 LE @2…@14, range ±2047; @4 = throttle, @6 = elevator, @8 = aileron, @10 = rudder (stick positions before dual rates and expo). Page 0: switches A–H as two-bit positions in uint16 LE @2 (bits 0–1 = A … bits 14–15 = H; A, B, C, H checked, same on NX8+ and iX14). | 10 to 70 records per second. Partly understood. |
+| `0x7A` | Transmitter (AutoLog only) | byte 1 = page. Page 1: int16 LE @2…@14, range ±2047; @4 = throttle, @6 = elevator, @8 = aileron, @10 = rudder (stick positions before dual rates and expo); @2, @12, @14 = analog knobs or levers. Page 0: switches A–H as two-bit positions in uint16 LE @2 (bits 0–1 = A … bits 14–15 = H; A, B, C, H checked, same on NX8+ and iX14). | 10 to 70 records per second. Partly understood. |
 | `0x00` | Empty slot | mostly zeros, some records carry fragments of other packets | Kept as raw data. |
 | `0x76` | Unknown | 6 records in the main sample | Kept as raw data. |
 | `0x12` | Altitude sensor | declared in headers, no records seen | |

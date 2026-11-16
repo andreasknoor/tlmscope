@@ -89,13 +89,13 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x7e": {
     label: "RPM / signal",
     understood: "partial",
-    note: "Offset 8 = signal in dBm, offset 9 = signal in % (meaning unverified). Offset 14 counts seconds (Supra log: 48 → 581 in 533 s), most likely the receiver's time since power-on.",
+    note: "Offset 8 = signal in dBm, offset 9 = signal in % (meaning unverified). −128 dBm (0x80) with 0 % turns up a few times per flight on some receivers and means no value. Offset 14 counts seconds (Supra log: 48 → 581 in 533 s), most likely the receiver's time since power-on.",
     decode: (p) => {
       const dbm = i8(p, 8);
       const pct = i8(p, 9);
       const temp = i16be(p, 6);
       return [
-        { name: "Signal", unit: "dBm", value: dbm < -1 ? dbm : null, channel: "signal_dbm" },
+        { name: "Signal", unit: "dBm", value: dbm < -1 && dbm > -128 ? dbm : null, channel: "signal_dbm" },
         { name: "Signal quality", unit: "%", value: pct > 0 ? pct : null, channel: "signal_quality" },
         { name: "Pulse time", unit: "µs", value: none16(u16be(p, 2), 1) },
         { name: "Voltage", unit: "V", value: r(none16(u16be(p, 4), 0.01)) },
@@ -139,7 +139,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x05": {
     label: "Flight controller status (AS3X / SAFE)",
     understood: "partial",
-    note: "Byte 4 is 0x80 + the receiver flight mode (0 = FM1, 1 = FM2, 2 = FM3); checked against the flight mode switch, it follows the switch within half a second. Byte 2 is a bit field of the functions set up for that flight mode: bit 0 = AS3X, bit 1 = SAFE, bit 2 = heading hold (1 = AS3X, 3 = SAFE, 5 = AS3X with heading hold, 0 = stabilization off; checked against known receiver setups). Heading hold shows as set up even when its gain is turned down. Byte 3 is 0 for a few seconds after power-up, then 2. Byte 5 cycles 0x80–0x82 like a page number. Pages 0x81 and 0x82 stay the same within a flight mode and change with it (settings per mode, not decoded); page 0x80 changes in flight (live values, not decoded).",
+    note: "Byte 4 is 0x80 + the receiver flight mode (0 = FM1, 1 = FM2, 2 = FM3); checked against the flight mode switch, it follows the switch within half a second. Byte 2 is a bit field of the functions set up for that flight mode: bit 0 = AS3X, bit 1 = SAFE, bit 2 = heading hold (1 = AS3X, 3 = SAFE, 5 = AS3X with heading hold, 0 = stabilization off; checked against known receiver setups). Heading hold shows as set up even when its gain is turned down. Byte 3 is 0 for a few seconds after power-up, then 2; meanwhile byte 4 is 0xBE, not a flight mode. Byte 5 cycles 0x80–0x82 like a page number. Pages 0x81 and 0x82 stay the same within a flight mode and change with it (settings per mode, not decoded). Page 0x80 changes in flight on some receivers and stays the same for the whole flight on others (not decoded; possibly the current AS3X gains).",
     decode: (p) => [
       { name: "Flight mode", unit: "", value: p[4] >= 0x80 && p[4] < 0x90 ? p[4] - 0x80 : null, channel: "flight_mode", categorical: true },
       { name: "Active functions (byte 2)", unit: "", value: p[2], channel: "stabilization", categorical: true },
@@ -230,7 +230,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x16": {
     label: "GPS location",
     understood: "full",
-    note: "Little-endian BCD as in the specification. Checked against a real GPS log (Supra Fly, 2025/26): positions, course and HDOP are consistent. The altitude equals the vario height (relative to the take-off spot) to 0.1 m.",
+    note: "Little-endian BCD as in the specification. Checked against a real GPS log (Supra Fly, 2025/26): positions, course and HDOP are consistent. The altitude depends on the GPS module: in that log it equals the vario height (relative to the take-off spot) to 0.1 m; in logs from another GPS without a vario it is absolute (the same ground level of about 40–50 m at one field over several days, settling for about a minute after the first fix). The negative-altitude flag (bit 7 of byte 15) can be wrong: in one flight it was set from the first fix on, so the model would have flown below the ground.",
     decode: (p) => decodeGpsLoc(p),
   },
   "0x17": {
@@ -242,7 +242,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x7a/1": {
     label: "Transmitter stick positions",
     understood: "partial",
-    note: "Only in AutoLog files. Signed 12-bit values (−2047…2047), little-endian, 5 to 35 per second depending on the log. Offset 4 is the throttle stick (matches the ESC throttle, r = 0.88). In flight, offset 6 follows the pitch rate (elevator), offset 8 the roll rate (aileron) and offset 10 the yaw rate (rudder), checked on several models. The values reach ±2047 with low rates as well, so they are the stick positions before dual rates and expo. The sign against the gyro differs between installations (opposite on two receivers of the same type), so stick directions cannot be taken from the gyro. Offset 2 changes little within a session, like a knob, slider or trim. Offsets 12 and 14 are 0 on some transmitters and about −2047 on others (unknown controls); receiver channels such as a flight mode channel are not in this packet.",
+    note: "Only in AutoLog files. Signed 12-bit values (−2047…2047), little-endian, 5 to 35 per second depending on the log. Offset 4 is the throttle stick (matches the ESC throttle, r = 0.88). In flight, offset 6 follows the pitch rate (elevator), offset 8 the roll rate (aileron) and offset 10 the yaw rate (rudder), checked on several models. The values reach ±2047 with low rates as well, so they are the stick positions before dual rates and expo. The sign against the gyro differs between installations (opposite on two receivers of the same type), so stick directions cannot be taken from the gyro. Offsets 2, 12 and 14 are analog controls (knobs or levers): they jitter by a few units like a potentiometer and sit anywhere in the range. On some transmitters 12 and 14 stay at 0 or −2047; in other logs offset 12 is moved in steps during the flight. Receiver channels such as a flight mode channel are not in this packet.",
     decode: (p) => {
       const v = (o: number) => (((p[o] | (p[o + 1] << 8)) << 16) >> 16);
       return [
@@ -286,6 +286,7 @@ function decodeFlightLog(p: Uint8Array): Field[] {
 /** Labels for sensors we know by name but do not decode. */
 export const KNOWN_UNDECODED: Record<string, string> = {
   "0x76": "Unknown 0x76",
+  "0x7b": "Unknown 0x7b (only zeros seen)",
   "0x12": "Altitude sensor (declared; the Supra header pairs it with 0x40, the vario)",
   "0x11": "Airspeed sensor (declared, only zeros seen)",
   "0x50": "User-defined sensor (probably; content unknown)",

@@ -51,7 +51,13 @@ export interface Channel {
   nominalRateHz?: number;
   origin: "measured" | "derived";
   /** Where the values came from, for the expert view. */
-  source: { sensor: string; field: string; note?: string };
+  source: {
+    sensor: string;
+    field: string;
+    note?: string;
+    /** Recorded by the transmitter itself (sticks, switches), not received from the model. */
+    transmitter?: boolean;
+  };
   /** For counters: the original cumulative values as recorded by the device. */
   rawCounter?: { t: Float64Array; v: Float64Array };
 }
