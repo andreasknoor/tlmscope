@@ -616,10 +616,16 @@
     "tabLink": "Tell me",
     "errorLink": "Tell me about this"
   },
+  "whatsNew": {
+    "title": "What changed",
+    "unseen": "new since your last look",
+    "all": "All changes"
+  },
   "footer": {
     "by": "by {name}",
     "source": "Source code",
     "notAffiliated": "Not affiliated with Spektrum",
+    "changelog": "Changelog",
     "legal": "Imprint & privacy",
     "offline": "Works offline",
     "offlineHint": "TLMscope is stored in this browser and opens without internet. Map images still need a connection."

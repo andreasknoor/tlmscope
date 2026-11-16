@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
@@ -16,6 +17,7 @@ import { FeedbackButton, FeedbackLink, OfflineBadge, SettingsButton, useAirtime 
 import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
+import { WhatsNew } from "./WhatsNew";
 import { PHASE_COLOR } from "./charts/LineChart";
 import { Logo, Wordmark } from "./brand";
 import { useLogoClicks } from "./StorkRace";
@@ -70,7 +72,7 @@ function Header() {
         <Logo /><Wordmark />
       </a>
       {extra}
-      <span className="version" title={`TLMscope ${APP_VERSION}`}>v{APP_VERSION}</span>
+      <WhatsNew version={APP_VERSION} />
       <OfflineBadge />
       {files.length > 0 && (
         <nav className="nav" aria-label="Main">
@@ -245,6 +247,7 @@ function Footer({ offline }: { offline: boolean }) {
       {offline && <span title={t("offlineHint")}>{t("offline")}</span>}
       <a href={REPO_URL} target="_blank" rel="noopener noreferrer">{t("source")}</a>
       <span>{t("notAffiliated")}</span>
+      <Link href="/changelog">{t("changelog")}</Link>
       <a href={`/legal#${settings.locale}`}>{t("legal")}</a>
     </footer>
   );

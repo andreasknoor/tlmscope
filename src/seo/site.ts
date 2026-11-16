@@ -32,6 +32,7 @@ export const GUIDE_PAGES: (PageId | undefined)[] = [undefined, ...PAGE_IDS];
 export const SITEMAP: { path: string; alternates?: Record<Lang, string> }[] = [
   ...GUIDE_PAGES.flatMap((id) => LANGS.map((lang) => ({ path: pathOf(lang, id), alternates: { en: pathOf("en", id), de: pathOf("de", id) } }))),
   { path: "/legal" },
+  { path: "/changelog" },
 ];
 
 /** Language alternatives of a page (hreflang), with English as the default for everything else. */
