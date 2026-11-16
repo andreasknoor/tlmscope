@@ -11,9 +11,10 @@ function channel(id: string, perSecond: (number | null)[]): Channel {
   return { id, unit: "", kind: "categorical", origin: "measured", source: { sensor: "test", field: "test" }, t: Float64Array.from(t), v: Float64Array.from(v), q: new Uint8Array(t.length) };
 }
 
-function session(fm: (number | null)[], st?: (number | null)[]): Session {
+function session(fm: (number | null)[], st?: (number | null)[], gain?: [(number | null)[], (number | null)[], (number | null)[]]): Session {
   const channels = new Map<string, Channel>([["flight_mode", channel("flight_mode", fm)]]);
   if (st) channels.set("stabilization", channel("stabilization", st));
+  if (gain) ["roll", "pitch", "yaw"].forEach((a, k) => channels.set(`as3x_gain.${a}`, channel(`as3x_gain.${a}`, gain[k])));
   return { index: 0, start: { utcMs: null, zone: "utc" }, durationS: fm.length, modelName: null, source: { format: "test" }, channels, raw: [], meta: {} } as unknown as Session;
 }
 
@@ -28,15 +29,15 @@ describe("stabilization time", () => {
     const r = stabilization(new Grid(session(fm, st)), air(10, 119));
     expect(r.inAir).toBe(true);
     expect(r.uses).toEqual([
-      { bits: 5, modes: [0, 1], seconds: 90 },
-      { bits: 3, modes: [2], seconds: 20 },
+      { bits: 5, modes: [0, 1], seconds: 90, gain: null },
+      { bits: 3, modes: [2], seconds: 20, gain: null },
     ]);
   });
 
   it("lists no stabilization like any other function", () => {
     const r = stabilization(new Grid(session(run(50, 0), run(50, 0))), null);
     expect(r.inAir).toBe(false);
-    expect(r.uses).toEqual([{ bits: 0, modes: [0], seconds: 50 }]);
+    expect(r.uses).toEqual([{ bits: 0, modes: [0], seconds: 50, gain: null }]);
   });
 
   it("leaves out a mode passed for a moment while flicking the switch", () => {
@@ -49,6 +50,17 @@ describe("stabilization time", () => {
     const fm = [...run(20, 0), ...run(3, null), ...run(20, 0), ...run(30, null), ...run(10, 0)];
     const r = stabilization(new Grid(session(fm, fm.map((x) => (x === null ? null : 1)))), null);
     expect(r.uses[0].seconds).toBe(53);
+  });
+
+  it("gives the typical AS3X gain of each use, none without AS3X", () => {
+    // Mode 1 (AS3X) 40 s at gain 12/15/18 with the knob turned to 40/50/60 for 5 s; mode 2 (off) 20 s.
+    const fm = [...run(40, 0), ...run(20, 1)];
+    const gain = (r: number, hi: number) => [...run(35, r), ...run(5, hi), ...run(20, 0)];
+    const res = stabilization(new Grid(session(fm, [...run(40, 1), ...run(20, 0)], [gain(12, 40), gain(15, 50), gain(18, 60)])), null);
+    expect(res.uses).toEqual([
+      { bits: 1, modes: [0], seconds: 40, gain: [12, 15, 18] },
+      { bits: 0, modes: [1], seconds: 20, gain: null },
+    ]);
   });
 
   it("says when the receiver reports no flight mode", () => {

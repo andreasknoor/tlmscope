@@ -98,6 +98,9 @@ export const CATALOGUE: CatalogueEntry[] = [
   e("throttle_command", "%", "controls", "Throttle stick", "Gasknüppel", "Throttle stick position at the transmitter."),
   e("flight_mode", "", "status", "Flight mode", "Flugmodus", "Receiver flight mode (FM1, FM2, FM3), set by the flight mode switch; each mode can use AS3X, heading hold or SAFE.", { kind: "categorical" }),
   e("stabilization", "", "status", "Stabilization functions", "Stabilisierungsfunktionen", "Functions set up for the current flight mode, as a bit field: 1 = AS3X, 2 = SAFE, 4 = heading hold; 0 = stabilization off. Heading hold counts as set up even when its gain is turned down.", { kind: "categorical" }),
+  e("as3x_gain.roll", "", "status", "AS3X gain, roll", "AS3X-Gain, Rollen", "Current AS3X gain for roll (0 = no correction), after a gain knob if one is set up."),
+  e("as3x_gain.pitch", "", "status", "AS3X gain, pitch", "AS3X-Gain, Nicken", "Current AS3X gain for pitch (0 = no correction), after a gain knob if one is set up."),
+  e("as3x_gain.yaw", "", "status", "AS3X gain, yaw", "AS3X-Gain, Gieren", "Current AS3X gain for yaw (0 = no correction), after a gain knob if one is set up."),
 ];
 
 const byId = new Map(CATALOGUE.map((c) => [c.id, c]));

@@ -123,7 +123,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x1a": {
     label: "Gyro",
     understood: "full",
-    note: "Axes mapped as x = roll, y = pitch, z = yaw. Checked on the sample flights: y is positive in every turn, z gives the direction.",
+    note: "Axes mapped as x = roll, y = pitch, z = yaw. Checked on the sample flights: y is positive in every turn, z gives the direction. Checked on the ground by tilting the model by hand (AR8360T+): right wing down, nose up and nose right are positive.",
     decode: (p) => {
       const w = (o: number) => i16be(p, o) / 10;
       return [
@@ -139,7 +139,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x05": {
     label: "Flight controller status (AS3X / SAFE)",
     understood: "partial",
-    note: "Byte 4 is 0x80 + the receiver flight mode (0 = FM1, 1 = FM2, 2 = FM3); checked against the flight mode switch, it follows the switch within half a second. Byte 2 is a bit field of the functions set up for that flight mode: bit 0 = AS3X, bit 1 = SAFE, bit 2 = heading hold (1 = AS3X, 3 = SAFE, 5 = AS3X with heading hold, 0 = stabilization off; checked against known receiver setups). Heading hold shows as set up even when its gain is turned down. Byte 3 is 0 for a few seconds after power-up, then 2; meanwhile byte 4 is 0xBE, not a flight mode. Byte 5 cycles 0x80–0x82 like a page number. Pages 0x81 and 0x82 stay the same within a flight mode and change with it (settings per mode, not decoded). Page 0x80 changes in flight on some receivers and stays the same for the whole flight on others (not decoded; possibly the current AS3X gains).",
+    note: "Byte 4 is 0x80 + the receiver flight mode (0 = FM1, 1 = FM2, 2 = FM3); checked against the flight mode switch, it follows the switch within half a second. Byte 2 is a bit field of the functions set up for that flight mode: bit 0 = AS3X, bit 1 = SAFE, bit 2 = heading hold (1 = AS3X, 3 = AS3X with SAFE self-levelling, 5 = AS3X with heading hold, 0 = stabilization off; every value checked against known receiver setups). Heading hold shows as set up even when its gain is turned down. Byte 3 is 0 for a few seconds after power-up, then 2; meanwhile byte 4 is 0xBE, not a flight mode. Byte 5 cycles 0x80–0x82 like a page number. Pages 0x81 and 0x82 stay the same within a flight mode and change with it (settings per mode, not decoded). Page 0x80 holds the current AS3X gains for roll, pitch and yaw (bytes 6–8): checked against a gain knob, they go from 0 at one end to the set-up gains (40/50/60) at the other; without a gain knob they stay the same for the whole flight. Page 0x82 is most likely the SAFE angle limits: a SAFE mode set up with a 30° climb limit showed 45, 45, 30, 30 there (order of the axes not verified). Page 0x81 is not understood.",
     decode: (p) => [
       { name: "Flight mode", unit: "", value: p[4] >= 0x80 && p[4] < 0x90 ? p[4] - 0x80 : null, channel: "flight_mode", categorical: true },
       { name: "Active functions (byte 2)", unit: "", value: p[2], channel: "stabilization", categorical: true },
@@ -149,6 +149,10 @@ export const SENSORS: Record<string, SensorDef> = {
       { name: "Page value 2", unit: "", value: p[7] },
       { name: "Page value 3", unit: "", value: p[8] },
       { name: "Page value 4", unit: "", value: p[9] },
+      ...(["roll", "pitch", "yaw"] as const).map((axis, k) => ({
+        name: `AS3X gain ${axis} (page 0x80)`, unit: "",
+        value: p[5] === 0x80 && p[4] >= 0x80 && p[4] < 0x90 ? p[6 + k] : null, channel: `as3x_gain.${axis}`,
+      })),
     ],
   },
   "0x42/0x00": {

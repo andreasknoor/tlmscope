@@ -231,6 +231,9 @@ Ids may also be `stick.*`, `switch.*` (control inputs) or `raw:*` (decoded but u
 | `throttle_command` | % | numeric | controls | Throttle stick position at the transmitter. |
 | `flight_mode` | – | categorical | status | Receiver flight mode (FM1, FM2, FM3), set by the flight mode switch; each mode can use AS3X, heading hold or SAFE. |
 | `stabilization` | – | categorical | status | Functions set up for the current flight mode, as a bit field: 1 = AS3X, 2 = SAFE, 4 = heading hold; 0 = stabilization off. Heading hold counts as set up even when its gain is turned down. |
+| `as3x_gain.roll` | – | numeric | status | Current AS3X gain for roll (0 = no correction), after a gain knob if one is set up. |
+| `as3x_gain.pitch` | – | numeric | status | Current AS3X gain for pitch (0 = no correction), after a gain knob if one is set up. |
+| `as3x_gain.yaw` | – | numeric | status | Current AS3X gain for yaw (0 = no correction), after a gain knob if one is set up. |
 <!-- catalogue:end -->
 
 ## Spektrum `.TLM` file format
@@ -261,8 +264,8 @@ Byte 0 = sensor id, byte 1 = secondary id. Offsets below are within the 16-byte 
 | `0xFF` | Flight log (other id) | same layout as `0x7F` | Some receivers (seen: AR631) send it instead of `0x7F`, about 10 per second, only antenna A filled in. Used only in sessions without `0x7F`; next to `0x7F` it is a rare stray copy with other counters. |
 | `0x7E` | RPM / signal | signal dBm int8 @8 (if < −1 and not −128), signal % int8 @9 (if > 0); @2/@4/@6 unused here | uint16 BE @14 counts up about once per second (unknown, possibly receiver uptime). |
 | `0x14` | G-meter | x, y, z, max x, max y, max z, min z ×0.01 g @2…@14 (int16 BE) | |
-| `0x1A` | Gyro | x, y, z, max x, max y, max z ×0.1 °/s @2…@12 (int16 BE) | x = roll, y = pitch, z = yaw on the sample flights. |
-| `0x05` | Flight controller | byte 4 = 0x80 + flight mode (0 = FM1); byte 2 = functions set up for the mode, bit 0 AS3X, bit 1 SAFE, bit 2 heading hold (0 = off); byte 5 cycles 0x80–0x82 like a page, pages 0x81/0x82 hold settings per flight mode, page 0x80 changes in flight on some receivers; byte 4 = 0xBE while byte 3 is still 0 after power-up | Flight mode checked against the flight mode switch. Rest partly understood. |
+| `0x1A` | Gyro | x, y, z, max x, max y, max z ×0.1 °/s @2…@12 (int16 BE) | x = roll, y = pitch, z = yaw on the sample flights; right wing down, nose up and nose right are positive (checked by tilting the model). |
+| `0x05` | Flight controller | byte 4 = 0x80 + flight mode (0 = FM1); byte 2 = functions set up for the mode, bit 0 AS3X, bit 1 SAFE, bit 2 heading hold (0 = off); byte 5 cycles 0x80–0x82 like a page, page 0x80 = current AS3X gains roll/pitch/yaw @6…@8 (after the gain knob), page 0x82 probably the SAFE angle limits, page 0x81 unknown; byte 4 = 0xBE while byte 3 is still 0 after power-up | Flight mode checked against the flight mode switch. Rest partly understood. |
 | `0x42` | Smart battery (**little-endian**) | type = byte 2 & 0xF0. `0x00` live: temp int8 @3, current mA uint32 @4, used mAh @8, min/max cell mV @10/@12. `0x10` cells: temp @3, cells 1–6 mV @4…@14. `0x80` identity: chemistry @3 (1 = LiPo), cells @4, manufacturer @5, cycles uint16 @6, id 8 bytes @8. `0x90` limits: capacity mAh @4, discharge rating @6 (0.1 C?), empty/0 %/full mV @8/@10/@12, min/max °C int8 @14/@15. | Fields often arrive partly filled; all-zero records mean “not reporting”. Live current and used mAh are sparse and not used. |
 | `0x16` / `0x17` | GPS | **Little-endian BCD**. `0x16`: altitude low (0.1 m) @2, latitude DDMM.MMMM @4, longitude @8, course (0.1°) @12, HDOP (0.1) @14, flags @15 (bit 0 north, 1 east, 2 longitude > 99°, 3 fix valid, 5 3D fix, 7 negative altitude). `0x17`: speed (0.1 kn) @2, UTC HHMMSS.S @4, satellites @8, altitude thousands @9. | Checked against real GPS logs. The altitude is relative to the take-off spot with one GPS and absolute with another; the negative-altitude flag can be wrong. |
 | `0x7C` | Clock | Unix time (s, uint32 LE) @8 | Once per session. |

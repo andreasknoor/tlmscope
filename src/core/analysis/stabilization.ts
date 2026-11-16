@@ -15,6 +15,8 @@ export interface StabilizationUse {
   /** Flight mode indices (0 = mode 1), ascending. */
   modes: number[];
   seconds: number;
+  /** Typical AS3X gain (median of roll, pitch, yaw) over this time; null without AS3X or without gain data. */
+  gain: [number, number, number] | null;
 }
 
 export interface Stabilization {
@@ -25,6 +27,9 @@ export interface Stabilization {
   /** Most time first. */
   uses: StabilizationUse[];
 }
+
+const AXES = ["roll", "pitch", "yaw"] as const;
+const median = (a: number[]) => a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)];
 
 /** Gaps of up to `maxGap` seconds between two values take the value before the gap; longer gaps and the ends stay empty. */
 function fillShortGaps(s: (number | null)[], maxGap: number): (number | null)[] {
@@ -47,12 +52,19 @@ export function stabilization(g: Grid, profile: FlightProfile | null): Stabiliza
   const from = inAir ? profile.airStart! : 0;
   const to = inAir ? profile.airEnd! : g.n - 1;
 
+  const gains = AXES.map((a) => (g.has(`as3x_gain.${a}`) ? fillShortGaps(g.get(`as3x_gain.${a}`, "last"), STABILIZATION.maxGapS) : null));
+  const gainSecs = new Map<number, number[][]>();
   const secs = new Map<number, number>();
   const bitCounts = new Map<number, Map<number, number>>();
   for (let k = from; k <= to; k++) {
     const m = fm[k];
     if (m === null) continue;
     secs.set(m, (secs.get(m) ?? 0) + 1);
+    if (gains.every((a) => a?.[k] != null)) {
+      const list = gainSecs.get(m) ?? [];
+      list.push(gains.map((a) => a![k]!));
+      gainSecs.set(m, list);
+    }
     const b = st?.[k];
     if (b === null || b === undefined) continue;
     const c = bitCounts.get(m) ?? new Map<number, number>();
@@ -67,10 +79,14 @@ export function stabilization(g: Grid, profile: FlightProfile | null): Stabiliza
     const bits = c ? [...c].sort((a, b) => b[1] - a[1])[0][0] : null;
     // Modes with the same functions are one entry; without the functions each mode stands alone.
     const key = bits === null ? `mode ${m}` : `bits ${bits}`;
-    const u = groups.get(key) ?? { bits, modes: [], seconds: 0 };
+    const u = groups.get(key) ?? { bits, modes: [], seconds: 0, gain: null };
     u.modes.push(m);
     u.seconds += s;
     groups.set(key, u);
+  }
+  for (const u of groups.values()) {
+    const list = u.modes.flatMap((m) => gainSecs.get(m) ?? []);
+    if (u.bits !== null && u.bits & 1 && list.length) u.gain = [0, 1, 2].map((a) => median(list.map((x) => x[a]))) as [number, number, number];
   }
   return { reported: true, inAir, uses: [...groups.values()].sort((a, b) => b.seconds - a.seconds) };
 }

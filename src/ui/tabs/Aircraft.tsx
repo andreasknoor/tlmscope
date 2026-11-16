@@ -63,7 +63,10 @@ export function AircraftTab() {
         <TempCard a={a} /><RxCard a={a} /><StyleCard a={a} />
         <Tile label={t(stab.inAir ? "aircraft.stabInAir" : "aircraft.stab")} value={top ? nameOf(top.bits, top.modes) : t("aircraft.notReported")}
           sub={top ? stab.uses.map((u) => (
-            <div key={u.modes.join()}>{u.bits === null ? nameOf(null, u.modes) : `${nameOf(u.bits, u.modes)} (${t("aircraft.modes", { list: u.modes.map((m) => m + 1).join(", ") })})`}: {time(u.seconds)}</div>
+            <div key={u.modes.join()}>{u.bits === null ? nameOf(null, u.modes) : `${nameOf(u.bits, u.modes)} (${t("aircraft.modes", { list: u.modes.map((m) => m + 1).join(", ") })})`}: {time(u.seconds)}
+              {u.gain && (u.gain.every((x) => x === 0)
+                ? <span> · {t("aircraft.gainZero")}</span>
+                : <span className="lv-more"> · {t("aircraft.gain", { roll: u.gain[0], pitch: u.gain[1], yaw: u.gain[2] })}</span>)}</div>
           )) : t("aircraft.notReportedHint")} />
       </div>
       {temps.length > 0 && <LineChart syncKey={e!.key} title={t("rating.temps")} series={temps} height={160} yMin={U.v("temp", 0)!} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("temp")}`}

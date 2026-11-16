@@ -434,6 +434,8 @@
     "stab": "Stabilisierung",
     "stabInAir": "Stabilisierung in der Luft",
     "notReported": "Nicht gemeldet",
+    "gain": "Gain {roll}/{pitch}/{yaw}",
+    "gainZero": "Gain 0, keine Korrektur",
     "notReportedHint": "Der Empfänger meldet keinen Flugmodus, das Log sagt also nichts über AS3X oder SAFE."
   },
   "raw": {
