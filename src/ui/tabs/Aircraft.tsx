@@ -68,7 +68,7 @@ export function AircraftTab() {
     <>
       <div className="grid g4">
         <TempCard a={a} /><RxCard a={a} /><StyleCard a={a} />
-        <Tile label={t("aircraft.flightMode")} value={modes.length ? t("aircraft.modes", { list: modes.map((m) => m + 1).join(", ") }) : t("aircraft.disabled")} sub={t("aircraft.flightModeHint")} />
+        <Tile label={t("aircraft.flightMode")} value={modes.length ? t("aircraft.modes", { list: modes.map((m) => m + 1).join(", ") }) : t("aircraft.disabled")} sub={fnByMode.size ? modes.map((m) => <div key={m}>{modeLabel(m)}</div>) : t("aircraft.flightModeHint")} />
       </div>
       {temps.length > 0 && <LineChart syncKey={e!.key} title={t("rating.temps")} series={temps} height={160} yMin={U.v("temp", 0)!} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("temp")}`}
         extra={<Legend items={temps.map((s) => [`var(${s.color})`, s.label, true])} />} />}
