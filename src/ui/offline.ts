@@ -32,6 +32,19 @@ export interface OfflineState {
   applyUpdate(): void;
 }
 
+/** App version of the pages, compared with the version a new worker stores. */
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
+
+/** The app version a worker stores, or null if it does not answer (workers before version 1.78 cannot). */
+function workerVersion(worker: ServiceWorker, ms = 2000): Promise<string | null> {
+  return new Promise((resolve) => {
+    const channel = new MessageChannel();
+    const timer = setTimeout(() => resolve(null), ms);
+    channel.port1.onmessage = (e) => { clearTimeout(timer); resolve(typeof e.data === "string" ? e.data : null); };
+    worker.postMessage("version", [channel.port2]);
+  });
+}
+
 /** Resolves when the worker has finished installing (or failed), at the latest after `ms`. */
 function installed(worker: ServiceWorker, ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -51,6 +64,10 @@ function installed(worker: ServiceWorker, ms: number): Promise<void> {
  * next version was deployed). So the note only shows while nothing newer is being installed, and the
  * reload first checks for the newest version and waits until it is stored; otherwise the page would
  * switch to the older one and offer the update again a moment later.
+ *
+ * A plain browser reload loads the new pages from the network while the old worker still controls them,
+ * and the new worker installs a moment later. The page then already is that version, so the new worker
+ * takes over silently instead of offering an update the user already has.
  */
 export function useServiceWorker(): OfflineState {
   const [ready, setReady] = useState(false);
@@ -63,8 +80,21 @@ export function useServiceWorker(): OfflineState {
     let timer: ReturnType<typeof setInterval> | undefined;
     let cancelled = false;
     const sw = navigator.serviceWorker;
-    // A worker that finished installing while another one controls the page is a new version.
-    const check = (reg: ServiceWorkerRegistration) => { if (!cancelled) setUpdate(!!reg.waiting && !reg.installing && !!sw.controller); };
+    const asked = new WeakSet<ServiceWorker>();
+    // A worker that finished installing while another one controls the page is a new version,
+    // unless the page already runs it (reloaded after the deploy): then it takes over without a note.
+    const check = (reg: ServiceWorkerRegistration) => {
+      if (cancelled) return;
+      const waiting = reg.waiting;
+      if (!waiting || reg.installing || !sw.controller) { setUpdate(false); return; }
+      if (asked.has(waiting)) return;
+      asked.add(waiting);
+      void workerVersion(waiting).then((v) => {
+        if (cancelled || reg.waiting !== waiting) return;
+        if (v === APP_VERSION) { waiting.postMessage("skip-waiting"); setUpdate(false); }
+        else setUpdate(true);
+      });
+    };
     const watch = (reg: ServiceWorkerRegistration) => {
       const follow = (w: ServiceWorker | null) => w?.addEventListener("statechange", () => check(reg));
       follow(reg.installing);

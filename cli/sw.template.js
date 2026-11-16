@@ -1,5 +1,7 @@
 /* TLMscope service worker: keeps the app available offline. Generated into out/sw.js by cli/make-sw.ts after the build. */
 const VERSION = "__VERSION__";
+/** App version (major.minor) of the pages this worker stores; a page asks for it to tell whether it already runs this version. */
+const APP_VERSION = "__APP_VERSION__";
 const CACHE = `tlmscope-${VERSION}`;
 const URLS = __URLS__;
 /** The app pages, stored by address. Content pages (FAQ, compare, legal …) work online only. */
@@ -22,6 +24,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("message", (event) => {
   if (event.data === "skip-waiting") self.skipWaiting();
+  if (event.data === "version") event.ports[0]?.postMessage(APP_VERSION);
 });
 
 /**
