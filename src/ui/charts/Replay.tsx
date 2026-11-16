@@ -193,7 +193,7 @@ export function Replay({ a, syncKey, clatter = false }: { a: SessionAnalysis; sy
       ctx.fillRect((ph.start / n) * W, 0, ((ph.end - ph.start + 1) / n) * W, H);
     }
     // Height profile only when the height is usable.
-    const alt = p?.basis === "height" ? g.get("altitude") : [];
+    const alt = p?.maxAltitudeM != null ? g.get("altitude") : [];
     const top = Math.max(1, maxOf(alt) ?? 0);
     ctx.strokeStyle = cssVar("--ink-2"); ctx.lineWidth = 1.2; ctx.beginPath();
     let started = false;
@@ -219,7 +219,8 @@ export function Replay({ a, syncKey, clatter = false }: { a: SessionAnalysis; sy
   const ph = p?.phaseAt[i];
   const hasHeight = p?.basis === "height";
   const hud: [string, string][] = [
-    ...(hasHeight ? [[t("overview.height"), U.fmt("height", g.get("altitude")[i])], [t("replay.vario"), U.fmt("vspeed", climb, 1)]] as [string, string][] : []),
+    ...(p?.maxAltitudeM != null ? [[t("overview.height"), U.fmt("height", g.get("altitude")[i])] as [string, string]] : []),
+    ...(hasHeight ? [[t("replay.vario"), U.fmt("vspeed", climb, 1)] as [string, string]] : []),
     ...(tr ? [[t("replay.speed"), U.fmt("speed", tr.speed[i])] as [string, string]] : []),
     ...(g.has("motor_current") ? [[t("replay.motor"), val(g.get("motor_current", "max")[i] ?? 0, 0, "A")] as [string, string]] : []),
     ...(g.has("signal_dbm") ? [[t("replay.signal"), val(g.get("signal_dbm", "min")[i], 0, "dBm")] as [string, string]] : []),

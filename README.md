@@ -43,10 +43,11 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 | Motor, controller and BEC: rpm, current, voltage, throttle, temperatures | Spektrum Smart ESC (e.g. Avian) | Tested |
 | Battery: cell voltages, temperature, ID, charge cycles, capacity | Spektrum Smart battery, connected through a Smart ESC | Tested |
 | Height and climb rate | Vario / altimeter sensor, or a receiver that reports it | Tested |
+| Height above ground without a vario (less exact, no climbs or lift) | Spektrum GPS telemetry sensor | Tested |
 | Loads (g) and rotation rates | Receiver with AS3X / SAFE | Tested |
 | Throttle stick position | Recent NX firmware (AutoLog files) | Tested |
 | Stabilization (AS3X, SAFE, heading hold) per flight mode | Receiver with AS3X / SAFE | Tested |
-| Map, distance, speed over ground | Spektrum GPS telemetry sensor | Tested with one real GPS log |
+| Map, distance, speed over ground | Spektrum GPS telemetry sensor | Tested with real GPS logs |
 | Other sensors (airspeed, extra current or temperature sensors, …) | X-Bus / SRXL2 sensors | Shown as raw data for now |
 
 ### Not supported
@@ -142,8 +143,8 @@ Analyses work only on canonical channels, resampled to a 1-second grid, so they 
 
 | Analysis | Needs | Result |
 |---|---|---|
-| Session kind | any channel; `altitude` or `ground_speed` for flights | flight, ground test, powered on, transmitter only |
-| Flight profile | `altitude` and one of `throttle_output`, `motor_current`, `throttle_command` | phases (ground, motor climb, glide, lift), climbs with height gained and charge used, lift, glide sink rate, airtime |
+| Session kind | any channel from the model; `altitude` or `ground_speed` for flights | flight, ground test, powered on, transmitter only (no data from the model, at most the transmitter's own sticks and switches) |
+| Flight profile | `altitude` and one of `throttle_output`, `motor_current`, `throttle_command`; without a height sensor `altitude` comes from `gps.altitude` minus the ground level (highest point only, airtime from `ground_speed`) | phases (ground, motor climb, glide, lift), climbs with height gained and charge used, lift, glide sink rate, airtime |
 | Circling | `rotation_rate.pitch`, `rotation_rate.yaw` | full circles, direction, time turning |
 | Thermals | flight profile; circles with `rotation_rate.pitch/yaw`; centre and drift with GPS | per lift phase: gain, average and best 10 s climb, circles and height per circle, drift, motor time and mAh saved |
 | Radio link | `frame_losses` or `link_quality` | level per second, overall level, frame losses per minute, holds in the air, fades |

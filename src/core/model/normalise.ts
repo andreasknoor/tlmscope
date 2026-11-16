@@ -150,6 +150,72 @@ export function normaliseSession(session: Session): void {
     session.channels.set("climb_rate", deriveClimbRate(altitude));
     session.meta.derivedClimbRate = true;
   }
+  // After the climb rate: a climb rate from GPS heights would be noise.
+  if (!session.channels.has("altitude")) {
+    const h = heightFromGps(session);
+    if (h) {
+      session.channels.set("altitude", h);
+      session.meta.heightFromGps = true;
+    }
+  }
   const frozen = flagFrozen(session);
   if (frozen.length) session.meta.frozenChannels = frozen;
+}
+
+/** Settings for the height above ground from GPS altitudes (used only without a height sensor). */
+export const GPS_HEIGHT = {
+  /** Standing still below this ground speed (m/s) … */
+  stillMs: 1,
+  /** … and moving above this one (m/s). */
+  movingMs: 5,
+  /** The GPS altitude settles for about a minute after the first fix; still samples that early do not set the ground level. */
+  settleS: 60,
+  /** Fewest still samples that set the ground level. */
+  minSamples: 20,
+} as const;
+
+/** True for a height channel worked out from GPS altitudes rather than measured by a height sensor. */
+export const isGpsHeight = (ch: Channel | undefined): boolean => ch?.id === "altitude" && ch.origin === "derived";
+
+/**
+ * Height above ground from the GPS altitude, for sessions without a height sensor. The ground
+ * level is the median altitude standing still after the last movement (after landing); without
+ * enough of those, standing still before the first movement (once the GPS has settled), else
+ * standing still at any time. Null without GPS altitude, ground speed or enough still samples.
+ */
+export function heightFromGps(session: Session): Channel | null {
+  const alt = session.channels.get("gps.altitude");
+  const speed = session.channels.get("ground_speed");
+  if (!alt || !speed) return null;
+  // Ground speed at each altitude sample: the latest speed sample at or before it.
+  const still: boolean[] = [], moving: boolean[] = [];
+  let j = -1, lastSpeed = NaN;
+  for (let i = 0; i < alt.t.length; i++) {
+    while (j + 1 < speed.t.length && speed.t[j + 1] <= alt.t[i]) { j++; if (!Number.isNaN(speed.v[j])) lastSpeed = speed.v[j]; }
+    still.push(!Number.isNaN(alt.v[i]) && lastSpeed < GPS_HEIGHT.stillMs);
+    moving.push(!Number.isNaN(alt.v[i]) && lastSpeed > GPS_HEIGHT.movingMs);
+  }
+  const valid = [...alt.v.keys()].filter((i) => !Number.isNaN(alt.v[i]));
+  if (!valid.length) return null;
+  const firstFix = alt.t[valid[0]];
+  const firstMove = moving.indexOf(true), lastMove = moving.lastIndexOf(true);
+  const pick = (from: number, to: number, after = -Infinity) => {
+    const out: number[] = [];
+    for (let i = Math.max(0, from); i <= to && i < alt.t.length; i++) if (still[i] && alt.t[i] >= after) out.push(alt.v[i]);
+    return out.length >= GPS_HEIGHT.minSamples ? out : null;
+  };
+  const end = alt.t.length - 1;
+  const ground = (lastMove >= 0 ? pick(lastMove + 1, end) ?? pick(0, firstMove - 1, firstFix + GPS_HEIGHT.settleS) : null) ?? pick(0, end);
+  if (!ground) return null;
+  const level = ground.slice().sort((a, b) => a - b)[Math.floor(ground.length / 2)];
+  const v = new Float64Array(alt.v.length);
+  const q = new Uint8Array(alt.v.length);
+  for (let i = 0; i < v.length; i++) {
+    v[i] = alt.v[i] - level;
+    q[i] = alt.q[i] | Q.DERIVED;
+  }
+  return {
+    id: "altitude", unit: "m", kind: "numeric", t: alt.t, v, q, nominalRateHz: alt.nominalRateHz, origin: "derived",
+    source: { sensor: alt.source.sensor, field: "GPS altitude minus the ground level", note: `Ground level ${Math.round(level * 10) / 10} m (GPS altitude standing still). Less exact than a height sensor: about ±5–10 m.` },
+  };
 }

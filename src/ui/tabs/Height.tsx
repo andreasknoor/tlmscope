@@ -28,6 +28,14 @@ export function HeightTab() {
 
   if (!a.profile.available) return <Missing missing={a.profile.missing} />;
   if (a.kind !== "flight" || !p) return <div className="card empty">{t("height.noFlight")}</div>;
+  if (p.basis !== "height" && p.heightSource === "gps") return (
+    <>
+      <LineChart syncKey={e!.key} title={t("overview.heightGps")} series={altSeries} phases={p.phases} height={220}
+        extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("height")}`}
+        rest={`max ${U.fmt("height", p.maxAltitudeM, 1)}`} />
+      <p className="note">{t("overview.gpsHeight")}</p>
+    </>
+  );
   if (p.basis !== "height") return <div className="card empty">{t("overview.noHeight")}</div>;
 
   const cmp = (() => {

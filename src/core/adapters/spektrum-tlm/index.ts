@@ -71,6 +71,8 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
   const identities = new Map<string, { count: number; p: Uint8Array }>();
   let limits: Uint8Array | null = null;
   let gpsAltHigh = 0;
+  let gpsSpeed: number | null = null;
+  const gpsAlt: GpsAltSample[] = [];
   let prevTick = -Infinity;
   let backwards = 0;
   // 0xFF carries the flight log on receivers that send no 0x7F. Next to 0x7F it is a stray copy with other counters.
@@ -149,16 +151,22 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
       case "0x17": {
         const hi = bcdLe(p, 9, 1);
         if (hi !== null) gpsAltHigh = hi;
+        gpsSpeed = fields[0].value;
         break;
       }
       case "0x16": {
         const lo = bcdLe(p, 2, 2);
         const fix = (p[15] & GPS_FLAG.FIX_VALID) !== 0;
-        const alt = lo === null || !fix ? null : (gpsAltHigh * 1000 + lo / 10) * (p[15] & GPS_FLAG.NEGATIVE_ALT ? -1 : 1);
-        set.get("gps.altitude", "m", { sensor: "0x16/0x17 GPS", field: "altitude (low + high part)" }).push(t, alt);
+        gpsAlt.push({ t, size: lo === null || !fix ? null : gpsAltHigh * 1000 + lo / 10, negative: (p[15] & GPS_FLAG.NEGATIVE_ALT) !== 0, speed: gpsSpeed });
         break;
       }
     }
+  }
+  if (gpsAlt.length) {
+    const ignoreSign = negativeFlagWrong(gpsAlt);
+    const source = { sensor: "0x16/0x17 GPS", field: "altitude (low + high part)", ...(ignoreSign ? { note: "The negative-altitude flag was ignored: with it the model would have flown below the ground." } : {}) };
+    const b = set.get("gps.altitude", "m", source);
+    for (const a of gpsAlt) b.push(a.t, a.size === null ? null : a.negative && !ignoreSign ? -a.size : a.size);
   }
   if (rs.droppedRecords) warnings.push({ code: "implausible-time", message: `${rs.droppedRecords} records with impossible timestamps were skipped.`, session: rs.index });
   if (backwards) warnings.push({ code: "time-backwards", message: `${backwards} records go back in time.`, session: rs.index });
@@ -272,3 +280,23 @@ export const spektrumTlm: LogAdapter = {
     return { fileName, sizeBytes: data.length, adapterId: "spektrum-tlm", sessions, warnings };
   },
 };
+
+/** One GPS altitude: its size, the negative flag and the latest ground speed (m/s). */
+export interface GpsAltSample { t: number; size: number | null; negative: boolean; speed: number | null }
+
+const median = (a: number[]) => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+
+/**
+ * True when the GPS's negative-altitude flag cannot be right: read as negative, the
+ * altitude in flight would lie more than `GPS_SIGN.belowGroundM` below the altitude on the ground.
+ * Seen on one GPS that kept the flag set from the first fix on.
+ */
+export function negativeFlagWrong(samples: GpsAltSample[]): boolean {
+  const flagged = samples.filter((s) => s.negative && s.size !== null && s.speed !== null);
+  const still = flagged.filter((s) => s.speed! < GPS_SIGN.stillMs).map((s) => s.size!);
+  const flying = flagged.filter((s) => s.speed! > GPS_SIGN.flyingMs).map((s) => s.size!);
+  if (still.length < GPS_SIGN.minSamples || flying.length < GPS_SIGN.minSamples) return false;
+  return median(flying) > median(still) + GPS_SIGN.belowGroundM;
+}
+
+export const GPS_SIGN = { stillMs: 1, flyingMs: 10, minSamples: 20, belowGroundM: 10 } as const;

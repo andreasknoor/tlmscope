@@ -93,7 +93,7 @@ function GpsView() {
     const k = p?.phaseAt[i];
     return cssVar(k === "glide" || k === "unpowered" || !k ? MAP_GLIDE : PHASE_COLOR[k]);
   }, [colourBy, alt, top, sig, p]);
-  const hasHeight = p?.basis === "height";
+  const hasHeight = p?.maxAltitudeM != null;
   // The stork flaps its wings in motor climbs and glides otherwise.
   const flapping = useMemo(() => p?.phaseAt.map((k) => k === "motor") ?? [], [p]);
   const air = useMemo(() => ({ start: p?.airStart ?? null, end: p?.airEnd ?? null }), [p]);
@@ -203,7 +203,7 @@ function NoGpsView() {
   const U = useUnits();
   const p = a.profile.available ? a.profile.value : null;
   const c = a.circling.available ? a.circling.value : null;
-  const hasHeight = p?.basis === "height";
+  const hasHeight = p?.maxAltitudeM != null;
   // Height, or the throttle when there is no usable height.
   const series = useMemo(() => hasHeight
     ? [{ data: U.series("height", a.grid.get("altitude")), color: "--s-alt", unit: U.u("height"), fill: 0.12 }]

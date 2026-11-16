@@ -1,3 +1,4 @@
+import { isGpsHeight } from "../model/normalise.ts";
 import type { Session } from "../model/types.ts";
 import { Grid, maxOf, medianOf, minOf, sumOf, type Series } from "./grid.ts";
 import { withNeeds, type Result } from "./requirements.ts";
@@ -78,6 +79,8 @@ export interface FlightProfile {
   /** Runs of the motor that reach into the airborne time (pauses up to `motorGapS` included). */
   motorRuns: { start: number; end: number }[];
   maxAltitudeM: number | null;
+  /** Where the height comes from: a height sensor, the GPS (height above ground, less exact: no climbs, lift or glide), or nowhere. */
+  heightSource: "sensor" | "gps" | null;
   airStart: number | null;
   airEnd: number | null;
   airtimeS: number;
@@ -111,9 +114,9 @@ function motorOn(g: Grid): boolean[] {
 
 const ROTATION = ["rotation_rate.roll", "rotation_rate.pitch", "rotation_rate.yaw"];
 
-/** The altitude series if the session has a height channel that actually varies; else null. */
+/** The altitude series if the session has a height sensor that actually varies; else null. A height from GPS does not count. */
 function usableAltitude(g: Grid): Series | null {
-  if (!g.has("altitude")) return null;
+  if (!g.has("altitude") || isGpsHeight(g.channel("altitude"))) return null;
   const alt = g.get("altitude");
   const hi = maxOf(alt), lo = minOf(alt);
   return hi !== null && lo !== null && hi - lo > FLIGHT.usableAltitudeRangeM ? alt : null;
@@ -121,7 +124,7 @@ function usableAltitude(g: Grid): Series | null {
 
 /** True if the session has a height channel that never varies (sensor present but dead). */
 export function altitudeFlat(session: Session, g = new Grid(session)): boolean {
-  return g.has("altitude") && usableAltitude(g) === null;
+  return g.has("altitude") && !isGpsHeight(g.channel("altitude")) && usableAltitude(g) === null;
 }
 
 /** Per second: GPS ground speed above the flight limit. */
@@ -195,6 +198,7 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
   return withNeeds(session, [motorChannels, ["altitude", "ground_speed", ...ROTATION]], () => {
     const n = g.n;
     const alt = usableAltitude(g);
+    const gpsHeight = isGpsHeight(g.channel("altitude")) ? g.get("altitude") : null;
     const basis: FlightBasis = alt ? "height" : gpsMoving(g) && count(gpsMoving(g)) >= FLIGHT.flightGroundSpeedS ? "gps" : "motion";
     const climb = alt ? g.get("climb_rate") : new Array<number | null>(n).fill(null);
     const amps = g.get("motor_current");
@@ -302,7 +306,8 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
       kind, basis, n, motor,
       motorSecs: airStart === null ? motor.filter(Boolean).length : motorRuns.reduce((s, r) => s + motor.slice(r.start, r.end + 1).filter(Boolean).length, 0),
       motorRuns,
-      maxAltitudeM: alt ? maxOf(alt) : null,
+      maxAltitudeM: alt ? maxOf(alt) : gpsHeight ? maxOf(gpsHeight.map((v, i) => (airStart === null || (i >= airStart && i <= airEnd!) ? v : null))) : null,
+      heightSource: alt ? "sensor" : gpsHeight ? "gps" : null,
       airStart, airEnd, airtimeS,
       phases, phaseAt, climbs, lifts,
       liftGainM: lifts.reduce((s, l) => s + Math.max(0, l.gainM), 0),

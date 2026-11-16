@@ -44,7 +44,7 @@ export function OverviewTab() {
     const minutes = num(loc, p.airtimeS / 60, 1);
     summary = (
       <>
-        {height ? rich("overview.flightAir", { minutes, height: U.fmt("height", p.maxAltitudeM) })
+        {p.maxAltitudeM !== null ? rich("overview.flightAir", { minutes, height: U.fmt("height", p.maxAltitudeM) })
           : rich(p.basis === "motion" ? "overview.flightAirApprox" : "overview.flightAirNoHeight", { minutes })}{" "}
         {rich("overview.flightMotor", { count: height ? p.climbs.length : runsOf(p), time: clock(p.motorSecs) })}{" "}
         {!height ? null : p.lifts.length ? rich("overview.flightLift", { count: p.lifts.length, gain: U.fmt("height", p.liftGainM) }) : t("overview.flightNoLift")}{" "}
@@ -73,16 +73,22 @@ export function OverviewTab() {
   return (
     <>
       <p className="summary">{summary}</p>
-      {a.kind === "flight" && p && p.basis !== "height" && <p className="note">{t("overview.noHeight")}</p>}
+      {a.kind === "flight" && p && p.basis !== "height" && <p className="note">{t(p.heightSource === "gps" ? "overview.gpsHeight" : "overview.noHeight")}</p>}
       <IssueAlerts a={a} />
       {a.kind === "flight" && p && p.basis !== "height" ? (
         <>
           <div className="grid g4">
             <Tile label={t("overview.airtime")} value={airtime(p)} unit={"\u00a0min"} />
-            <Tile label={t("overview.highest")} value="–" sub={t("overview.noHeightShort")} />
+            {p.maxAltitudeM !== null
+              ? <Tile label={t("overview.highest")} value={U.n("height", p.maxAltitudeM)} unit={`\u00a0${U.u("height")}`} sub={t("overview.fromGps")} />
+              : <Tile label={t("overview.highest")} value="–" sub={t("overview.noHeightShort")} />}
             <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit={"\u00a0min"} sub={t("overview.climbs", { n: runsOf(p) })} />
-            <Tile label={t("overview.lift")} value="–" sub={t("overview.noHeightShort")} />
+            <Tile label={t("overview.lift")} value="–" sub={t(p.heightSource === "gps" ? "overview.needsSensor" : "overview.noHeightShort")} />
           </div>
+          {p.heightSource === "gps" && (
+            <LineChart syncKey={e!.key} title={t("overview.heightGps")} series={altSeries} phases={p.phases} height={180}
+              yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("height")}`} rest={`max ${U.fmt("height", p.maxAltitudeM, 1)}`} />
+          )}
           {thrSeries[0].data.some((x) => x !== null) && (
             <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thrSeries} phases={p.phases} yMax={100} yFormat={(x) => `${axisNum(loc, x)}\u00a0%`}
               extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />}

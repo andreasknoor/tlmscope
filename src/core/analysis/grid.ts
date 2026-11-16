@@ -1,4 +1,4 @@
-import type { Session } from "../model/types.ts";
+import type { Channel, Session } from "../model/types.ts";
 
 export type Series = (number | null)[];
 export type Aggregate = "mean" | "min" | "max" | "last" | "increase";
@@ -26,6 +26,11 @@ export class Grid {
 
   has(id: string): boolean {
     return this.session.channels.has(id);
+  }
+
+  /** The channel itself (for its origin and source), if the session has it. */
+  channel(id: string): Channel | undefined {
+    return this.session.channels.get(id);
   }
 
   /** Per-second aggregate of a channel; null where the channel had no valid sample in that second. */
