@@ -104,6 +104,7 @@ function GpsView() {
     : [{ data: g.get(thrId), color: "--s-motor", unit: "%", fill: 0.15 }], [hasHeight, alt, g, thrId, U]);
   const course = useMemo(() => attitudeFromPath(tr?.east ?? [], tr?.north ?? [], alt).heading, [tr, alt]);
   const climbSeries = g.get("climb_rate");
+  const speedSeries = useMemo(() => [{ data: U.series("speed", tr?.speed ?? []), color: "--s-4", unit: U.u("speed"), digits: 0, fill: 0.12 }], [tr, U]);
   const distSeries = useMemo(() => [{ data: U.series("distance", tr?.distance ?? []), color: "--s-5", unit: U.u("distance"), digits: 0, fill: 0.1 }], [tr, U]);
   if (!tr) return null;
 
@@ -168,7 +169,8 @@ function GpsView() {
             </div>
           </div>}
           <div className="mapwrap">
-            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} relief={relief} chase={chase} onChaseEnd={() => chooseView("3d")} onGround={setAgl} failedText={t("path.mapFailed")} />}
+            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} relief={relief} chase={chase} onChaseEnd={() => chooseView("3d")} onGround={setAgl} failedText={t("path.mapFailed")}
+              cooperative={{ on: !full, windows: t("path.zoomCtrl"), mac: t("path.zoomCmd"), mobile: t("path.twoFingers") }} />}
             {online && (relief || chase) && marker !== null && (
               <div className="hud" aria-label={t("path.hud")}>
                 <div><span>{t("path.hudHeight")}</span><b>{U.fmt("height", Math.max(0, alt[marker] ?? 0))}</b></div>
@@ -190,6 +192,12 @@ function GpsView() {
       <LineChart syncKey={e!.key} title={t(hasHeight ? "path.follow" : "path.followThrottle")} series={followSeries} phases={p?.phases} height={150}
         yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? U.u("height") : "%"}`}
         readout={(i) => `${num(loc, followSeries[0].data[i], 0)} ${hasHeight ? U.u("height") : "%"} · ${t("path.away", { d: U.fmt("distance", tr.distance[i]) })}`} onCursor={setMarker} />
+      {speedSeries[0].data.some((x) => x !== null) && (
+        <LineChart syncKey={e!.key} title={t("path.groundSpeed")} series={speedSeries} phases={p?.phases} height={150}
+          extra={<div className="sub">{t("path.groundSpeedHint")}</div>}
+          yMin={0} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("speed")}`} rest={tr.maxSpeed !== null ? `max ${U.fmt("speed", tr.maxSpeed)}` : undefined}
+          readout={(i) => `${U.fmt("speed", tr.speed[i])} · ${p?.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} onCursor={setMarker} />
+      )}
       <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("distance")}`} onCursor={setMarker} /></div>
     </>
   );

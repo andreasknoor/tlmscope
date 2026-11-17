@@ -59,6 +59,11 @@ interface Props {
   onGround?: (agl: number | null) => void;
   /** Shown when the map cannot be loaded. */
   failedText: string;
+  /**
+   * Page scrolling wins over the map: the mouse wheel zooms only with Ctrl / ⌘, one finger scrolls the page
+   * (MapLibre's cooperative gestures, with these hints). Off in the full-screen map, where there is no page to scroll.
+   */
+  cooperative?: { on: boolean; windows: string; mac: string; mobile: string };
 }
 
 /** Free elevation tiles (Terrarium encoding, no key) for the relief. Credited on the map and named on the privacy page. */
@@ -175,10 +180,13 @@ const toRgb = (c: string): [number, number, number] => {
 };
 
 /** Map with the flight path in 3D. Libraries load only in the browser. */
-export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pathMode, markerStyle, shadow: showShadow, flapping, air, spots = [], relief = false, chase = false, onChaseEnd, onGround, failedText }: Props) {
+export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pathMode, markerStyle, shadow: showShadow, flapping, air, spots = [], relief = false, chase = false, onChaseEnd, onGround, failedText, cooperative }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
+  // Read when the map is (re)built; later changes go through the effect below.
+  const coopRef = useRef(cooperative);
+  useEffect(() => { coopRef.current = cooperative; }, [cooperative]);
   const layersRef = useRef<typeof import("@deck.gl/layers") | null>(null);
   const meshRef = useRef<typeof import("@deck.gl/mesh-layers") | null>(null);
   const extRef = useRef<typeof import("@deck.gl/extensions") | null>(null);
@@ -231,6 +239,12 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
         // would look up from below the ground, which the deck.gl path layer does not support.
         maxPitch: 85,
         attributionControl: { compact: true },
+        cooperativeGestures: coopRef.current?.on ?? false,
+        ...(coopRef.current ? { locale: {
+          "CooperativeGesturesHandler.WindowsHelpText": coopRef.current.windows,
+          "CooperativeGesturesHandler.MacHelpText": coopRef.current.mac,
+          "CooperativeGesturesHandler.MobileHelpText": coopRef.current.mobile,
+        } } : {}),
       });
       const m = map;
       // deck.gl 9.4 reads `map.transform.elevation` (the ground height under the map centre) to follow a map with
@@ -291,6 +305,13 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
   useEffect(() => {
     mapRef.current?.easeTo({ pitch, duration: 600 });
   }, [pitch]);
+
+  const coopOn = cooperative?.on ?? false;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m) return;
+    if (coopOn) m.cooperativeGestures.enable(); else m.cooperativeGestures.disable();
+  }, [coopOn]);
 
   // Relief: elevation tiles as 3D terrain with shading and a sky. The elevation at the launch spot is read back
   // once the tiles are in, because the logged heights start there (not at sea level).

@@ -14,6 +14,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "1.84", date: "2026-11-17", changes: [["new", "Ground speed chart on the flight path page."], ["fix", "The mouse wheel scrolls the page over the map; Ctrl + wheel zooms it."]] },
   { version: "1.83", date: "2026-11-16", changes: [["new", "What changed in each version: click the version number, or see the changelog page."]] },
   { version: "1.82", date: "2026-11-16", changes: [["fix", "No brown-out warning from unplugging the battery after the flight."]] },
   { version: "1.81", date: "2026-11-16", changes: [["new", "The stabilization card shows the AS3X gain, and says when it was 0."]] },
