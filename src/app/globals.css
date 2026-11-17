@@ -153,8 +153,9 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .version.link { margin-left: 0; border: 0; background: none; padding: 2px 6px; border-radius: 6px; cursor: pointer; }
 .version.link:hover, .version.link[aria-expanded="true"] { background: var(--accent-soft); color: var(--accent); }
 .version .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-left: 5px; vertical-align: 1px; }
-.wn-pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 20; width: min(400px, calc(100vw - 32px)); max-height: min(520px, 70vh); overflow: auto;
+.wn-pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 20; width: min(400px, calc(100vw - 32px)); max-height: min(520px, 70vh); display: flex; flex-direction: column;
   background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 40px rgba(0, 0, 0, .25); padding: 6px 0 0; font-size: 13.5px; }
+.wn-list { overflow: auto; min-height: 0; flex: 1 1 auto; }
 .wn-pop h3 { margin: 6px 14px 4px; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; }
 .wn-row { display: grid; grid-template-columns: 36px auto 1fr; gap: 8px; align-items: baseline; padding: 5px 14px; }
 .wn-row.unseen { background: var(--accent-soft); }
@@ -162,7 +163,7 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .wn-tag { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 0 5px; border-radius: 4px; line-height: 17px; min-width: 34px; text-align: center; }
 .wn-tag.new { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
 .wn-tag.fix { color: color-mix(in srgb, var(--warn) 65%, var(--ink)); background: color-mix(in srgb, var(--warn) 16%, transparent); }
-.wn-more { display: block; padding: 9px 14px; margin-top: 4px; border-top: 1px solid var(--line); font-weight: 600; text-decoration: none; }
+.wn-more { display: block; flex: none; padding: 9px 14px; margin-top: 4px; border-top: 1px solid var(--line); font-weight: 600; text-decoration: none; }
 .changelog .day { margin: 18px 0 4px; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
 .changelog .rel { display: grid; grid-template-columns: 48px 1fr; gap: 2px 12px; padding: 7px 0; border-top: 1px solid var(--line); }
 .changelog .items { display: flex; flex-direction: column; gap: 3px; }

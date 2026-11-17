@@ -58,6 +58,8 @@ export function WhatsNew({ version }: { version: string }) {
       {open && (
         <div className="wn-pop" role="dialog" aria-label={t("title")}>
           <h3>{t("title")}</h3>
+          {/* The list scrolls; the link to all changes always stays in view below it. */}
+          <div className="wn-list">
           {CHANGELOG.slice(0, SHOWN).map((r) => r.changes.map(([kind, text], i) => (
             <div key={`${r.version}-${i}`} className={`wn-row${unseen(r.version) ? " unseen" : ""}`}>
               <span className="wn-v">{i ? "" : r.version}</span>
@@ -65,6 +67,7 @@ export function WhatsNew({ version }: { version: string }) {
               <span>{text}</span>
             </div>
           )))}
+          </div>
           <Link className="wn-more" href="/changelog">{t("all")} ›</Link>
         </div>
       )}
