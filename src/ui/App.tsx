@@ -16,10 +16,11 @@ import { Shell } from "./Shell";
 import { applyTheme, THEMES, type Theme } from "./theme";
 import { defaultUnits, UNIT_SYSTEMS, type UnitSystem } from "./units";
 import { HOME_META } from "@/seo/site";
+import { MAP_DEFAULTS, readMapPrefs } from "./map-prefs";
 import { isCapacity, MAX_BATTERY_NAME, StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
-const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null, batteryNames: {} };
+const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null, batteryNames: {}, map: MAP_DEFAULTS };
 const SETTINGS_KEY = "tlmscope.settings";
 export const DEMO_FILE = "demo-flight.TLM";
 /** Larger files are refused: real logs are a few MB, and parsing needs several times the file size in memory. */
@@ -55,7 +56,7 @@ function readSettings(initial: Locale): Settings {
         if (typeof v === "string" && v.trim()) batteryNames[k] = v.trim().slice(0, MAX_BATTERY_NAME);
       }
     }
-    return { details, locale, filter, theme, units, capacities, defaultCapacityMah, batteryNames };
+    return { details, locale, filter, theme, units, capacities, defaultCapacityMah, batteryNames, map: readMapPrefs(saved.map) };
   } catch {
     return base;
   }

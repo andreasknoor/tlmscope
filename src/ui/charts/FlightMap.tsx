@@ -7,6 +7,8 @@ import type { Layer } from "@deck.gl/core";
 import { attitudeFromPath, type Track } from "@/core/analysis";
 import { maxOf, minOf } from "@/core/analysis/grid";
 import { cssVar } from "../format";
+import type { LineStyle, MarkerStyle, PathMode } from "../map-prefs";
+export { LINE_STYLES, MARKER_STYLES, PATH_MODES, type LineStyle, type MarkerStyle, type PathMode } from "../map-prefs";
 import { ADEBAR_LANDED } from "./sync";
 import { trailUpTo, type PathLine, type Rgba } from "./trail";
 import { NEST_TOP, planeMesh, storkMeshes, STORK_BEAK_HINGE, STORK_SHOULDER, type Mesh, type V } from "./plane-mesh";
@@ -14,18 +16,9 @@ import { NEST_TOP, planeMesh, storkMeshes, STORK_BEAK_HINGE, STORK_SHOULDER, typ
 /** Free vector tiles without an API key (decision D3: MapLibre). */
 export const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 
-/** How the flight path is drawn, chosen in the map tools. */
-export type LineStyle = "thin" | "thinDashed" | "thick" | "thickDashed";
-export const LINE_STYLES: LineStyle[] = ["thin", "thinDashed", "thick", "thickDashed"];
 const LINE_WIDTH = { thin: 2, thick: 4 };
-/** How much of the path is drawn during the replay: all of it, only the part flown so far, or that part with the rest faint. */
-export type PathMode = "full" | "trail" | "trailRest";
-export const PATH_MODES: PathMode[] = ["full", "trail", "trailRest"];
 /** Opacity of the part still to come in "trailRest". */
 const REST_ALPHA = 60;
-/** How the model is shown in the replay. */
-export type MarkerStyle = "plane" | "dot" | "stork";
-export const MARKER_STYLES: MarkerStyle[] = ["plane", "dot", "stork"];
 /** Dash and gap length in pixels. */
 const DASH: [number, number] = [10, 7];
 

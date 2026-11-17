@@ -7,6 +7,7 @@ import { useOnline } from "../offline";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Legend, Tile, useLevelWord } from "../bits";
 import { FlightMap, LINE_STYLES, MARKER_STYLES, PATH_MODES, type LineStyle, type MarkerStyle, type PathMode } from "../charts/FlightMap";
+import type { MapPrefs } from "../map-prefs";
 import { Replay } from "../charts/Replay";
 import { requestPlay } from "../charts/sync";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
@@ -19,12 +20,10 @@ import { PhaseLegend } from "./Overview";
 /** Glide colour on the map. */
 const MAP_GLIDE = "--s-alt";
 
-type ColourBy = "phase" | "height" | "signal";
-
 function GpsView() {
   const t = useTranslations();
   const online = useOnline();
-  const { selected: e, settings, entries } = useStore();
+  const { selected: e, settings, entries, setSettings } = useStore();
   const a = e!.a;
   const loc = settings.locale;
   const U = useUnits();
@@ -41,25 +40,31 @@ function GpsView() {
   const p = a.profile.available ? a.profile.value : null;
   const sig = a.signal.available ? a.signal.value : null;
   const word = useLevelWord();
-  const [colourBy, setColourBy] = useState<ColourBy>("phase");
-  /** How the map is viewed: from a tilted angle, from above, or with the camera following the model (always tilted). */
-  const [view, setViewState] = useState<"3d" | "map" | "follow">("3d");
+  // The map options are saved settings, so they stay the same from flight to flight.
+  const m = settings.map;
+  const setMap = (patch: Partial<MapPrefs>) => setSettings({ map: { ...m, ...patch } });
+  const { colourBy, line: lineStyle, path: pathMode, marker: markerStyle, shadow } = m;
+  const setColourBy = (colourBy: MapPrefs["colourBy"]) => setMap({ colourBy });
+  const setLineStyle = (line: LineStyle) => setMap({ line });
+  const setPathMode = (path: PathMode) => setMap({ path });
+  const setMarkerStyle = (marker: MarkerStyle) => setMap({ marker });
+  const setShadow = (shadow: boolean) => setMap({ shadow });
+  /** How the map is viewed: from a tilted angle, from above, or with the camera following the model (always tilted). Following is not saved. */
+  const [following, setFollowing] = useState(false);
+  const view = following ? "follow" : m.view;
   const pitch = view === "map" ? 0 : 55;
-  const chase = view === "follow";
-  const [lineStyle, setLineStyle] = useState<LineStyle>("thin");
-  const [pathMode, setPathMode] = useState<PathMode>("full");
-  const [markerStyle, setMarkerStyle] = useState<MarkerStyle>("plane");
-  const [shadow, setShadow] = useState(true);
-  const [relief, setRelief] = useState(false);
-  /** Relief before the follow view switched it on; null when not following or once changed by hand, so it is then kept. */
-  const reliefBefore = useRef<boolean | null>(null);
+  const chase = following;
+  /** Relief the follow view switched on for itself; null when not following or once changed by hand, so the saved choice counts. */
+  const [followRelief, setFollowRelief] = useState<boolean | null>(null);
+  const relief = followRelief ?? m.relief;
   const chooseView = (v: "3d" | "map" | "follow") => {
     if (v === view) return;
-    if (v === "follow") { reliefBefore.current = relief; setRelief(true); requestPlay(e!.key); }
-    else if (view === "follow" && reliefBefore.current !== null) { setRelief(reliefBefore.current); reliefBefore.current = null; }
-    setViewState(v);
+    if (v === "follow") { setFollowRelief(true); setFollowing(true); requestPlay(e!.key); return; }
+    setFollowRelief(null);
+    setFollowing(false);
+    if (v !== m.view) setMap({ view: v });
   };
-  const toggleRelief = () => { reliefBefore.current = null; setRelief(!relief); };
+  const toggleRelief = () => { setFollowRelief(null); setMap({ relief: !relief }); };
   const [opts, setOpts] = useState(false);
   const optRef = useRef<HTMLDivElement>(null);
   // The options panel closes on Escape and on a click outside it.

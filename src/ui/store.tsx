@@ -6,6 +6,7 @@ import type { LogsAnalysis, SessionAnalysis } from "@/core/analysis";
 import type { LogFile } from "@/core/model/types";
 import type { FeedbackEntry, FeedbackFrom } from "./feedback";
 import type { Locale } from "./format";
+import type { MapPrefs } from "./map-prefs";
 import type { Theme } from "./theme";
 import { makeUnits, type UnitSystem, type Units } from "./units";
 
@@ -47,6 +48,8 @@ export interface Settings {
   defaultCapacityMah: number | null;
   /** The user's own names for smart batteries, keyed by battery ID. */
   batteryNames: Record<string, string>;
+  /** Map options on the flight path page, kept between flights. */
+  map: MapPrefs;
 }
 
 /** Longest battery name accepted. */
