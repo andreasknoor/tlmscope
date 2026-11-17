@@ -13,11 +13,15 @@ interface Props {
   n: number;
   /** Colour for second i, or null for nothing. */
   colorAt: (i: number) => string | null;
+  /** Runs in this colour are drawn at least MIN_PX wide, so a single critical second stays visible. */
+  emphasize?: string;
   height?: number;
 }
 
+const MIN_PX = 4;
+
 /** A thin band coloured per second (levels, phases, circling), aligned with the line charts. */
-export function Strip({ syncKey, label, right, n, colorAt, height = 22 }: Props) {
+export function Strip({ syncKey, label, right, n, colorAt, emphasize, height = 22 }: Props) {
   const plotRef = useRef<HTMLDivElement>(null);
   const colorRef = useRef(colorAt);
   useLayoutEffect(() => {
@@ -50,6 +54,7 @@ export function Strip({ syncKey, label, right, n, colorAt, height = 22 }: Props)
               (uu) => {
                 const ctx = uu.ctx;
                 const { top, height: h } = uu.bbox;
+                const narrow: [number, number][] = [];
                 let i = 0;
                 while (i < n) {
                   const c = colorRef.current(i);
@@ -60,9 +65,13 @@ export function Strip({ syncKey, label, right, n, colorAt, height = 22 }: Props)
                     const x0 = uu.valToPos(i - 0.5, "x", true);
                     const x1 = uu.valToPos(j + 0.5, "x", true);
                     ctx.fillRect(x0, top, x1 - x0, h);
+                    if (c === emphasize && x1 - x0 < MIN_PX * devicePixelRatio) narrow.push([(x0 + x1) / 2, MIN_PX * devicePixelRatio]);
                   }
                   i = j + 1;
                 }
+                // Drawn last, over the neighbours.
+                if (emphasize) ctx.fillStyle = emphasize;
+                for (const [mid, w] of narrow) ctx.fillRect(mid - w / 2, top, w, h);
               },
             ],
           },
@@ -83,7 +92,7 @@ export function Strip({ syncKey, label, right, n, colorAt, height = 22 }: Props)
       unregister();
       u?.destroy();
     };
-  }, [syncKey, n, height, theme, colorAt]);
+  }, [syncKey, n, height, theme, colorAt, emphasize]);
 
   return (
     <div className="chart" style={{ paddingTop: 4 }}>

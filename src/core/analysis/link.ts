@@ -1,5 +1,5 @@
 import type { Session } from "../model/types.ts";
-import type { FlightProfile } from "./flight.ts";
+import type { FlightBasis, FlightProfile } from "./flight.ts";
 import { Grid, medianOf, minOf } from "./grid.ts";
 import { withNeeds, type Result } from "./requirements.ts";
 import { overall, rate, THRESHOLDS, type Level, type Overall } from "./thresholds.ts";
@@ -14,6 +14,8 @@ export interface LinkAnalysis {
   frameLossesPerMinute: number | null;
   /** Holds while airborne. Holds on the ground (e.g. switching the transmitter off) do not count. */
   holdsAirborne: number | null;
+  /** What "airborne" rests on for the holds: without height or GPS (`motion`) it is an estimate from motor and movement. */
+  holdBasis: FlightBasis | null;
   holdsTotal: number | null;
   fades: Partial<Record<"a" | "b" | "l" | "r", number>>;
   /** Second with the most frame losses, in the rating window. */
@@ -82,13 +84,16 @@ export function linkQuality(session: Session, profile: FlightProfile | null, g =
     // transmitter is switched off after landing are not part of the flight.
     const frameLosses = increase(g, "frame_losses", w0, w1);
     const minutes = profile && profile.airStart !== null ? (w1 - w0 + 1) / 60 : session.durationS / 60;
+    const o = overall(levels.slice(w0, w1 + 1));
     return {
       basis,
       levels,
-      overall: overall(levels.slice(w0, w1 + 1)),
+      // A hold is a second without control: it rates the whole link critical, however short.
+      overall: o && (holdsAirborne ?? 0) > 0 ? { ...o, level: 1 } : o,
       frameLosses,
       frameLossesPerMinute: frameLosses !== null && minutes > 0 ? frameLosses / minutes : null,
       holdsAirborne,
+      holdBasis: profile && profile.airStart !== null ? profile.basis : null,
       holdsTotal: last(session, "holds"),
       fades: Object.fromEntries((["a", "b", "l", "r"] as const).map((k) => [k, increase(g, `fades.${k}`, w0, w1)]).filter(([, v]) => v !== null)),
       worstSecond,

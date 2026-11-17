@@ -32,9 +32,8 @@ export function temperatures(session: Session, g = new Grid(session)): Result<Te
 export interface ReceiverPower {
   rxMinV: number | null;
   becMinV: number | null;
+  /** From the voltage only: a hold is a radio link problem and rated there. */
   level: Level | null;
-  /** True when a hold happened in the air; this overrides the voltage level. */
-  holdInAir: boolean;
 }
 
 /**
@@ -76,12 +75,11 @@ export function steadyMinV(ch: Channel | undefined, air: [number, number] | null
   return min ?? all;
 }
 
-export function receiverPower(session: Session, link: LinkAnalysis | null, profile: FlightProfile | null = null): Result<ReceiverPower> {
+export function receiverPower(session: Session, profile: FlightProfile | null = null): Result<ReceiverPower> {
   return withNeeds(session, ["rx_voltage"], () => {
     const air: [number, number] | null = profile && profile.airStart !== null ? [profile.airStart, profile.airEnd!] : null;
     const rxMinV = steadyMinV(session.channels.get("rx_voltage"), air);
-    const holdInAir = (link?.holdsAirborne ?? 0) > 0;
-    return { rxMinV, becMinV: steadyMinV(session.channels.get("bec_voltage"), air), holdInAir, level: holdInAir ? 1 : rate(rxMinV, THRESHOLDS.rxVoltage) };
+    return { rxMinV, becMinV: steadyMinV(session.channels.get("bec_voltage"), air), level: rate(rxMinV, THRESHOLDS.rxVoltage) };
   });
 }
 

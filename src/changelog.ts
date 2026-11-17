@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "1.87", date: "2026-11-17", changes: [["fix", "A hold in the air rates the radio link critical, not the receiver power."], ["fix", "A single critical second stays visible in the link timeline."], ["fix", "Without height or GPS, a hold is shown as during the flight, not in the air."]] },
   { version: "1.86", date: "2026-11-17", changes: [["new", "The version number shows only the highlights; the changelog page marks them."], ["fix", "Highlights new since the last visit stay marked while the list is open."]] },
   { version: "1.85", date: "2026-11-17", changes: [["fix", "The “All changes” link stays in view in the list of recent changes."]] },
   { version: "1.84", date: "2026-11-17", changes: [["new", "Ground speed chart on the flight path page.", "highlight"], ["fix", "The mouse wheel scrolls the page over the map; Ctrl + wheel zooms it."]] },

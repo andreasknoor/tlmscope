@@ -46,8 +46,8 @@ export function LinkTab() {
     <>
       <div className="grid g2"><LinkCard a={a} /><SignalCard a={a} /></div>
       <div className="sectionhead"><h2>{t("link.overTime")}</h2><p>{t("link.overTimeHint")}</p></div>
-      {link && <Strip syncKey={e!.key} label={t("rating.link")} n={g.n} colorAt={linkColor} />}
-      {sig && <Strip syncKey={e!.key} label={t("rating.signal")} n={g.n} colorAt={sigColor} />}
+      {link && <Strip syncKey={e!.key} label={t("rating.link")} n={g.n} colorAt={linkColor} emphasize={cssVar("--crit")} />}
+      {sig && <Strip syncKey={e!.key} label={t("rating.signal")} n={g.n} colorAt={sigColor} emphasize={cssVar("--crit")} />}
       <Legend items={[[cssVar("--good"), lw(4)], [withAlpha(cssVar("--good"), 0.45), lw(3)], [cssVar("--warn"), lw(2)], [cssVar("--crit"), lw(1)]]} />
       {sig && <div className="lv-more"><LineChart syncKey={e!.key} title={t("link.dbm")} series={dbm} height={160} yMin={-100} yMax={-30}
         bands={[{ from: -100, to: -85, color: "--crit" }, { from: -85, to: -80, color: "--warn" }]} /></div>}

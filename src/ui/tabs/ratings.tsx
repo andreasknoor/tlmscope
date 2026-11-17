@@ -16,14 +16,19 @@ export function LinkCard({ a }: { a: SessionAnalysis }) {
   const loc = useStore().settings.locale;
   const l = v(a.link);
   const o = l?.overall;
-  const hint = o ? t(a.kind === "flight" ? "linkHintAir" : "linkHint") + (o.worst < o.level ? " " + t("linkBriefly", { level: word("link", o.worst).toLowerCase() }) : "") : "";
+  const hold = (l?.holdsAirborne ?? 0) > 0;
+  // Without height or GPS, "in the air" is an estimate from motor and movement: say so.
+  const estimated = l?.holdBasis === "motion";
+  const hint = !o ? "" : hold
+    ? t("linkHoldHint") + (estimated ? " " + t("linkHoldEstimated") : "")
+    : t(a.kind === "flight" ? "linkHintAir" : "linkHint") + (o.worst < o.level ? " " + t("linkBriefly", { level: word("link", o.worst).toLowerCase() }) : "");
   const fades = Object.entries(l?.fades ?? {}).filter(([, n]) => n !== undefined);
   return (
-    <RatingCard name={t("link")} level={o?.level ?? null} word={word("link", o?.level ?? null)} hint={hint}
+    <RatingCard name={t("link")} level={o?.level ?? null} word={hold ? t(estimated ? "linkHoldFlight" : "linkHold") : word("link", o?.level ?? null)} hint={hint}
       rows={l ? [
         [t("frameLosses"), l.frameLosses ?? "–"],
         [t("frameLossesPerMin"), num(loc, l.frameLossesPerMinute, 0)],
-        [t("holds"), l.holdsAirborne ?? "–"],
+        [t(estimated ? "holdsFlight" : "holds"), l.holdsAirborne ?? "–"],
         ...fades.map(([k, n]): [string, string] => [t("fades", { antenna: k.toUpperCase() }), `${n}${(n ?? 0) > 500 ? " · " + t("moveAntenna") : ""}`]),
         [t("weakTime"), `${num(loc, (o?.weakShare ?? 0) * 100, 0)}\u00a0%`],
         [t("levels"), t("levelsLink")],
@@ -98,7 +103,7 @@ export function RxCard({ a }: { a: SessionAnalysis }) {
   const loc = useStore().settings.locale;
   const x = v(a.receiverPower);
   return (
-    <RatingCard name={t("rx")} level={x?.level ?? null} word={x?.holdInAir ? t("rxHold") : word("rx", x?.level ?? null)} hint={x ? t("rxHint") : ""}
+    <RatingCard name={t("rx")} level={x?.level ?? null} word={word("rx", x?.level ?? null)} hint={x ? t("rxHint") : ""}
       rows={x ? [[t("rxMin"), `${num(loc, x.rxMinV, 2)}\u00a0V`], [t("becMin"), `${num(loc, x.becMinV, 2)}\u00a0V`]] : null} />
   );
 }
