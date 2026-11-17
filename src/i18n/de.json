@@ -421,6 +421,9 @@
   },
   "link": {
     "overTime": "Im Verlauf",
+    "filter": "Stufe anklicken, um nur sie zu zeigen; mit den Pfeilen durch die Stellen springen.",
+    "prev": "Vorherige",
+    "next": "Nächste",
     "overTimeHint": "Grün ist gut. Gelb und Rot zeigen, wo die Verbindung schwach wurde.",
     "dbm": "Signal (dBm)",
     "fl": "Frame Losses pro Sekunde",

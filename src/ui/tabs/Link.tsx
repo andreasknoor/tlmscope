@@ -1,13 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Level } from "@/core/analysis";
 import { Legend, useLevelWord } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { Scatter } from "../charts/Scatter";
 import { Strip } from "../charts/Strip";
-import { axisNum, cssVar, withAlpha } from "../format";
+import { moveAll } from "../charts/sync";
+import { axisNum, cssVar, duration, withAlpha } from "../format";
 import { useStore, useUnits } from "../store";
 import { LinkCard, SignalCard } from "./ratings";
 
@@ -31,8 +32,33 @@ export function LinkTab() {
   const dbm = useMemo(() => [{ data: g.get("signal_dbm"), color: "--s-alt", unit: "dBm", digits: 0, width: 1.5 }], [g]);
   const fl = useMemo(() => [{ data: g.get("frame_losses", "increase"), color: "--s-motor", unit: "/s", digits: 0, bars: true, fill: 0.9, width: 0 }], [g]);
   const alt = useMemo(() => [{ data: U.series("height", g.get("altitude")), color: "--s-alt", unit: U.u("height"), fill: 0.1 }], [g, U]);
-  const linkColor = useCallback((i: number) => levelColor(link?.levels[i] ?? null), [link]);
-  const sigColor = useCallback((i: number) => levelColor(sig?.levels[i] ?? null), [sig]);
+  // Clicking a level in the legend shows only that level in both strips; the arrows step through its stretches.
+  const [only, setOnly] = useState<Level | null>(null);
+  const [at, setAt] = useState(-1);
+  const show = useCallback((l: Level | null) => (only === null || l === only ? levelColor(l) : l === null ? null : withAlpha(cssVar("--ink-3"), 0.18)), [only]);
+  const linkColor = useCallback((i: number) => show(link?.levels[i] ?? null), [link, show]);
+  const sigColor = useCallback((i: number) => show(sig?.levels[i] ?? null), [sig, show]);
+  /** Per level: seconds in either strip, and the first second of each stretch. */
+  const byLevel = useMemo(() => {
+    const out = new Map<Level, { secs: number; starts: number[] }>();
+    for (const l of [1, 2, 3, 4] as Level[]) {
+      const hit = (i: number) => link?.levels[i] === l || sig?.levels[i] === l;
+      let secs = 0;
+      const starts: number[] = [];
+      for (let i = 0; i < g.n; i++) if (hit(i)) { secs++; if (i === 0 || !hit(i - 1)) starts.push(i); }
+      out.set(l, { secs, starts });
+    }
+    return out;
+  }, [link, sig, g.n]);
+  const go = (i: number | undefined) => { if (i === undefined) return; setAt(i); moveAll(e!.key, i); };
+  const pick = (l: Level) => {
+    if (only === l) { setOnly(null); return; }
+    setOnly(l);
+    go(byLevel.get(l)!.starts[0]);
+  };
+  const starts = only === null ? [] : byLevel.get(only)!.starts;
+  const prev = starts.filter((i) => i < at).pop();
+  const next = starts.find((i) => i > at);
   const sigVsHeight = useMemo(() => {
     const h = g.get("altitude"), s = g.get("signal_dbm");
     const out: [number, number][] = [];
@@ -48,7 +74,24 @@ export function LinkTab() {
       <div className="sectionhead"><h2>{t("link.overTime")}</h2><p>{t("link.overTimeHint")}</p></div>
       {link && <Strip syncKey={e!.key} label={t("rating.link")} n={g.n} colorAt={linkColor} emphasize={cssVar("--crit")} />}
       {sig && <Strip syncKey={e!.key} label={t("rating.signal")} n={g.n} colorAt={sigColor} emphasize={cssVar("--crit")} />}
-      <Legend items={[[cssVar("--good"), lw(4)], [withAlpha(cssVar("--good"), 0.45), lw(3)], [cssVar("--warn"), lw(2)], [cssVar("--crit"), lw(1)]]} />
+      {(link || sig) ? (
+        <div className="legend filter" role="group" aria-label={t("link.filter")} title={t("link.filter")}>
+          {([4, 3, 2, 1] as Level[]).map((l) => {
+            const secs = byLevel.get(l)!.secs;
+            return (
+              <span key={l} className="lvf">
+                <button aria-pressed={only === l} disabled={!secs} onClick={() => pick(l)}>
+                  <i style={{ background: levelColor(l)! }} />{lw(l)}{only === l && <small> · {duration(loc, secs)}</small>}
+                </button>
+                {only === l && <>
+                  <button className="step" aria-label={t("link.prev")} disabled={prev === undefined} onClick={() => go(prev)}>◀</button>
+                  <button className="step" aria-label={t("link.next")} disabled={next === undefined} onClick={() => go(next)}>▶</button>
+                </>}
+              </span>
+            );
+          })}
+        </div>
+      ) : <Legend items={[[cssVar("--good"), lw(4)], [withAlpha(cssVar("--good"), 0.45), lw(3)], [cssVar("--warn"), lw(2)], [cssVar("--crit"), lw(1)]]} />}
       {sig && <div className="lv-more"><LineChart syncKey={e!.key} title={t("link.dbm")} series={dbm} height={160} yMin={-100} yMax={-30}
         bands={[{ from: -100, to: -85, color: "--crit" }, { from: -85, to: -80, color: "--warn" }]} /></div>}
       {g.has("frame_losses") && <div className="lv-more"><LineChart syncKey={e!.key} title={t("link.fl")} series={fl} height={130} /></div>}

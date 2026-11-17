@@ -421,6 +421,9 @@
   },
   "link": {
     "overTime": "Over time",
+    "filter": "Click a level to show only it, and step through it with the arrows.",
+    "prev": "Previous",
+    "next": "Next",
     "overTimeHint": "Green is good. Yellow and red show where the link got weak.",
     "dbm": "Signal (dBm)",
     "fl": "Frame losses per second",
