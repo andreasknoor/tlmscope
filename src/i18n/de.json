@@ -432,6 +432,31 @@
     "dot": "jeder Punkt = 1\u00a0s",
     "note": "Ohne GPS ist die Höhe der einzige Hinweis auf die Entfernung: höher heißt meist weiter weg."
   },
+  "detail": {
+    "back": "Zurück zur Übersicht",
+    "label": {
+      "link": "Verbindung im Zeitverlauf",
+      "signal": "Signal im Zeitverlauf",
+      "used": "Strom und Verbrauch",
+      "condition": "Spannung und Einbruch",
+      "highest": "Höhe im Zeitverlauf",
+      "lift": "Thermik",
+      "motor": "Motor und Strom",
+      "rx": "Empfängerspannung",
+      "data": "Rohdaten"
+    },
+    "spot": {
+      "hold": "Hold bei {at}",
+      "losses": "meiste Frame Losses bei {at}, {value} in einer Sekunde",
+      "weakest": "schwächste Stelle bei {at}, {value}",
+      "sag": "niedrigste Spannung unter Last bei {at}, {value}",
+      "current": "höchster Strom bei {at}, {value}",
+      "highest": "höchster Punkt bei {at}, {value}",
+      "lift": "erster Aufwind bei {at}",
+      "motor": "erster Motorlauf bei {at}",
+      "rx": "niedrigster Wert bei {at}, {value}"
+    }
+  },
   "aircraft": {
     "modes": "Modus {list}",
     "mode": "Modus {n}",

@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "1.90", date: "2026-11-17", changes: [["new", "Links from the overview to the details, with the cursor on the moment behind the rating.", "highlight"]] },
   { version: "1.89", date: "2026-11-17", changes: [["new", "Radio link over time: click a level to show only it and step through it."]] },
   { version: "1.88", date: "2026-11-17", changes: [["new", "Map options stay the same when switching flights and on the next visit."]] },
   { version: "1.87", date: "2026-11-17", changes: [["fix", "A hold in the air rates the radio link critical, not the receiver power."], ["fix", "A single critical second stays visible in the link timeline."], ["fix", "Without height or GPS, a hold is shown as during the flight, not in the air."]] },

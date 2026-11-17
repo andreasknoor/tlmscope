@@ -432,6 +432,31 @@
     "dot": "each dot = 1\u00a0s",
     "note": "Without GPS, height is the only distance hint: higher usually means farther away."
   },
+  "detail": {
+    "back": "Back to the overview",
+    "label": {
+      "link": "Link over time",
+      "signal": "Signal over time",
+      "used": "Current and consumption",
+      "condition": "Voltage and sag",
+      "highest": "Height over time",
+      "lift": "Thermals",
+      "motor": "Motor and current",
+      "rx": "Receiver voltage",
+      "data": "Raw data"
+    },
+    "spot": {
+      "hold": "hold at {at}",
+      "losses": "most frame losses at {at}, {value} in one second",
+      "weakest": "weakest point at {at}, {value}",
+      "sag": "lowest voltage under load at {at}, {value}",
+      "current": "highest current at {at}, {value}",
+      "highest": "highest point at {at}, {value}",
+      "lift": "first lift at {at}",
+      "motor": "first motor run at {at}",
+      "rx": "lowest reading at {at}, {value}"
+    }
+  },
   "aircraft": {
     "modes": "Mode {list}",
     "mode": "Mode {n}",

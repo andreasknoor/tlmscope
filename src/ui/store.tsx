@@ -58,6 +58,15 @@ export const MAX_BATTERY_NAME = 40;
 /** A plausible battery capacity in mAh. */
 export const isCapacity = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v >= 50 && v <= 100000;
 
+/** Where a tab was opened from (an overview card). */
+export interface Detail {
+  /** Session the link was used in; the bar shows only there. */
+  key: string;
+  label: string;
+  /** What is shown at the cursor, e.g. "weakest point at 3:38, −84 dBm"; null when there is no single moment. */
+  text: string | null;
+}
+
 export interface Store {
   files: LogFile[];
   analysis: LogsAnalysis | null;
@@ -78,6 +87,10 @@ export interface Store {
   /** True when the loaded files include the synthetic demo. */
   demo: boolean;
   setTab(t: Tab): void;
+  /** Opens a tab from a link in the overview; the page shows where it came from and a way back. */
+  openDetail(tab: Tab, detail: Detail, at: number | null): void;
+  /** The link the current tab was opened from, for the way back; null when the tab was chosen directly. */
+  detail: Detail | null;
   select(key: string, tab?: Tab): void;
   step(delta: number): void;
   go(view: View): void;

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Alert, FeedbackLink, useAirtime } from "../bits";
+import { DetailBack } from "../DetailLink";
 import { dayLabel, duration, timeLabel } from "../format";
 import { KIND_COLOR, ModelBadge, ModelSelect, useModelName } from "../Shell";
 import { useBatteryName, useStore, type Tab } from "../store";
@@ -83,6 +84,7 @@ export function SessionView() {
             ))}
           </div>
           <div className="stack" role="tabpanel">
+            <DetailBack />
             {current === "overview" && <OverviewTab />}
             {current === "height" && <HeightTab />}
             {current === "path" && <PathTab />}

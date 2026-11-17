@@ -101,6 +101,8 @@ export function RatingCard(props: {
   hint: ReactNode;
   rows?: [ReactNode, ReactNode][] | null;
   neutral?: boolean;
+  /** A link to the detail, under the values. */
+  more?: ReactNode;
 }) {
   const t = useTranslations("app");
   if (!props.level) {
@@ -122,16 +124,18 @@ export function RatingCard(props: {
       <div className="word">{props.word}</div>
       <div className="hint">{props.hint}</div>
       <DetailRows rows={props.rows ?? null} />
+      {props.more}
     </div>
   );
 }
 
-export function Tile({ label, value, unit, sub }: { label: string; value: ReactNode; unit?: string; sub?: ReactNode }) {
+export function Tile({ label, value, unit, sub, more }: { label: string; value: ReactNode; unit?: string; sub?: ReactNode; more?: ReactNode }) {
   return (
     <div className="card tile">
       <div className="lbl">{label}</div>
       <div className="v num">{value}{unit ? <small>{unit}</small> : null}</div>
       {sub ? <div className="hint">{sub}</div> : null}
+      {more}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import type { FlightProfile } from "@/core/analysis/flight";
+import { DetailLink } from "../DetailLink";
 import { FeedbackLink, Legend, Tile, useAirtime, useLevelWord, useRich } from "../bits";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { jumpTo } from "../charts/sync";
@@ -80,9 +81,9 @@ export function OverviewTab() {
           <div className="grid g4">
             <Tile label={t("overview.airtime")} value={airtime(p)} unit={"\u00a0min"} />
             {p.maxAltitudeM !== null
-              ? <Tile label={t("overview.highest")} value={U.n("height", p.maxAltitudeM)} unit={`\u00a0${U.u("height")}`} sub={t("overview.fromGps")} />
+              ? <Tile label={t("overview.highest")} value={U.n("height", p.maxAltitudeM)} unit={`\u00a0${U.u("height")}`} sub={t("overview.fromGps")} more={<DetailLink a={a} k="highest" />} />
               : <Tile label={t("overview.highest")} value="–" sub={t("overview.noHeightShort")} />}
-            <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit={"\u00a0min"} sub={t("overview.climbs", { n: runsOf(p) })} />
+            <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit={"\u00a0min"} sub={t("overview.climbs", { n: runsOf(p) })} more={<DetailLink a={a} k="motor" />} />
             <Tile label={t("overview.lift")} value="–" sub={t(p.heightSource === "gps" ? "overview.needsSensor" : "overview.noHeightShort")} />
           </div>
           {p.heightSource === "gps" && (
@@ -99,10 +100,10 @@ export function OverviewTab() {
         <>
           <div className="grid g4">
             <Tile label={t("overview.airtime")} value={airtime(p)} unit={"\u00a0min"} />
-            <Tile label={t("overview.highest")} value={U.n("height", p.maxAltitudeM)} unit={`\u00a0${U.u("height")}`} />
-            <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit={"\u00a0min"} sub={t("overview.climbs", { n: p.climbs.length })} />
+            <Tile label={t("overview.highest")} value={U.n("height", p.maxAltitudeM)} unit={`\u00a0${U.u("height")}`} more={<DetailLink a={a} k="highest" />} />
+            <Tile label={t("overview.motorTime")} value={clock(p.motorSecs)} unit={"\u00a0min"} sub={t("overview.climbs", { n: p.climbs.length })} more={<DetailLink a={a} k="motor" />} />
             <Tile label={t("overview.lift")} value={p.lifts.length ? `+${U.n("height", p.liftGainM)}` : "0"} unit={p.lifts.length ? `\u00a0${U.u("height")}` : ""}
-              sub={p.lifts.length ? `${p.lifts.length}× · ${clock(p.liftSecs)}\u00a0min` : t("overview.noThermals")} />
+              sub={p.lifts.length ? `${p.lifts.length}× · ${clock(p.liftSecs)}\u00a0min` : t("overview.noThermals")} more={<DetailLink a={a} k="lift" />} />
           </div>
           <LineChart syncKey={e!.key} title={t("overview.height")} series={altSeries} phases={p.phases} height={210}
             extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("height")}`}
@@ -114,8 +115,9 @@ export function OverviewTab() {
       )}
       <div className="sectionhead"><h2>{t("overview.health")}</h2><p>{t("overview.healthHint")}</p></div>
       <div className="grid g4">
-        <LinkCard a={a} /><SignalCard a={a} /><UsedCard a={a} /><ConditionCard a={a} />
-        <TempCard a={a} /><RxCard a={a} /><StyleCard a={a} /><DataCard a={a} />
+        <LinkCard a={a} more={<DetailLink a={a} k="link" />} /><SignalCard a={a} more={<DetailLink a={a} k="signal" />} />
+        <UsedCard a={a} more={<DetailLink a={a} k="used" />} /><ConditionCard a={a} more={<DetailLink a={a} k="condition" />} />
+        <TempCard a={a} /><RxCard a={a} more={<DetailLink a={a} k="rx" />} /><StyleCard a={a} /><DataCard a={a} more={<DetailLink a={a} k="data" />} />
       </div>
       <p className="fbnote"><FeedbackLink entry="rating">{t("feedback.rating")}</FeedbackLink></p>
       {a.moments.length > 0 && (

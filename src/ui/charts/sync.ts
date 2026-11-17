@@ -14,6 +14,9 @@ export function register(key: string, u: uPlot): () => void {
   let g = groups.get(key);
   if (!g) groups.set(key, (g = new Set()));
   g.add(u);
+  // A jump requested while the tab was still opening: the charts of that tab register one by one.
+  const wanted = pending.get(key);
+  if (wanted && wanted.until > Date.now()) requestAnimationFrame(() => placeCursor(u, wanted.i));
 
   const over = u.over;
   over.style.touchAction = "pan-y";
@@ -34,6 +37,20 @@ export function register(key: string, u: uPlot): () => void {
   };
 }
 
+/** Jumps asked for before the charts exist (opening another tab), by session; valid for a few seconds. */
+const pending = new Map<string, { i: number; until: number }>();
+const PENDING_MS = 4000;
+
+function placeCursor(u: uPlot, i: number): void {
+  if (!u.data?.[0] || u.data[0].length <= i) return;
+  u.setCursor({ left: u.valToPos(i, "x"), top: Math.max(1, u.bbox.height / devicePixelRatio / 2) });
+}
+
+/** Puts the cursor of the charts that are about to appear (a tab being opened) on second `i`. */
+export function requestJump(key: string, i: number): void {
+  pending.set(key, { i, until: Date.now() + PENDING_MS });
+}
+
 /** Listeners for cursor moves in a group, e.g. the replay following a hovered chart. */
 const listeners = new Map<string, Set<(i: number) => void>>();
 
@@ -51,10 +68,8 @@ export function notifyCursor(key: string, i: number): void {
 
 /** Puts the cursor of every chart in the group on second `i`. */
 export function moveAll(key: string, i: number): void {
-  for (const u of groups.get(key) ?? []) {
-    if (!u.data?.[0] || u.data[0].length <= i) continue;
-    u.setCursor({ left: u.valToPos(i, "x"), top: Math.max(1, u.bbox.height / devicePixelRatio / 2) });
-  }
+  pending.delete(key);
+  for (const u of groups.get(key) ?? []) placeCursor(u, i);
 }
 
 /** Moves the cursor of every chart in the group to second `i` and scrolls the first chart into view. */

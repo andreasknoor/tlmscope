@@ -17,7 +17,8 @@ import { applyTheme, THEMES, type Theme } from "./theme";
 import { defaultUnits, UNIT_SYSTEMS, type UnitSystem } from "./units";
 import { HOME_META } from "@/seo/site";
 import { MAP_DEFAULTS, readMapPrefs } from "./map-prefs";
-import { isCapacity, MAX_BATTERY_NAME, StoreContext, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
+import { requestJump } from "./charts/sync";
+import { isCapacity, MAX_BATTERY_NAME, StoreContext, type Detail, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
 const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null, batteryNames: {}, map: MAP_DEFAULTS };
@@ -80,8 +81,16 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const [showAll, setShowAll] = useState(false);
   const [view, setView] = useState<View>("sessions");
   const [tab, setTabState] = useState<Tab>("overview");
+  const [detail, setDetail] = useState<Detail | null>(null);
   /** Tab chosen by the user (counted); `select` sets tabs without counting. */
-  const setTab = useCallback((t: Tab) => { setTabState(t); track({ name: "tab-opened", tab: t }); }, []);
+  const setTab = useCallback((t: Tab) => { setTabState(t); setDetail(null); track({ name: "tab-opened", tab: t }); }, []);
+  const openDetail = useCallback((t: Tab, d: Detail, at: number | null) => {
+    if (at !== null) requestJump(d.key, at);
+    setTabState(t);
+    setDetail(d);
+    track({ name: "tab-opened", tab: t });
+    window.scrollTo({ top: 0 });
+  }, []);
   const [messages, setMessages] = useState<LoadMessage[]>([]);
   const helpRef = useRef<HTMLDialogElement>(null);
   const settingsRef = useRef<HTMLDialogElement>(null);
@@ -298,7 +307,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const store: Store = {
     files, analysis, entries, selected, view, tab, settings, filter, setFilter, visible, models, modelFilter, setModelFilter,
     demo: files.some((f) => f.fileName === DEMO_FILE),
-    setTab, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll,
+    setTab, openDetail, detail, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll,
     openHelp: () => helpRef.current?.showModal(),
     openSettings: () => settingsRef.current?.showModal(),
     openFeedback: (entry, detail) => {

@@ -10,7 +10,7 @@ import { useStore, useUnits } from "../store";
 
 const v = <T,>(r: { available: true; value: T } | { available: false }): T | null => (r.available ? r.value : null);
 
-export function LinkCard({ a }: { a: SessionAnalysis }) {
+export function LinkCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNode }) {
   const t = useTranslations("rating");
   const word = useLevelWord();
   const loc = useStore().settings.locale;
@@ -24,7 +24,7 @@ export function LinkCard({ a }: { a: SessionAnalysis }) {
     : t(a.kind === "flight" ? "linkHintAir" : "linkHint") + (o.worst < o.level ? " " + t("linkBriefly", { level: word("link", o.worst).toLowerCase() }) : "");
   const fades = Object.entries(l?.fades ?? {}).filter(([, n]) => n !== undefined);
   return (
-    <RatingCard name={t("link")} level={o?.level ?? null} word={hold ? t(estimated ? "linkHoldFlight" : "linkHold") : word("link", o?.level ?? null)} hint={hint}
+    <RatingCard more={more} name={t("link")} level={o?.level ?? null} word={hold ? t(estimated ? "linkHoldFlight" : "linkHold") : word("link", o?.level ?? null)} hint={hint}
       rows={l ? [
         [t("frameLosses"), l.frameLosses ?? "–"],
         [t("frameLossesPerMin"), num(loc, l.frameLossesPerMinute, 0)],
@@ -36,7 +36,7 @@ export function LinkCard({ a }: { a: SessionAnalysis }) {
   );
 }
 
-export function SignalCard({ a }: { a: SessionAnalysis }) {
+export function SignalCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNode }) {
   const t = useTranslations("rating");
   const word = useLevelWord();
   const loc = useStore().settings.locale;
@@ -44,12 +44,12 @@ export function SignalCard({ a }: { a: SessionAnalysis }) {
   const o = s?.overall;
   const hint = t(a.kind === "flight" ? "signalHintAir" : "signalHint") + (o && o.weakShare > 0.05 ? " " + t("signalWeakShare", { pct: num(loc, o.weakShare * 100, 0) }) : "");
   return (
-    <RatingCard name={t("signal")} level={o?.level ?? null} word={word("signal", o?.level ?? null)} hint={s ? hint : ""}
+    <RatingCard more={more} name={t("signal")} level={o?.level ?? null} word={word("signal", o?.level ?? null)} hint={s ? hint : ""}
       rows={s ? [[t("typical"), `${num(loc, s.medianDbm, 0)}\u00a0dBm`], [t("weakest"), `${num(loc, s.minDbm, 0)}\u00a0dBm`], [t("levels"), t("levelsSignal")]] : null} />
   );
 }
 
-export function UsedCard({ a }: { a: SessionAnalysis }) {
+export function UsedCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNode }) {
   const t = useTranslations("rating");
   const tAll = useTranslations();
   const word = useLevelWord();
@@ -61,19 +61,19 @@ export function UsedCard({ a }: { a: SessionAnalysis }) {
     ? t("usedHint", { used: num(loc, u.usedMah, 0), capacity: u.capacityMah, source: u.capacitySource === "user" ? t("yourCapacity") : "" })
     : rich("rating.usedNoCapacity", { used: num(loc, u.usedMah, 0) });
   return (
-    <RatingCard name={t("used")} level={u?.level ?? null} word={word("used", u?.level ?? null)} hint={hint}
+    <RatingCard more={more} name={t("used")} level={u?.level ?? null} word={word("used", u?.level ?? null)} hint={hint}
       rows={u ? [[t("usedByMotor"), `${num(loc, u.usedMah, 0)}\u00a0mAh`], [t("cellStart"), volts(loc, c?.startCellV)], [t("cellEnd"), c?.endUnderLoad ? tAll("battery.endUnderLoad") : volts(loc, c?.endCellV)]] : null} />
   );
 }
 
-export function ConditionCard({ a }: { a: SessionAnalysis }) {
+export function ConditionCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNode }) {
   const t = useTranslations("rating");
   const word = useLevelWord();
   const loc = useStore().settings.locale;
   const b = v(a.batteryCondition);
   const frozen = a.issues.some((i) => i.kind === "frozen");
   return (
-    <RatingCard name={t("condition")} level={b?.level ?? null} word={word("condition", b?.level ?? null)}
+    <RatingCard more={more} name={t("condition")} level={b?.level ?? null} word={word("condition", b?.level ?? null)}
       hint={b ? t("conditionHint") : frozen ? t("conditionFrozen") : t("conditionNone")}
       rows={b ? [
         [t("dropAt20"), `${num(loc, b.dropAt20A, 2)}\u00a0V`],
@@ -97,13 +97,13 @@ export function TempCard({ a }: { a: SessionAnalysis }) {
   );
 }
 
-export function RxCard({ a }: { a: SessionAnalysis }) {
+export function RxCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNode }) {
   const t = useTranslations("rating");
   const word = useLevelWord();
   const loc = useStore().settings.locale;
   const x = v(a.receiverPower);
   return (
-    <RatingCard name={t("rx")} level={x?.level ?? null} word={word("rx", x?.level ?? null)} hint={x ? t("rxHint") : ""}
+    <RatingCard more={more} name={t("rx")} level={x?.level ?? null} word={word("rx", x?.level ?? null)} hint={x ? t("rxHint") : ""}
       rows={x ? [[t("rxMin"), `${num(loc, x.rxMinV, 2)}\u00a0V`], [t("becMin"), `${num(loc, x.becMinV, 2)}\u00a0V`]] : null} />
   );
 }
@@ -119,11 +119,11 @@ export function StyleCard({ a }: { a: SessionAnalysis }) {
   );
 }
 
-export function DataCard({ a }: { a: SessionAnalysis }) {
+export function DataCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNode }) {
   const t = useTranslations();
   const level = a.issues.length ? (Math.min(...a.issues.map((i) => i.level)) as 1 | 2) : 4;
   const word = a.issues.length === 1 ? t(`issue.${a.issues[0].kind}`) : a.issues.length ? t("rating.problems", { n: a.issues.length }) : t("rating.dataOk");
-  return <RatingCard name={t("rating.data")} level={level} word={word} hint={a.issues.length ? t("rating.dataBad") : t("rating.dataOkHint")} />;
+  return <RatingCard more={more} name={t("rating.data")} level={level} word={word} hint={a.issues.length ? t("rating.dataBad") : t("rating.dataOkHint")} />;
 }
 
 export function EfficiencyCard({ a }: { a: SessionAnalysis }) {
