@@ -157,8 +157,11 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
   background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 40px rgba(0, 0, 0, .25); padding: 6px 0 0; font-size: 13.5px; }
 .wn-list { overflow: auto; min-height: 0; flex: 1 1 auto; }
 .wn-pop h3 { margin: 6px 14px 4px; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; }
-.wn-row { display: grid; grid-template-columns: 36px auto 1fr; gap: 8px; align-items: baseline; padding: 5px 14px; }
+.wn-row { display: grid; grid-template-columns: 36px 1fr; gap: 8px; align-items: baseline; padding: 5px 14px; }
 .wn-row.unseen { background: var(--accent-soft); }
+.wn-date { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+.changelog .it.hl { font-weight: 600; }
+.changelog .star { color: var(--accent); }
 .wn-v { font: 600 12.5px var(--code); color: var(--accent); }
 .wn-tag { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 0 5px; border-radius: 4px; line-height: 17px; min-width: 34px; text-align: center; }
 .wn-tag.new { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }

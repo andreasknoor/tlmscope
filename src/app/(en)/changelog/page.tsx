@@ -20,7 +20,7 @@ export default function ChangelogPage() {
     <main className="legal changelog">
       <p><Link href="/">← TLMscope</Link></p>
       <h1>What changed</h1>
-      <p>Every update, newest first. One line per change.</p>
+      <p>Every update, newest first. One line per change; ★ marks the highlights.</p>
       {days.map((d) => (
         <section key={d}>
           <div className="day">{day(d)}</div>
@@ -28,8 +28,11 @@ export default function ChangelogPage() {
             <div key={r.version} className="rel" id={`v${r.version}`}>
               <span className="wn-v">{r.version}</span>
               <div className="items">
-                {r.changes.map(([kind, text], i) => (
-                  <div key={i} className="it"><span className={`wn-tag ${kind}`}>{kind === "new" ? "New" : "Fix"}</span><span>{text}</span></div>
+                {r.changes.map(([kind, text, mark], i) => (
+                  <div key={i} className={`it${mark ? " hl" : ""}`}>
+                    <span className={`wn-tag ${kind}`}>{kind === "new" ? "New" : "Fix"}</span>
+                    <span>{text}{mark && <span className="star" title="Highlight"> ★</span>}</span>
+                  </div>
                 ))}
               </div>
             </div>

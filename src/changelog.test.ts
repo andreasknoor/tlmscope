@@ -19,6 +19,11 @@ describe("changelog", () => {
     for (const r of CHANGELOG) expect(r.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
+  it("marks only new features as highlights, and has one among the last 10 versions", () => {
+    for (const r of CHANGELOG) for (const c of r.changes) if (c[2] === "highlight") expect(c[0]).toBe("new");
+    expect(CHANGELOG.slice(0, 10).some((r) => r.changes.some((c) => c[2] === "highlight"))).toBe(true);
+  });
+
   it("keeps each change to one short sentence", () => {
     for (const r of CHANGELOG) {
       expect(r.changes.length).toBeGreaterThan(0);

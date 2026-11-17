@@ -622,8 +622,8 @@
     "errorLink": "Tell me about this"
   },
   "whatsNew": {
-    "title": "What changed",
-    "unseen": "new since your last look",
+    "title": "Highlights",
+    "unseen": "new highlights since your last look",
     "all": "All changes"
   },
   "footer": {
