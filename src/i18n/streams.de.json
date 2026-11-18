@@ -22,5 +22,5 @@
   "0x12": { "label": "Höhensensor (angemeldet; der Supra-Header koppelt ihn an 0x40, das Vario)", "note": "" },
   "0x11": { "label": "Fahrtmesser (angemeldet, nur Nullen gesehen)", "note": "" },
   "0x50": { "label": "Benutzerdefinierter Sensor (vermutlich; Inhalt unbekannt)", "note": "" },
-  "0xff": { "label": "Flugprotokoll (Verbindungsqualität, Kennung 0xFF)", "note": "Gleicher Aufbau wie 0x7F. Manche Empfänger (gesehen: AR631) senden es statt 0x7F, etwa zehnmal pro Sekunde, nur mit Antenne A; die Zähler steigen nur an, die Empfängerspannung ist gleichmäßig. Es liefert die Verbindungsqualität nur, wenn die Sitzung kein 0x7F hat: neben 0x7F taucht es ein- bis zweimal pro Sitzung mit abweichenden Zählern auf." }
+  "0xff": { "label": "Flugprotokoll (Verbindungsqualität, Kennung 0xFF)", "note": "Gleicher Aufbau wie 0x7F. Manche Empfänger (gesehen: AR631) senden es statt 0x7F, etwa zehnmal pro Sekunde, nur mit dem Hauptempfänger (A); die Zähler steigen nur an, die Empfängerspannung ist gleichmäßig. Es liefert die Verbindungsqualität nur, wenn die Sitzung kein 0x7F hat: neben 0x7F taucht es ein- bis zweimal pro Sitzung mit abweichenden Zählern auf." }
 }

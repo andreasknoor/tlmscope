@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "1.97", date: "2026-11-18", changes: [["fix", "Fades are named per receiver (main receiver A, remote receivers B, L, R), as Spektrum counts them."], ["fix", "“Move it” only for a remote receiver far above the others, never for the main receiver."], ["fix", "A hold is described as half a second or longer without signal (45 frames in a row)."]] },
   { version: "1.96", date: "2026-11-18", changes: [["new", "Guides show when they were last updated; five new answers in the FAQ."]] },
   { version: "1.95", date: "2026-11-18", changes: [["fix", "Guides, FAQ and help describe the latest features in English and German."]] },
   { version: "1.94", date: "2026-11-18", changes: [["fix", "Total flight time written out as “6 h 28 min” instead of “6:28 h”."]] },

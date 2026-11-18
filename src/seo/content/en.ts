@@ -164,9 +164,9 @@ export const en: Content = {
           blocks: [
             { t: "p", text: "The receiver counts what goes wrong on the radio link:" },
             { t: "ul", items: [
-              "**Frame losses** are frames that did not arrive on any antenna. A few are normal. TLMscope rates up to about 20 per minute as high quality and up to about 100 per minute in the air as normal, in line with Spektrum receiver manuals.",
-              "**Fades** are short dropouts on a single antenna (A and B, and L and R for remote receivers). The count per antenna shows which one is shadowed by the airframe.",
-              "**Holds** are about a second without any signal. The receiver then goes to its hold or failsafe setting. A hold in flight always rates the radio link as critical and is marked on its timeline.",
+              "**Frame losses** are frames that no receiver got. A few are normal. The transmitter sends about 91 frames per second, so 100 per minute is under 2 % of them. TLMscope rates up to about 20 per minute as high quality and up to about 100 per minute in the air as normal, in line with Spektrum receiver manuals. What counts is how fast the counter rises in the air, not its total; on the ground it rises much faster anyway.",
+              "**Fades** count the frames a single receiver missed. A is the main receiver (with two antennas, both count as one); B, L and R are remote receivers. A is usually the highest, because the main receiver sits deep in the fuselage between cables, battery and controller. Compare the remote receivers with each other: one far above the others is badly placed. With only one receiver, look at the frame losses instead.",
+              "**Holds** are half a second or longer without any signal (45 frames in a row missed by every receiver). The receiver then goes to its hold or failsafe setting. A hold in flight always rates the radio link as critical and is marked on its timeline.",
             ] },
             { t: "note", text: "These counters start at zero when the receiver powers up. TLMscope shows what happened during the session." },
           ],
@@ -230,11 +230,11 @@ export const en: Content = {
       faq: [
         {
           q: "How many frame losses are normal on a Spektrum receiver?",
-          a: "Spektrum receiver manuals describe up to about 100 per minute in the air as normal. TLMscope rates up to about 20 per minute as high quality. Holds, about a second without signal, should not happen.",
+          a: "Spektrum receiver manuals describe up to about 100 per minute in the air as normal. TLMscope rates up to about 20 per minute as high quality. Holds, half a second or longer without signal, should not happen.",
         },
         {
           q: "What is a hold in Spektrum telemetry?",
-          a: "A hold is about a second without any signal at the receiver. The receiver then applies its hold or failsafe setting. TLMscope always rates a hold during flight as critical.",
+          a: "A hold is half a second or longer without any signal at the receiver: 45 frames in a row that no receiver got. The receiver then applies its hold or failsafe setting. TLMscope always rates a hold during flight as critical.",
         },
         {
           q: "When should I retire a LiPo battery?",
@@ -421,10 +421,10 @@ export const en: Content = {
         ] },
         { q: "Which transmitters and sensors does it support?", a: "Logs from Spektrum NX and iX transmitters are tested. DX logs should work but are not tested yet. Radio link, motor, battery, height, GPS and more show up depending on the sensors your model carries. See [Supported transmitters and sensors](page:radios)." },
         { q: "How many frame losses are normal on a Spektrum receiver?", a: [
-          { t: "ul", items: ["**Normal:** Spektrum receiver manuals describe up to about 100 per minute in the air as normal.", "**High quality:** TLMscope rates up to about 20 per minute as high quality.", "**Holds**, about a second without signal, should not happen."] },
+          { t: "ul", items: ["**Normal:** Spektrum receiver manuals describe up to about 100 per minute in the air as normal.", "**High quality:** TLMscope rates up to about 20 per minute as high quality.", "**Holds**, half a second or longer without signal, should not happen."] },
           { t: "p", text: "More in [Understand your Spektrum telemetry](page:understand)." },
         ] },
-        { q: "What is a hold in Spektrum telemetry?", a: "A hold is about a second without any signal at the receiver. The receiver then applies its hold or failsafe setting. TLMscope always rates a hold during flight as critical." },
+        { q: "What is a hold in Spektrum telemetry?", a: "A hold is half a second or longer without any signal at the receiver: 45 frames in a row that no receiver got. The receiver then applies its hold or failsafe setting. TLMscope always rates a hold during flight as critical." },
         { q: "When should I retire a LiPo battery?", a: "A common rule of thumb is to retire a pack when its internal resistance reaches about 15 mΩ per cell. TLMscope estimates this value from the voltage sag in flight and follows it across flights for Spektrum Smart batteries." },
         { q: "Can TLMscope count my flight hours per model?", a: [
           { t: "p", text: "Yes, for the logs you load. Above the session list, TLMscope adds up the time in the air of the loaded flights, for all models or the one you choose. Only time in the air counts: pauses of two minutes or more on the ground between two flights of one session are left out. When some flights have neither a height sensor nor GPS, their time is estimated from the motor and the model's movement, and the total is marked “≈”." },
@@ -437,11 +437,12 @@ export const en: Content = {
         { q: "How can I see whether AS3X or SAFE was on during a flight?", a: "With a receiver with AS3X or SAFE, the log contains the flight mode and which functions were on. The **Aircraft** tab shows the time in the air per function (AS3X, SAFE, heading hold or no stabilization) and per flight mode, the AS3X gain for roll, pitch and yaw, and the flight modes over time. A gain of 0 means AS3X did not correct at all, for example with the gain knob turned down. More in [Understand your Spektrum telemetry](page:understand)." },
         { q: "What is the difference between a hold and a brown-out?", a: [
           { t: "ul", items: [
-            "**Hold:** the radio link was lost for about a second, so the receiver went to its hold or failsafe setting. The receiver voltage stays normal. TLMscope rates it in the radio link.",
+            "**Hold:** the radio link was lost for half a second or longer, so the receiver went to its hold or failsafe setting. The receiver voltage stays normal. TLMscope rates it in the radio link.",
             "**Brown-out:** the voltage at the receiver dropped so far that the receiver restarted. That is a power problem, not a radio problem. In the log it shows as a voltage drop and usually a gap or a new session, not as a hold.",
           ] },
           { t: "p", text: "Unplugging the battery after landing also makes the voltage fall. TLMscope leaves those moments out, so they do not count as a brown-out." },
         ] },
+        { q: "Why does my log have gaps when the model is far away?", a: "Telemetry often reaches less far than the control link. Some Spektrum receivers send telemetry only over a short range, about 100 to 150 m. Beyond that the log has gaps or stops changing while the model is still under control. A gap alone is therefore no loss of control. The receiver keeps counting frame losses and holds, so look at them once the telemetry is back." },
         { q: "Can TLMscope show the height without a vario?", a: "Yes, with a Spektrum GPS sensor. TLMscope then takes the height above the take-off spot from the GPS altitude and shows the highest point and the height profile. GPS height is less exact, about ±5 to 10 m, so climbs, lift and glide still need a vario. Without a vario and without GPS the height stays empty, and the time in the air is estimated from the motor and the model's movement." },
         { q: "Is TLMscope free, and is it made by Spektrum?", a: "TLMscope is free, needs no account and is an independent hobby project by a model flyer. It is not made or endorsed by Spektrum or Horizon Hobby. How it compares with other viewers is in [Spektrum TLM viewers compared](page:compare)." },
         { q: "Is there an alternative to TLM Viewer?", a: [

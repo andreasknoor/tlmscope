@@ -29,7 +29,7 @@ export function LinkCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNo
         [t("frameLosses"), l.frameLosses ?? "–"],
         [t("frameLossesPerMin"), num(loc, l.frameLossesPerMinute, 0)],
         [t(estimated ? "holdsFlight" : "holds"), l.holdsAirborne ?? "–"],
-        ...fades.map(([k, n]): [string, string] => [t("fades", { antenna: k.toUpperCase() }), `${n}${(n ?? 0) > 500 ? " · " + t("moveAntenna") : ""}`]),
+        ...fades.map(([k, n]): [string, string] => [k === "a" ? t("fadesMain") : t("fadesRemote", { antenna: k.toUpperCase() }), `${n}${l.moveRemote.includes(k as "b" | "l" | "r") ? " · " + t("moveAntenna") : ""}`]),
         [t("weakTime"), `${num(loc, (o?.weakShare ?? 0) * 100, 0)}\u00a0%`],
         [t("levels"), t("levelsLink")],
       ] : null} />

@@ -83,7 +83,7 @@ export const SENSORS: Record<string, SensorDef> = {
   "0xff": {
     label: "Flight log (link quality, id 0xFF)",
     understood: "full",
-    note: "Same layout as 0x7F. Some receivers (seen: AR631) send it instead of 0x7F, about 10 times per second, with only antenna A filled in; the counters only go up and the receiver voltage is steady. It feeds the link quality only when the session has no 0x7F: next to 0x7F it turns up once or twice per session with counters that do not match.",
+    note: "Same layout as 0x7F. Some receivers (seen: AR631) send it instead of 0x7F, about 10 times per second, with only the main receiver (A) filled in; the counters only go up and the receiver voltage is steady. It feeds the link quality only when the session has no 0x7F: next to 0x7F it turns up once or twice per session with counters that do not match.",
     decode: (p) => decodeFlightLog(p),
   },
   "0x7e": {

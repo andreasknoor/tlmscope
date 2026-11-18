@@ -18,6 +18,8 @@ export interface LinkAnalysis {
   holdBasis: FlightBasis | null;
   holdsTotal: number | null;
   fades: Partial<Record<"a" | "b" | "l" | "r", number>>;
+  /** Remote receivers far above the others in the rating window: badly placed (see `remoteToMove`). */
+  moveRemote: ("b" | "l" | "r")[];
   /** Second with the most frame losses, in the rating window. */
   worstSecond: { at: number; frameLosses: number } | null;
 }
@@ -29,6 +31,25 @@ export interface SignalAnalysis {
   /** Weakest signal in the rating window. */
   minDbm: number | null;
   minAt: number | null;
+}
+
+/**
+ * When a remote receiver needs moving. Fades count the frames each receiver missed: A is the main receiver and
+ * usually the highest (deep in the fuselage), so it never triggers this; with only A there is nothing to compare.
+ * A remote receiver (B, L, R) counts as badly placed with at least `minFades` and `factor` times the mean of the
+ * other remote receivers, or of A when it is the only remote one.
+ * Basis: Spektrum, "Understanding Flight Log Numbers" (2021): compare the receivers to find the one to move.
+ */
+export const REMOTE_FADES = { minFades: 100, factor: 2 } as const;
+
+export function remoteToMove(fades: LinkAnalysis["fades"]): ("b" | "l" | "r")[] {
+  const remotes = (["b", "l", "r"] as const).filter((k) => fades[k] !== undefined);
+  return remotes.filter((k) => {
+    const others = remotes.filter((x) => x !== k).map((x) => fades[x]!);
+    const ref = others.length ? others.reduce((s, v) => s + v, 0) / others.length : fades.a;
+    const n = fades[k]!;
+    return ref !== undefined && n >= REMOTE_FADES.minFades && n >= REMOTE_FADES.factor * Math.max(ref, 1);
+  });
 }
 
 /** Window the rating looks at: the airborne part of a flight, else the whole session. */
@@ -85,17 +106,19 @@ export function linkQuality(session: Session, profile: FlightProfile | null, g =
     const frameLosses = increase(g, "frame_losses", w0, w1);
     const minutes = profile && profile.airStart !== null ? (w1 - w0 + 1) / 60 : session.durationS / 60;
     const o = overall(levels.slice(w0, w1 + 1));
+    const fades: LinkAnalysis["fades"] = Object.fromEntries((["a", "b", "l", "r"] as const).map((k) => [k, increase(g, `fades.${k}`, w0, w1)]).filter(([, v]) => v !== null));
     return {
       basis,
       levels,
-      // A hold is a second without control: it rates the whole link critical, however short.
+      // A hold is half a second or more without control: it rates the whole link critical, however short.
       overall: o && (holdsAirborne ?? 0) > 0 ? { ...o, level: 1 } : o,
       frameLosses,
       frameLossesPerMinute: frameLosses !== null && minutes > 0 ? frameLosses / minutes : null,
       holdsAirborne,
       holdBasis: profile && profile.airStart !== null ? profile.basis : null,
       holdsTotal: last(session, "holds"),
-      fades: Object.fromEntries((["a", "b", "l", "r"] as const).map((k) => [k, increase(g, `fades.${k}`, w0, w1)]).filter(([, v]) => v !== null)),
+      fades,
+      moveRemote: remoteToMove(fades),
       worstSecond,
     };
   });

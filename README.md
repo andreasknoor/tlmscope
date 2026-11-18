@@ -214,12 +214,12 @@ Ids may also be `stick.*`, `switch.*` (control inputs) or `raw:*` (decoded but u
 | `signal_dbm` | dBm | numeric | link | Received signal strength at the receiver. |
 | `signal_quality` | % | numeric | link | Signal quality in percent as reported by the receiver (meaning differs per system). |
 | `link_quality` | % | numeric | link | Share of packets received (e.g. CRSF/ELRS LQ). |
-| `frame_losses` | count | counter | link | Frames lost on all antennas, counted since the session start. |
-| `holds` | count | counter | link | Failsafe events (about 1 s without signal), counted since the session start. |
-| `fades.a` | count | counter | link | Signal fades on antenna A since the session start. |
-| `fades.b` | count | counter | link | Signal fades on antenna B since the session start. |
-| `fades.l` | count | counter | link | Signal fades on the left remote receiver since the session start. |
-| `fades.r` | count | counter | link | Signal fades on the right remote receiver since the session start. |
+| `frame_losses` | count | counter | link | Frames that no receiver got, counted since the session start. |
+| `holds` | count | counter | link | Failsafe events (45 frames in a row lost on every receiver, half a second or longer), counted since the session start. |
+| `fades.a` | count | counter | link | Frames the main receiver missed (both its antennas count as one) since the session start. Usually the highest of the fade counters. |
+| `fades.b` | count | counter | link | Frames remote receiver B missed since the session start. |
+| `fades.l` | count | counter | link | Frames the left remote receiver missed since the session start. |
+| `fades.r` | count | counter | link | Frames the right remote receiver missed since the session start. |
 | `accel.x` | g | numeric | motion | Acceleration along the receiver's x axis. |
 | `accel.y` | g | numeric | motion | Acceleration along the receiver's y axis. |
 | `accel.z` | g | numeric | motion | Acceleration along the receiver's z axis. |
@@ -277,7 +277,7 @@ Byte 0 = sensor id, byte 1 = secondary id. Offsets below are within the 16-byte 
 | `0x20` | Smart ESC | rpm ×10 @2, input V ×0.01 @4, FET °C ×0.1 @6, motor A ×0.01 @8, BEC °C ×0.1 @10 (uint16 BE); BEC A ×0.1 @12, BEC V ×0.05 @13, throttle ×0.5 % @14, power ×0.5 % @15 (uint8) | `0xFFFF` / `0xFF` = no data. rpm is electrical. |
 | `0x40` | Vario | altitude ×0.1 m @2, climb ×0.1 m/s over 0.25/0.5/1.0/1.5/2.0/3.0 s @4…@14 (int16 BE) | Altitude is relative to power-on. |
 | `0x7F` | Flight log | fades A, B, L, R @2…@8, frame losses @10, holds @12 (uint16 BE), receiver V ×0.01 @14 | Counters are cumulative since receiver power-up. |
-| `0xFF` | Flight log (other id) | same layout as `0x7F` | Some receivers (seen: AR631) send it instead of `0x7F`, about 10 per second, only antenna A filled in. Used only in sessions without `0x7F`; next to `0x7F` it is a rare stray copy with other counters. |
+| `0xFF` | Flight log (other id) | same layout as `0x7F` | Some receivers (seen: AR631) send it instead of `0x7F`, about 10 per second, only the main receiver (A) filled in. Used only in sessions without `0x7F`; next to `0x7F` it is a rare stray copy with other counters. |
 | `0x7E` | RPM / signal | signal dBm int8 @8 (if < −1 and not −128), signal % int8 @9 (if > 0); @2/@4/@6 unused here | uint16 BE @14 counts up about once per second (unknown, possibly receiver uptime). |
 | `0x14` | G-meter | x, y, z, max x, max y, max z, min z ×0.01 g @2…@14 (int16 BE) | |
 | `0x1A` | Gyro | x, y, z, max x, max y, max z ×0.1 °/s @2…@12 (int16 BE) | x = roll, y = pitch, z = yaw on the sample flights; right wing down, nose up and nose right are positive (checked by tilting the model). |
