@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { parseLog } from "../adapters/registry.ts";
 import { analyseLogs, batteryUse, withCapacities, type Result } from "../analysis/index.ts";
+import { DEMO_3D_GAINS, DEMO_3D_MODEL } from "./demo-3d.ts";
+import { demoFileTlm } from "./demo-file.ts";
 import { DEMO_HOME, demoFlightTlm } from "./demo-flight.ts";
 
 const value = <T>(r: Result<T>): T => {
@@ -89,5 +91,58 @@ describe("synthetic demo flight (end-to-end, including GPS)", () => {
       expect(rated.sessions[0].grid).toBe(logs.sessions[0].grid);
       expect(value(logs.sessions[0].batteryUse).capacitySource).toBeNull();
     });
+  });
+});
+
+describe("demo file: glider, then the 3D model's bench run and flight", () => {
+  const log = parseLog(demoFileTlm(), "demo-flight.TLM");
+  const [glider, bench, flight] = analyseLogs([log]).sessions;
+
+  it("holds three sessions of two models, an hour apart", () => {
+    expect(log.warnings).toEqual([]);
+    expect(log.sessions.map((s) => s.modelName)).toEqual(["Demo Glider", DEMO_3D_MODEL, DEMO_3D_MODEL]);
+    expect([glider.kind, bench.kind, flight.kind]).toEqual(["flight", "ground-test", "flight"]);
+    expect((flight.session.start.utcMs! - glider.session.start.utcMs!) / 60_000).toBeCloseTo(60, 0);
+  });
+
+  it("keeps the glider as it was", () => {
+    const alone = analyseLogs([parseLog(demoFlightTlm(), "demo-flight.TLM")]).sessions[0];
+    expect(value(glider.profile).airtimeS).toBe(value(alone.profile).airtimeS);
+    expect(value(glider.link).frameLosses).toBe(value(alone.link).frameLosses);
+  });
+
+  it("flies the 3D model with height from GPS only, hard, on a second battery", () => {
+    const p = value(flight.profile);
+    expect(p.basis).toBe("gps");
+    expect(p.heightSource).toBe("gps");
+    expect(p.maxAltitudeM!).toBeGreaterThan(40);
+    expect(p.airtimeS).toBeGreaterThan(290);
+    expect(p.airtimeS).toBeLessThan(350);
+    expect(value(flight.loads).style).toBe("hard");
+    expect(flight.session.battery).toMatchObject({ cells: 4, capacityMah: 2200, chargeCycles: 38 });
+    expect(flight.session.battery!.id).not.toBe(glider.session.battery!.id);
+    const used = value(flight.batteryUse).usedPct!;
+    expect(used).toBeGreaterThan(55);
+    expect(used).toBeLessThan(70);
+  });
+
+  it("uses all three flight modes with their functions and the gain from the knob", () => {
+    const uses = flight.stabilization.uses;
+    expect(uses.map((u) => u.bits).sort()).toEqual([1, 3, 5]);
+    for (const u of uses) expect(u.gain).toEqual([...DEMO_3D_GAINS]);
+  });
+
+  it("has one weak stretch on the far pass, without a hold", () => {
+    const l = value(flight.link), s = value(flight.signal);
+    expect(l.holdsAirborne).toBe(0);
+    expect(s.minDbm!).toBeLessThan(-80);
+    expect(s.minDbm!).toBeGreaterThan(-85);
+    expect(s.minAt!).toBeGreaterThan(110);
+    expect(s.minAt!).toBeLessThan(140);
+  });
+
+  it("runs the motor on the bench without flying", () => {
+    expect(value(bench.profile).motorSecs).toBeGreaterThan(5);
+    expect(bench.session.battery!.id).toBe(flight.session.battery!.id);
   });
 });

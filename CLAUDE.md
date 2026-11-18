@@ -18,7 +18,7 @@ npm run lint                # eslint
 npm run typecheck           # tsc --noEmit
 npm run inspect -- samples/Easy_Glider_4.TLM --fields --samples   # parser debug output in the terminal
 npm run docs                # regenerate the channel table in README.md from catalogue.ts
-npm run demo                # regenerate public/demo/demo-flight.TLM from src/core/demo/demo-flight.ts
+npm run demo                # regenerate public/demo/demo-flight.TLM from src/core/demo/ (demo-file.ts)
 ```
 
 Node 24+. Scripts run TypeScript directly with `node file.ts`, so `src/core` imports use explicit `.ts` extensions; UI code uses the `@/` alias.
@@ -46,7 +46,7 @@ The pipeline is **adapter → normalised model → analysis → UI**, and the la
 ## Tests
 
 - Reference tests in `spektrum.test.ts` / `analysis.test.ts` assert exact values from the private logs in `samples/` (gitignored; see `samples/README.md`), so they only run locally. CI and Vercel run the rest.
-- The synthetic demo flight (`src/core/demo/demo-flight.ts`, with GPS and a thermal) is the end-to-end fixture that runs everywhere; `robustness.test.ts` corrupts it to test damaged-file handling. If you change the demo generator, run `npm run demo` so `public/demo/demo-flight.TLM` matches.
+- The synthetic demo flight (`src/core/demo/demo-flight.ts`, a glider with GPS and a thermal) is the end-to-end fixture that runs everywhere; `robustness.test.ts` corrupts it to test damaged-file handling. The demo file the app loads (`demo-file.ts`) adds a second model from `demo-3d.ts`: a bench run and a 3D flight (flight modes with AS3X/SAFE/heading hold, hard loads, height from GPS only, one weak link stretch). If you change a demo generator, run `npm run demo` so `public/demo/demo-flight.TLM` matches.
 - `spektrum.test.ts` has a snapshot (`__snapshots__/`); update it deliberately with `npx vitest run -u` only when a decoding change is intended.
 
 ## Other folders

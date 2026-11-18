@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "1.93", date: "2026-11-18", changes: [["new", "The demo adds a 3D plane: bench run and flight with flight modes, hard loads and GPS height."]] },
   { version: "1.92", date: "2026-11-18", changes: [["new", "Total flight time of the loaded logs, shown above the session list.", "highlight"], ["new", "Export the session list as a CSV file for your own flight log.", "highlight"], ["fix", "Pauses on the ground between two flights of one session no longer count as time in the air."]] },
   { version: "1.91", date: "2026-11-18", changes: [["fix", "No battery temperature of 0 °C from batteries without a temperature sensor."], ["fix", "The stabilization text is as large as the other words on the aircraft page."]] },
   { version: "1.90", date: "2026-11-17", changes: [["new", "Links from the overview to the details, with the cursor on the moment behind the rating.", "highlight"]] },

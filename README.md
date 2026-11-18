@@ -14,7 +14,7 @@ Files are read in your browser and never uploaded. Only the map for GPS logs loa
 
 ## Using the app
 
-1. Drop one or more `.TLM` files onto the page, or click **Load demo flight** to try a synthetic flight with GPS and a thermal.
+1. Drop one or more `.TLM` files onto the page, or click **Load demo flight** to try synthetic flights: a glider with GPS and a thermal, and a 3D aerobatic plane (bench run and flight) with flight modes, hard loads and height from GPS only.
 2. Pick a session on the left (or with ← →). Each session has tabs: overview, height & lift, flight path, motor & energy, battery, radio link, aircraft.
 3. **Show details** (top right) switches between the plain view (default: summaries, ratings and the main charts) and the full view: more charts and table columns, the exact values and thresholds behind every rating, and the raw data tab.
 4. **Flight path** has a replay: play the flight back at up to 60× speed; the map marker and every chart follow, with an optional vario tone.
@@ -107,7 +107,7 @@ src/core/
   model/        types, channel catalogue, normalisation (counters, derived mAh, frozen data)
   adapters/     one folder per input format, plus registry.ts
   analysis/     flight analyses on canonical channels, thresholds.ts holds every rating limit
-  demo/         synthetic demo flight (also used by the end-to-end tests)
+  demo/         synthetic demo flights (also used by the end-to-end tests)
 src/ui/         React views, charts (uPlot), map (MapLibre + deck.gl)
 src/worker/     Web Worker that parses files off the main thread
 src/i18n/       English and German texts

@@ -3,7 +3,8 @@
  *
  * Nine minutes with two motor climbs, a thermal with circles, glides, a landing,
  * a smart battery and a GPS track. All values are invented and deterministic.
- * Used for the "Load demo flight" button, the README screenshot and end-to-end tests.
+ * Used for the "Load demo flight" button (with the 3D model of `demo-3d.ts`, see `demoFileTlm`),
+ * the README screenshot and end-to-end tests.
  */
 import { encodeTlm, modelHeader, Packet, sensorHeader, type EncodedRecord } from "../adapters/spektrum-tlm/encode.ts";
 
@@ -80,7 +81,8 @@ function simulate(): State[] {
   return out;
 }
 
-export function demoFlightTlm(): Uint8Array {
+/** The glider's session: headers and records. */
+export function demoGliderSession(): { headers: Uint8Array[]; records: EncodedRecord[] } {
   const sim = simulate();
   const recs: EncodedRecord[] = [];
   const base = 120_000; // ticks since transmitter start
@@ -140,5 +142,10 @@ export function demoFlightTlm(): Uint8Array {
   });
   recs.sort((a, b) => a.tick - b.tick);
   const headers = [modelHeader("Demo Glider"), ...[0x20, 0x42, 0x40, 0x14, 0x1a, 0x16, 0x17].map((id) => sensorHeader(id)), sensorHeader(0x02, 0x7e)];
-  return encodeTlm([{ headers, records: recs }]);
+  return { headers, records: recs };
+}
+
+/** The glider flight alone, as a file: the fixture of most tests. */
+export function demoFlightTlm(): Uint8Array {
+  return encodeTlm([demoGliderSession()]);
 }

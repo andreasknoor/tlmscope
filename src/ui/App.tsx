@@ -248,6 +248,12 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
           loadedNames.current.add(r.log.fileName);
           setFiles((f) => [...f.filter((x) => x.fileName !== r.log.fileName), r.log]);
           applyHash();
+          // The demo opens on the glider (its first session), which shows the most; the 3D model is one click away.
+          if (item.demo) {
+            const key = `${[...loadedNames.current].filter((n) => n !== r.log.fileName).length}-0`;
+            setSelectedKey(key);
+            history.replaceState(null, "", `#s-${key}`);
+          }
           track(item.demo ? { name: "demo-loaded" } : { name: "file-opened", format: r.log.adapterId, size: sizeBucket(r.log.sizeBytes) });
         }
         else error(r.unsupported ? "app.unsupported" : "app.readError", { name: item.name, message: r.message });
