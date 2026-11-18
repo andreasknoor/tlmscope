@@ -595,6 +595,8 @@
     "d3n": "Spektrum Smart-Akku, angeschlossen über einen Smart-Regler",
     "d4": "Höhe und Steigrate",
     "d4n": "Vario- / Höhensensor oder ein Empfänger, der sie meldet",
+    "d4g": "Höhe über Grund ohne Vario (ungenauer, ohne Steigflüge und Aufwind)",
+    "d4gn": "Spektrum-GPS-Telemetriesensor",
     "d5": "Lasten (g) und Drehraten",
     "d5n": "Empfänger mit AS3X / SAFE",
     "d6": "Stellung des Gasknüppels",
@@ -611,7 +613,7 @@
       "spec": "Nach Spezifikation gebaut, noch ungetestet",
       "raw": "Vorerst als Rohdaten",
       "part": "Teilweise verstanden",
-      "gps": "Mit einem echten GPS-Log getestet"
+      "gps": "Mit echten GPS-Logs getestet"
     },
     "notSupported": "Nicht unterstützt",
     "n1": "Logs von EdgeTX / OpenTX (CSV, z. B. RadioMaster, FrSky, ExpressLRS, Crossfire): <b>geplant</b>, noch nicht verfügbar.",
@@ -622,7 +624,7 @@
     "n6": "Einstellungen an Sender oder Empfänger ändern. TLMscope liest nur.",
     "n7": "Autos und Boote (Spektrum-Bodensender) stehen nicht im Fokus. Deren Logs funktionieren eventuell teilweise.",
     "private": "Deine Daten bleiben bei dir",
-    "privateText": "Dateien werden in deinem Browser gelesen und nie hochgeladen. Es gibt kein Konto, keine Cookies und keinen Server, der deine Daten speichert. Gezählt werden nur anonyme Seitenaufrufe (Umami, ohne Cookies, ohne Inhalte deiner Dateien). Eine Ausnahme: Bei Logs mit GPS lädt die Karte im Tab <mapLink>Flugweg</mapLink> Kartenbilder von OpenFreeMap (tiles.openfreemap.org). Wie jede Website sieht dieser Dienst deine IP-Adresse und welcher Kartenausschnitt abgefragt wird, also ungefähr, wo der Flug war. Deine Log-Datei selbst wird nicht übertragen.",
+    "privateText": "Dateien werden in deinem Browser gelesen und nie hochgeladen. Es gibt kein Konto, keine Cookies und keinen Server, der deine Daten speichert. Gezählt werden nur anonyme Seitenaufrufe (Umami, ohne Cookies, ohne Inhalte deiner Dateien). Eine Ausnahme: Bei Logs mit GPS lädt die Karte im Tab <mapLink>Flugweg</mapLink> Kartenbilder von OpenFreeMap (tiles.openfreemap.org). Wie jede Website sieht dieser Dienst deine IP-Adresse und welcher Kartenausschnitt abgefragt wird, also ungefähr, wo der Flug war. Deine Log-Datei selbst wird nicht übertragen. Die Relief-Ansicht (Beta) lädt Höhendaten von Amazon Web Services, nur wenn du sie einschaltest.",
     "offline": "Ohne Internet",
     "offlineText": "Nach einem Besuch mit Internet ist TLMscope in deinem Browser gespeichert und öffnet sich auch ohne Verbindung, zum Beispiel auf dem Flugplatz. Sobald es so weit ist, steht unten „Funktioniert offline“. Auf iPhone und iPad füge es zum Home-Bildschirm hinzu, sonst löscht Safari es nach einigen Tagen ohne Nutzung. Nur die Karte braucht Internet.",
     "getLogs": "So kommst du an deine Log-Dateien",

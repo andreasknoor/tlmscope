@@ -39,6 +39,7 @@ export const en: Content = {
           "Charts for height, motor, battery, signal strength and radio link.",
           "The flight path on a map and in 3D, with a replay (needs a GPS sensor).",
           "How each of your batteries ages from flight to flight.",
+          "The total flight time per model, and the session list as a CSV file for your own flight log.",
         ] }],
       },
       {
@@ -52,7 +53,7 @@ export const en: Content = {
         id: "radios", icon: "radio", label: "Supported", title: "Supported transmitters and sensors", page: "radios",
         body: [
           { t: "p", text: "Spektrum NX and iX logs are tested. DX logs should work but are not tested yet." },
-          { t: "p", text: "The radio link needs any telemetry receiver, motor and battery need Smart electronics, height needs a vario and the map needs a GPS sensor." },
+          { t: "p", text: "The radio link needs any telemetry receiver, motor and battery need Smart electronics, height needs a vario or a GPS sensor and the map needs a GPS sensor." },
         ],
       },
       {
@@ -130,7 +131,7 @@ export const en: Content = {
         {
           h2: "Want to try it first?",
           blocks: [
-            { t: "p", text: "Load the demo flight on the [home page](home): a synthetic flight with GPS and a thermal that shows every view." },
+            { t: "p", text: "Load the demo on the [home page](home): a glider with GPS and a thermal, and a 3D plane with flight modes, hard aerobatics and height from GPS. Together they show every view." },
             { t: "p", text: "To find out what the numbers mean, read [Understand your Spektrum telemetry](page:understand). For the list of tested transmitters, see [Supported transmitters and sensors](page:radios)." },
           ],
         },
@@ -164,7 +165,7 @@ export const en: Content = {
             { t: "ul", items: [
               "**Frame losses** are frames that did not arrive on any antenna. A few are normal. TLMscope rates up to about 20 per minute as high quality and up to about 100 per minute in the air as normal, in line with Spektrum receiver manuals.",
               "**Fades** are short dropouts on a single antenna (A and B, and L and R for remote receivers). The count per antenna shows which one is shadowed by the airframe.",
-              "**Holds** are about a second without any signal. The receiver then goes to its hold or failsafe setting. A hold in flight is always rated critical.",
+              "**Holds** are about a second without any signal. The receiver then goes to its hold or failsafe setting. A hold in flight always rates the radio link as critical and is marked on its timeline.",
             ] },
             { t: "note", text: "These counters start at zero when the receiver powers up. TLMscope shows what happened during the session." },
           ],
@@ -173,13 +174,13 @@ export const en: Content = {
           h2: "Signal strength",
           blocks: [
             { t: "p", text: "The signal strength at the receiver is given in dBm: the closer to zero, the stronger. In TLMscope's own sample flights, frame losses rose sharply below about −80 dBm. It therefore rates −70 dBm or better as high, down to −80 dBm as normal, down to −85 dBm as weak and anything lower as critical." },
-            { t: "p", text: "The Radio link tab plots the signal against height, because height and distance often go together." },
+            { t: "p", text: "The Radio link tab plots the signal against height, because height and distance often go together. Under “Over time”, click a level to show only those seconds and step from one to the next." },
           ],
         },
         {
           h2: "Receiver voltage",
           blocks: [
-            { t: "p", text: "The voltage at the receiver should stay steady under load. TLMscope rates 5.2 V or more as steady, 4.8 V or more as OK, anything above 4.0 V as dips and below that as brown-out risk. Look for dips when several servos move at once. The AR8360T manual asks to stay above 4.8 V under load, and receivers of this family drop out below about 3.5 V." },
+            { t: "p", text: "The voltage at the receiver should stay steady under load. TLMscope rates 5.2 V or more as steady, 4.8 V or more as OK, anything above 4.0 V as dips and below that as brown-out risk. Look for dips when several servos move at once. The moments of switching on and off, such as unplugging the battery after landing, are left out, so they do not look like a brown-out. The AR8360T manual asks to stay above 4.8 V under load, and receivers of this family drop out below about 3.5 V." },
           ],
         },
         {
@@ -189,7 +190,7 @@ export const en: Content = {
               "**Charge used** is the share of the pack's capacity drawn in the session. TLMscope rates up to 50 % as plenty left, up to 70 % as fine, up to 80 % as land soon and more as over-drawn: the common 80 % rule.",
               "**Cell voltages** from a Spektrum Smart battery show the lowest and highest cell. A growing difference between cells points to an unbalanced pack.",
               "**Internal resistance per cell** is estimated from how far the voltage sags when the motor draws current, so it includes the wiring. Under 10 mΩ per cell is excellent, up to 12 mΩ acceptable, and above 15 mΩ it is time to retire the pack, a rule of thumb from LiPo guides. The Batteries page follows this value from flight to flight and estimates how many charge cycles are left.",
-              "**Temperature** of 35 to 45 °C after a flight is normal. TLMscope warns from 45 °C and treats 60 °C as the usual ceiling.",
+              "**Temperature** of 35 to 45 °C after a flight is normal. TLMscope warns from 45 °C and treats 60 °C as the usual ceiling. Batteries without a temperature sensor send 0; TLMscope then shows no battery temperature.",
             ] },
           ],
         },
@@ -203,12 +204,25 @@ export const en: Content = {
           h2: "Height, climb rate and thermals",
           blocks: [
             { t: "p", text: "A vario or altimeter sensor reports height and climb rate. TLMscope splits a flight into motor climbs, glides and lift: climbing with the motor off for about ten seconds or longer is marked as lift. The centres of thermals are estimated from circling flight and shown on the map." },
+            { t: "p", text: "Without a vario, a Spektrum GPS sensor gives the height above the take-off spot. It is less exact, about ±5 to 10 m, so TLMscope shows the highest point and the height profile, but no climbs, lift or glide." },
+          ],
+        },
+        {
+          h2: "Time in the air and total flight time",
+          blocks: [
+            { t: "p", text: "The time in the air comes from the height, or from the GPS speed, or, without either, from the motor and the model's movement; that last estimate is marked “about”. Pauses of two minutes or more on the ground between two flights of one session do not count. Above the session list, TLMscope adds up the time in the air of the loaded flights, per model when one is chosen, marked “≈” when part of it is estimated." },
           ],
         },
         {
           h2: "Loads and rotation",
           blocks: [
-            { t: "p", text: "Receivers with AS3X or SAFE report loads in g and rotation rates. TLMscope uses them to detect circling and to tell how gentle or sporty a flight was." },
+            { t: "p", text: "Receivers with AS3X or SAFE report loads in g and rotation rates. TLMscope uses them to detect circling and to tell how gentle, moderate, sporty or hard a flight was." },
+          ],
+        },
+        {
+          h2: "Stabilization and flight modes",
+          blocks: [
+            { t: "p", text: "Receivers with AS3X or SAFE also report the flight mode and which functions are on: AS3X, SAFE and heading hold. The Aircraft tab shows the time in the air per function and per flight mode, and the AS3X gain for roll, pitch and yaw. A gain of 0 means AS3X does not correct at all." },
           ],
         },
       ],
@@ -254,10 +268,11 @@ export const en: Content = {
               ["Motor, controller and BEC: rpm, current, voltage, throttle, temperatures", "Spektrum Smart ESC (e.g. Avian)", "Tested"],
               ["Battery: cell voltages, temperature, ID, charge cycles, capacity", "Spektrum Smart battery, connected through a Smart ESC", "Tested"],
               ["Height and climb rate", "Vario / altimeter sensor, or a receiver that reports it", "Tested"],
+              ["Height above ground without a vario (less exact, no climbs or lift)", "Spektrum GPS telemetry sensor", "Tested"],
               ["Loads (g) and rotation rates", "Receiver with AS3X / SAFE", "Tested"],
               ["Throttle stick position", "Recent NX firmware (AutoLog files)", "Tested"],
-              ["Stabilization mode", "Receiver with AS3X / SAFE", "Partly understood"],
-              ["Map, distance, speed over ground", "Spektrum GPS telemetry sensor", "Tested with one real GPS log"],
+              ["Stabilization (AS3X, SAFE, heading hold) per flight mode, AS3X gain", "Receiver with AS3X / SAFE", "Tested"],
+              ["Map, distance, speed over ground", "Spektrum GPS telemetry sensor", "Tested with real GPS logs"],
               ["Other sensors (airspeed, extra current or temperature sensors, …)", "X-Bus / SRXL2 sensors", "Shown as raw data for now"],
             ] },
           ],
@@ -278,7 +293,7 @@ export const en: Content = {
         {
           h2: "Help to widen the support",
           blocks: [
-            { t: "p", text: "Logs from NX and iX transmitters have been tested so far. If you fly a DX transmitter, or other Spektrum sensors, a log file helps a lot to check and extend the decoding. Tell me through the **Feedback** button in TLMscope (see [How can I send feedback or a log?](page:faq#send-feedback)), or open an issue in the [GitHub project](https://github.com/andreasknoor/tlmscope). Only share logs you are comfortable sharing: logs with GPS show where you fly." },
+            { t: "p", text: "Logs from NX and iX transmitters have been tested so far. If you fly a DX transmitter, or other Spektrum sensors, a log file helps a lot to check and extend the decoding. Tell me through the **Feedback** button in TLMscope (see [How can I send feedback or a log?](page:faq#send-feedback)), or open an issue in the [GitHub project](https://github.com/andreasknoor/tlmscope). To find out which value in a log belongs to which stick, switch or knob of your transmitter, the [transmitter ground test](https://tlmscope.andreasknoor.com/debug) guides you through moving each control while the transmitter records. Only share logs you are comfortable sharing: logs with GPS show where you fly." },
             { t: "p", text: "TLMscope is an independent project and is not made or endorsed by Spektrum or Horizon Hobby." },
           ],
         },
@@ -298,6 +313,7 @@ export const en: Content = {
               "Drop one or more `.TLM` files onto the start page, or click to choose them. You can add more files any time.",
               "Pick a session in the list on the left. On a phone the list is a picker at the top. Each power-up of the receiver is one session.",
               "“Flights” shows real flights only, “All” also ground tests and short power-ups. With several models loaded, you can limit the list to one model.",
+              "Above the list you see the total flight time of the loaded flights, for the chosen model. “Export as CSV” saves the sessions of the list as a spreadsheet file, made in your browser.",
             ] },
             { t: "img", name: "overview", alt: "TLMscope overview of a demo flight: summary sentence, key numbers and the height profile with motor climbs, lift and gliding", caption: "The overview of a flight: summary, key numbers and height profile." },
           ],
@@ -305,20 +321,20 @@ export const en: Content = {
         {
           h2: "Plain view and details",
           blocks: [
-            { t: "p", text: "By default you see plain-language summaries and four-level ratings, for example Critical, Weak, Normal and High. Switch on “Show details” at the top right for exact values, more charts and the limits behind every rating. The reasons for the limits are explained in [Understand your Spektrum telemetry](page:understand)." },
+            { t: "p", text: "By default you see plain-language summaries and four-level ratings, for example Critical, Weak, Normal and High. Switch on “Show details” at the top right for exact values, more charts and the limits behind every rating. The reasons for the limits are explained in [Understand your Spektrum telemetry](page:understand). The cards of the overview link to the page with the detail behind them and put the cursor on the moment behind the rating, for example the weakest signal." },
           ],
         },
         {
           h2: "The tabs of a session",
           blocks: [
             { t: "ul", items: [
-              "**Overview**: a summary sentence, key numbers, the height profile with motor climbs, glides and lift, and the health check.",
-              "**Height & lift**: climbs, lift found and the glide.",
-              "**Flight path**: the path on a map and in 3D with a replay (needs a GPS sensor).",
+              "**Overview**: a summary sentence, key numbers, the height profile with motor climbs, glides and lift, and the health check, whose cards link to the details.",
+              "**Height & lift**: climbs, lift found and the glide; without a vario, the height from GPS.",
+              "**Flight path**: the path on a map and in 3D with a replay, and the ground speed (needs a GPS sensor).",
               "**Motor & energy**: motor runs, current, charge used and the climb efficiency.",
               "**Battery**: charge level, cell voltages and the voltage sag that gives the internal resistance.",
-              "**Radio link**: signal strength, frame losses and holds over time, and the signal against height.",
-              "**Aircraft**: temperatures, receiver and BEC voltage, loads and the stabilization mode.",
+              "**Radio link**: signal strength, frame losses and holds over time, and the signal against height. Click a level under the timeline to show only it and step through it.",
+              "**Aircraft**: temperatures, receiver and BEC voltage, loads, the flight modes over time and the stabilization per flight mode with the AS3X gain.",
               "**Raw data**: all decoded sensor streams, shown with “Show details”.",
             ] },
           ],
@@ -326,7 +342,7 @@ export const en: Content = {
         {
           h2: "Flight path and replay",
           blocks: [
-            { t: "p", text: "With a GPS sensor the flight path is shown on a map in 3D. Hold the right mouse button and move up or down to tilt the view. The replay plays the flight back at up to 60 times speed; the model marker, every chart and an optional vario tone follow. Space starts and stops it, and a full-screen mode gives the map more room. The map tools let you choose the line style, the model shown in the replay and a ground shadow." },
+            { t: "p", text: "With a GPS sensor the flight path is shown on a map in 3D. Choose between the 3D view, the map view from above and the follow view (beta), where the camera flies behind the model. Hold the right mouse button and move up or down to tilt the view. The mouse wheel scrolls the page; Ctrl and the wheel (⌘ on a Mac) zoom the map, and on a phone two fingers move it. The replay plays the flight back at up to 60 times speed; the model marker, every chart and an optional vario tone follow. Space starts and stops it, and a full-screen mode gives the map more room. The map options set the colour, the line style, the model shown in the replay, a ground shadow and the relief (beta). TLMscope keeps them from flight to flight." },
             { t: "img", name: "path", alt: "The flight path of a demo flight in 3D on a map, coloured by motor climb, glide and thermal, with the replay below", caption: "The flight path in 3D, coloured by phase, with the replay below." },
           ],
         },
@@ -346,7 +362,7 @@ export const en: Content = {
               "Arrow left and right move to the older or newer session; arrow up and down move through the list while it has the focus.",
               "Space starts and stops the replay; Esc closes the full-screen mode.",
               "EN and DE at the top right switch the language.",
-              "Files are read in your browser and never uploaded. Only the map loads map images from OpenFreeMap.",
+              "Files are read in your browser and never uploaded. Only the map loads map images from OpenFreeMap, and the relief (beta), when switched on, elevation data from Amazon Web Services.",
             ] },
           ],
         },
@@ -363,7 +379,7 @@ export const en: Content = {
         { q: "What is TLMscope?", a: [
           { t: "p", text: "TLMscope is a free, browser-based viewer and analyzer for Spektrum .TLM telemetry logs. It runs on Windows, macOS, Linux, Android and iOS without installing anything, and the files stay on your device." },
           { t: "p", text: "From a log it shows:" },
-          { t: "ul", items: ["a plain-language summary of each flight", "charts of height, climb, motor, battery and radio link", "a GPS map with 3D replay", "thermals", "battery ageing across flights"] },
+          { t: "ul", items: ["a plain-language summary of each flight", "charts of height, climb, motor, battery and radio link", "a GPS map with 3D replay", "thermals", "flight modes and stabilization", "battery ageing across flights", "the total flight time per model and a CSV export of the session list"] },
         ] },
         { q: "What is a Spektrum .TLM file?", a: "A .TLM file is the telemetry log a Spektrum transmitter saves while you fly. It holds what the receiver and the sensors in the model reported, for example signal strength, battery voltage, motor current, height and GPS position. See [How to open Spektrum .TLM files](page:open)." },
         { q: "How do I open a .TLM file?", a: [
@@ -378,7 +394,7 @@ export const en: Content = {
         { q: "Is there a Spektrum TLM viewer for Mac, Linux or phones?", a: "Yes. TLMscope is a web page, so it runs in a current browser on Windows, macOS, Linux, Android and iOS. Nothing needs to be installed. The map and the 3D replay use WebGL, which current browsers support." },
         { q: "Are my flight logs uploaded anywhere?", a: [
           { t: "p", text: "No. Files are read in your browser and never leave your device." },
-          { t: "p", text: "Only for logs with GPS, the map loads map images from OpenFreeMap, which therefore sees roughly where you flew. See the [privacy notice](legal)." },
+          { t: "p", text: "Only for logs with GPS, the map loads map images from OpenFreeMap, which therefore sees roughly where you flew. The same goes for the elevation data of the relief view (beta) from Amazon Web Services, loaded only when you switch it on. A CSV export is made in your browser and saved on your device. See the [privacy notice](legal)." },
         ] },
         { q: "Does TLMscope work without internet?", a: [
           { t: "p", text: "Yes, after one visit with internet:" },
@@ -412,7 +428,7 @@ export const en: Content = {
         { q: "Is TLMscope free, and is it made by Spektrum?", a: "TLMscope is free, needs no account and is an independent hobby project by a model flyer. It is not made or endorsed by Spektrum or Horizon Hobby. How it compares with other viewers is in [Spektrum TLM viewers compared](page:compare)." },
         { q: "Is there an alternative to TLM Viewer?", a: [
           { t: "p", text: "Yes. The main options:" },
-          { t: "ul", items: ["**TLM Viewer:** a long-standing, open-source Windows program with export to CSV and KML.", "**TLMscope:** free, runs in the browser on any device and explains each flight in plain words.", "**Log Explorer:** a paid desktop program that also reads other radio systems."] },
+          { t: "ul", items: ["**TLM Viewer:** a long-standing, open-source Windows program with export to CSV and KML.", "**TLMscope:** free, runs in the browser on any device, explains each flight in plain words and exports the session list as CSV.", "**Log Explorer:** a paid desktop program that also reads other radio systems."] },
           { t: "p", text: "See [Spektrum TLM viewers compared](page:compare)." },
         ] },
       ],
@@ -428,7 +444,7 @@ export const en: Content = {
           h2: "The options",
           blocks: [
             { t: "table", head: ["Option", "How it runs", "Platforms", "Good to know"], rows: [
-              ["**TLMscope**", "In the browser, nothing to install", "Any current browser: Windows, macOS, Linux, Android, iOS", "Free, no account, files stay on your device. English and German. Plain-language summaries and ratings, charts, GPS map with 3D replay, battery ageing across flights. Reads Spektrum logs only. No export."],
+              ["**TLMscope**", "In the browser, nothing to install", "Any current browser: Windows, macOS, Linux, Android, iOS", "Free, no account, files stay on your device. English and German. Plain-language summaries and ratings, charts, GPS map with 3D replay, battery ageing across flights, flight modes and stabilization, total flight time per model, CSV export of the session list. Reads Spektrum logs only. No export of raw data or KML."],
               ["**[TLM Viewer](https://www.tlmviewer.com)**", "Desktop program, download", "Windows; on a Mac only through a Windows emulator, not on Android, according to its documentation", "A long-standing free tool, open source (AGPLv3) since August 2026 with its [source code on GitHub](https://github.com/DroneTales/TLMViewer). Graphs, raw sensor data, session editing, export to CSV, KML (Google Earth) and TLM. Reads old and damaged log formats and many more sensors, for example turbines, combustion engines, PowerBox and Crossfire. English only."],
               ["**[Log Explorer](https://phaedradg.itch.io/ethos-log-explorer)**", "Desktop program for Windows, paid, with an Android companion app", "Windows and Android; macOS and Linux are claimed on the product page", "From $10 (pay what you want), with a license key tied to the Windows hardware ID. Reads FrSky Ethos and OpenTX logs and, according to its release notes since v3.0, Spektrum and Jeti logs. Keeps a library per model with notes and tags, compares flights, tracks battery resistance over time, links video files and can export a transparent overlay video. Also covers cost tracking, weather and model setup files, which are outside TLMscope."],
               ["Code libraries and small projects", "Code for developers", "Depends", "For example a Ruby gem and an Android reader on GitHub. Useful to build your own tools; the Android project describes itself as being in early development."],
@@ -440,7 +456,7 @@ export const en: Content = {
           blocks: [
             { t: "ul", items: [
               "Pick **TLMscope** if you want a quick, readable answer to “what happened in this flight” on any device, without installing anything or uploading data.",
-              "Pick **TLM Viewer** if you work on Windows and need to export data (CSV, KML) or to edit and save logs again.",
+              "Pick **TLM Viewer** if you work on Windows and need to export the raw data (CSV) or the path (KML), or to edit and save logs again.",
               "Pick **Log Explorer** if you fly several radio systems, want a library of flights per model with notes, compare flights side by side or make overlay videos. Its price and the Windows license are the cost.",
               "Use both: they read the same files. Both are independent projects; neither is made by Spektrum.",
             ] },
@@ -463,7 +479,7 @@ export const en: Content = {
           blocks: [
             { t: "ul", items: [
               "Only logs from NX and iX transmitters have been tested so far. See [Supported transmitters and sensors](page:radios).",
-              "There is no export to CSV or KML yet.",
+              "The CSV export has one line per session (date, times, radio link, battery). There is no export of the raw data and no KML for Google Earth.",
               "There is no flight comparison, no library of flights across visits and no notes or tags. Log Explorer has all of these.",
               "Log Explorer reads more radio systems. Its Spektrum support is newer than its FrSky support, and we have not compared the two programs on the same log file.",
               "It reads Spektrum logs only; EdgeTX logs are planned.",
@@ -474,7 +490,7 @@ export const en: Content = {
       faq: [
         { q: "What is the best viewer for Spektrum TLM files?", a: [
           { t: "p", text: "It depends on what you need:" },
-          { t: "ul", items: ["**TLMscope** is the quickest way to understand a flight on any device, in the browser and without installing anything.", "**TLM Viewer** suits Windows users who want to export data to CSV or Google Earth.", "**Log Explorer** suits pilots who fly several radio systems and want a flight library."] },
+          { t: "ul", items: ["**TLMscope** is the quickest way to understand a flight on any device, in the browser and without installing anything.", "**TLM Viewer** suits Windows users who want to export raw data to CSV or the path to Google Earth.", "**Log Explorer** suits pilots who fly several radio systems and want a flight library."] },
         ] },
         { q: "Can I view Spektrum TLM files online?", a: "Yes. TLMscope is an online TLM viewer: open the page, drop the .TLM file and the flights appear. The file is read in your browser and is not uploaded to a server." },
         { q: "Does TLM Viewer run on a Mac?", a: "According to its documentation, TLM Viewer is a Windows program that runs on a Mac only through a Windows emulator. TLMscope runs in Safari, Chrome or Firefox on a Mac directly." },

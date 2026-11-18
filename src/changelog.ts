@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "1.95", date: "2026-11-18", changes: [["fix", "Guides, FAQ and help describe the latest features in English and German."]] },
   { version: "1.94", date: "2026-11-18", changes: [["fix", "Total flight time written out as “6 h 28 min” instead of “6:28 h”."]] },
   { version: "1.93", date: "2026-11-18", changes: [["new", "The demo adds a 3D plane: bench run and flight with flight modes, hard loads and GPS height."]] },
   { version: "1.92", date: "2026-11-18", changes: [["new", "Total flight time of the loaded logs, shown above the session list.", "highlight"], ["new", "Export the session list as a CSV file for your own flight log.", "highlight"], ["fix", "Pauses on the ground between two flights of one session no longer count as time in the air."]] },
