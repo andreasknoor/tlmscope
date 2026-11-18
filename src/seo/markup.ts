@@ -38,3 +38,23 @@ export function answerPlain(a: Answer, markdown = false): string {
     return "";
   }).filter(Boolean).join("\n\n");
 }
+
+/** Inline markup as Markdown for plain-text readers: links get absolute addresses, bold and code stay. */
+export function inlineMarkdown(lang: Lang, text: string, base: string): string {
+  return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (all, label: string, target: string) => {
+    const r = resolveTarget(lang, target);
+    return r ? `[${label}](${r.external ? r.href : new URL(r.href, base).toString()})` : label;
+  });
+}
+
+/** Blocks as Markdown (llms-full.txt). Screenshots are left out. */
+export function blocksMarkdown(lang: Lang, blocks: Block[], base: string): string {
+  const md = (t: string) => inlineMarkdown(lang, t, base);
+  return blocks.map((b) => {
+    if (b.t === "p") return md(b.text);
+    if (b.t === "note") return `> ${md(b.text)}`;
+    if (b.t === "ul" || b.t === "ol") return b.items.map((it, k) => `${b.t === "ul" ? "-" : `${k + 1}.`} ${md(it)}`).join("\n");
+    if (b.t === "table") return [b.head, b.head.map(() => "---"), ...b.rows].map((r) => `| ${r.map(md).join(" | ")} |`).join("\n");
+    return "";
+  }).filter(Boolean).join("\n\n");
+}

@@ -2,7 +2,7 @@ import { CONTENT } from "@/seo/content";
 import { answerPlain } from "@/seo/markup";
 import { LANGS, PAGE_IDS, pathOf } from "@/seo/pages";
 import { REPO_URL } from "@/legal/contact";
-import { absolute, HOME_META, SITE_NAME, SITE_SUMMARY } from "@/seo/site";
+import { absolute, FEATURES, HOME_META, LATEST_RELEASE, SITE_NAME, SITE_SUMMARY } from "@/seo/site";
 
 export const dynamic = "force-static";
 
@@ -10,9 +10,15 @@ export const dynamic = "force-static";
 export function GET() {
   const lines = [`# ${SITE_NAME}`, "", `> ${SITE_SUMMARY}`, ""];
   lines.push(
-    "It turns a log into a plain-language summary of each flight with simple ratings, charts (height, climb, motor, battery, radio link), a GPS map with 3D replay, detected thermals and battery ageing across flights. Logs from Spektrum NX and iX transmitters are tested. It is an independent, open-source hobby project (MIT licence), not made by Spektrum or Horizon Hobby.",
+    "Logs from Spektrum NX and iX transmitters are tested. It is an independent, open-source hobby project (MIT licence), not made by Spektrum or Horizon Hobby.",
+    "",
+    "What it does:",
+    "",
+    ...FEATURES.map((f) => `- ${f}`),
     "",
     `- App: ${absolute("/")}`,
+    `- Full text of all guides: ${absolute("/llms-full.txt")}`,
+    `- Changelog: ${absolute("/changelog")} (version ${LATEST_RELEASE.version}, ${LATEST_RELEASE.date})`,
     `- Source code: ${REPO_URL}`,
     "",
   );

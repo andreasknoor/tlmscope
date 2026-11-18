@@ -14,6 +14,7 @@ export const en: Content = {
     nav: { open: "Open TLM files", understand: "Understand telemetry", radios: "Supported radios", help: "Help", faq: "FAQ", compare: "Compare" },
     faq: "Frequently asked questions",
     linkToQuestion: "Link to this question",
+    updated: "Updated",
     skip: "Skip to content",
   },
 
@@ -425,6 +426,23 @@ export const en: Content = {
         ] },
         { q: "What is a hold in Spektrum telemetry?", a: "A hold is about a second without any signal at the receiver. The receiver then applies its hold or failsafe setting. TLMscope always rates a hold during flight as critical." },
         { q: "When should I retire a LiPo battery?", a: "A common rule of thumb is to retire a pack when its internal resistance reaches about 15 mΩ per cell. TLMscope estimates this value from the voltage sag in flight and follows it across flights for Spektrum Smart batteries." },
+        { q: "Can TLMscope count my flight hours per model?", a: [
+          { t: "p", text: "Yes, for the logs you load. Above the session list, TLMscope adds up the time in the air of the loaded flights, for all models or the one you choose. Only time in the air counts: pauses of two minutes or more on the ground between two flights of one session are left out. When some flights have neither a height sensor nor GPS, their time is estimated from the motor and the model's movement, and the total is marked “≈”." },
+          { t: "p", text: "TLMscope stores nothing between visits, so the total covers the files loaded now. To keep a flight log, use **Export as CSV**, see the next question." },
+        ] },
+        { q: "Can I convert a .TLM file to CSV or Excel?", a: [
+          { t: "p", text: "Partly. **Export as CSV** above the session list saves one line per session: model, date, start time, type, session and air time, frame losses, holds, lowest receiver voltage, battery ID, charge used and the source file. With German settings it uses a semicolon and a decimal comma, so Excel opens it directly." },
+          { t: "p", text: "There is no export of the raw sensor values. For that, TLM Viewer on Windows exports CSV; see [Spektrum TLM viewers compared](page:compare)." },
+        ] },
+        { q: "How can I see whether AS3X or SAFE was on during a flight?", a: "With a receiver with AS3X or SAFE, the log contains the flight mode and which functions were on. The **Aircraft** tab shows the time in the air per function (AS3X, SAFE, heading hold or no stabilization) and per flight mode, the AS3X gain for roll, pitch and yaw, and the flight modes over time. A gain of 0 means AS3X did not correct at all, for example with the gain knob turned down. More in [Understand your Spektrum telemetry](page:understand)." },
+        { q: "What is the difference between a hold and a brown-out?", a: [
+          { t: "ul", items: [
+            "**Hold:** the radio link was lost for about a second, so the receiver went to its hold or failsafe setting. The receiver voltage stays normal. TLMscope rates it in the radio link.",
+            "**Brown-out:** the voltage at the receiver dropped so far that the receiver restarted. That is a power problem, not a radio problem. In the log it shows as a voltage drop and usually a gap or a new session, not as a hold.",
+          ] },
+          { t: "p", text: "Unplugging the battery after landing also makes the voltage fall. TLMscope leaves those moments out, so they do not count as a brown-out." },
+        ] },
+        { q: "Can TLMscope show the height without a vario?", a: "Yes, with a Spektrum GPS sensor. TLMscope then takes the height above the take-off spot from the GPS altitude and shows the highest point and the height profile. GPS height is less exact, about ±5 to 10 m, so climbs, lift and glide still need a vario. Without a vario and without GPS the height stays empty, and the time in the air is estimated from the motor and the model's movement." },
         { q: "Is TLMscope free, and is it made by Spektrum?", a: "TLMscope is free, needs no account and is an independent hobby project by a model flyer. It is not made or endorsed by Spektrum or Horizon Hobby. How it compares with other viewers is in [Spektrum TLM viewers compared](page:compare)." },
         { q: "Is there an alternative to TLM Viewer?", a: [
           { t: "p", text: "Yes. The main options:" },

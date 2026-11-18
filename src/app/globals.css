@@ -451,6 +451,7 @@ body > .start, body > .app, body > .legal, body > .doc { flex: 1 0 auto; width: 
 .doc { max-width: 780px; margin: 30px auto 48px; padding: 0 16px; display: flex; flex-direction: column; gap: 14px; }
 .doc h1 { font-size: 38px; line-height: 1.1; }
 .doc .lead { font-size: 18px; line-height: 1.5; color: var(--ink-2); max-width: 65ch; }
+.doc .updated { font-size: 13px; color: var(--ink-3); margin-top: -4px; }
 .doc section { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 .doc h2 { font-size: 25px; margin-top: 6px; }
 .doc h3 { font-size: 18px; }

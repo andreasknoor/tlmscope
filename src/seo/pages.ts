@@ -15,6 +15,19 @@ export const SLUGS: Record<PageId, Record<Lang, string>> = {
   compare: { en: "compare", de: "vergleich" },
 };
 
+/**
+ * When each guide was last changed in content (both languages change together), YYYY-MM-DD.
+ * Shown on the page, given to search engines (dateModified, sitemap lastmod): change it with the content, not otherwise.
+ */
+export const UPDATED: Record<PageId, string> = {
+  open: "2026-11-18",
+  understand: "2026-11-18",
+  radios: "2026-11-18",
+  help: "2026-11-18",
+  faq: "2026-11-18",
+  compare: "2026-11-18",
+};
+
 export const homePath = (lang: Lang) => (lang === "de" ? "/de" : "/");
 export const pagePath = (lang: Lang, id: PageId) => `${lang === "de" ? "/de" : ""}/${SLUGS[id][lang]}`;
 export const legalPath = (lang: Lang) => `/legal#${lang}`;

@@ -54,3 +54,34 @@ describe("site summary", () => {
     expect(readFileSync("README.md", "utf8")).toContain(SITE_SUMMARY);
   });
 });
+
+describe("dates and full text for search engines and assistants", () => {
+  it("dates every guide, never after the latest release, and gives it to the sitemap", async () => {
+    const { UPDATED } = await import("./pages.ts");
+    const { LATEST_RELEASE } = await import("./site.ts");
+    for (const id of PAGE_IDS) {
+      expect(UPDATED[id], id).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(UPDATED[id] <= LATEST_RELEASE.date, id).toBe(true);
+      for (const lang of LANGS) expect(SITEMAP.find((e) => e.path === pathOf(lang, id))!.lastModified).toBe(UPDATED[id]);
+    }
+  });
+
+  it("describes a guide as a dated article by its author", async () => {
+    const { guideStructuredData } = await import("./site.ts");
+    const { UPDATED } = await import("./pages.ts");
+    const graph = guideStructuredData("de", "faq", { title: "T", h1: "H", description: "D" }, "Start", [])["@graph"];
+    const article = graph.find((n) => n["@type"] === "TechArticle") as Record<string, unknown>;
+    expect(article.dateModified).toBe(UPDATED.faq);
+    expect(article.inLanguage).toBe("de");
+    expect(article.mainEntityOfPage).toBe(absolute(pathOf("de", "faq")));
+  });
+
+  it("turns content into Markdown with absolute links", async () => {
+    const { blocksMarkdown } = await import("./markup.ts");
+    const md = blocksMarkdown("de", [{ t: "p", text: "See [the FAQ](page:faq) and **this**." }, { t: "ul", items: ["a", "b"] }, { t: "table", head: ["x", "y"], rows: [["1", "2"]] }], SITE_URL);
+    expect(md).toContain(`[the FAQ](${absolute(pathOf("de", "faq"))})`);
+    expect(md).toContain("**this**");
+    expect(md).toContain("- a\n- b");
+    expect(md).toContain("| x | y |\n| --- | --- |\n| 1 | 2 |");
+  });
+});

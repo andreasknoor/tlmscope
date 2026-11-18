@@ -50,6 +50,8 @@ export interface Chrome {
   faq: string;
   /** Label of the "#" link next to each question (a deep link to it). */
   linkToQuestion: string;
+  /** Before the date a guide was last changed. */
+  updated: string;
 }
 
 export type IconName = "summary" | "chart" | "map" | "battery" | "lock" | "usb" | "radio" | "question" | "drop" | "play" | "help" | "x" | "device";

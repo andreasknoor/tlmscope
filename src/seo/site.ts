@@ -1,5 +1,9 @@
+import { CHANGELOG } from "../changelog.ts";
 import { OPERATOR, REPO_URL } from "../legal/contact.ts";
-import { LANGS, PAGE_IDS, homePath, pagePath, pathOf, type Lang, type PageId } from "./pages.ts";
+import { LANGS, PAGE_IDS, UPDATED, homePath, pagePath, pathOf, type Lang, type PageId } from "./pages.ts";
+
+/** The latest release: the app changes with it, so it dates the home pages and the changelog. */
+export const LATEST_RELEASE = CHANGELOG[0];
 
 /** The one place for what search engines and link previews are told about the site. */
 export const SITE_URL = "https://tlmscope.andreasknoor.com";
@@ -10,6 +14,21 @@ export const absolute = (path: string) => new URL(path, SITE_URL).toString();
 /** One sentence that says what TLMscope is, worded the same everywhere (llms.txt, README, FAQ), so assistants can quote it. */
 export const SITE_SUMMARY =
   "TLMscope is a free, browser-based viewer and analyzer for Spektrum .TLM telemetry logs. It runs on Windows, macOS, Linux, Android and iOS without installing anything, and the files stay on your device.";
+
+/** What TLMscope does, for structured data and llms.txt. */
+export const FEATURES = [
+  "Reads Spektrum .TLM telemetry logs (NX, iX, DX) in the browser",
+  "Plain-language flight summaries with simple ratings",
+  "Charts for height, climb, motor, battery and radio link",
+  "Flight path on a map with 3D replay and ground speed",
+  "Height above ground from GPS when there is no vario",
+  "Flight modes and stabilization (AS3X, SAFE, heading hold) with the AS3X gain",
+  "Thermal detection",
+  "Battery ageing across flights",
+  "Total flight time per model and CSV export of the session list",
+  "Works offline after the first visit",
+  "Files never leave the browser",
+];
 
 /** Home page texts. `title` is the search result title (keyword first), `share` the title of a shared link (brand first). */
 export const HOME_META: Record<Lang, { title: string; share: string; description: string }> = {
@@ -29,10 +48,14 @@ export const HOME_META: Record<Lang, { title: string; share: string; description
 export const GUIDE_PAGES: (PageId | undefined)[] = [undefined, ...PAGE_IDS];
 
 /** Pages for the sitemap: every guide in both languages (with their language alternatives) and the legal page. */
-export const SITEMAP: { path: string; alternates?: Record<Lang, string> }[] = [
-  ...GUIDE_PAGES.flatMap((id) => LANGS.map((lang) => ({ path: pathOf(lang, id), alternates: { en: pathOf("en", id), de: pathOf("de", id) } }))),
+export const SITEMAP: { path: string; alternates?: Record<Lang, string>; lastModified?: string }[] = [
+  ...GUIDE_PAGES.flatMap((id) => LANGS.map((lang) => ({
+    path: pathOf(lang, id),
+    alternates: { en: pathOf("en", id), de: pathOf("de", id) },
+    lastModified: id ? UPDATED[id] : LATEST_RELEASE.date,
+  }))),
   { path: "/legal" },
-  { path: "/changelog" },
+  { path: "/changelog", lastModified: LATEST_RELEASE.date },
 ];
 
 /** Language alternatives of a page (hreflang), with English as the default for everything else. */
@@ -79,14 +102,9 @@ export function homeStructuredData(lang: Lang, faq: Faq[]) {
         isAccessibleForFree: true,
         offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
         inLanguage: ["en", "de"],
-        featureList: [
-          "Reads Spektrum .TLM telemetry logs (NX, iX, DX) in the browser",
-          "Flight summaries with simple ratings",
-          "Charts for height, climb, motor, battery and radio link",
-          "Flight path on a map with 3D replay",
-          "Battery ageing across flights",
-          "Files never leave the browser",
-        ],
+        softwareVersion: LATEST_RELEASE.version,
+        dateModified: LATEST_RELEASE.date,
+        featureList: FEATURES,
         author: { "@type": "Person", name: OPERATOR.name },
         sameAs: [REPO_URL],
         isPartOf: { "@id": `${SITE_URL}/#website` },
@@ -96,11 +114,25 @@ export function homeStructuredData(lang: Lang, faq: Faq[]) {
   };
 }
 
-/** Structured data for a guide page: breadcrumbs and, where the page shows questions, the FAQ. */
-export function guideStructuredData(lang: Lang, id: PageId, title: string, homeLabel: string, faq: Faq[] | undefined) {
+/** Structured data for a guide page: the article with its date, breadcrumbs and, where the page shows questions, the FAQ. */
+export function guideStructuredData(lang: Lang, id: PageId, page: { title: string; h1: string; description: string }, homeLabel: string, faq: Faq[] | undefined) {
+  const url = absolute(pagePath(lang, id));
+  const title = page.title;
   return {
     "@context": "https://schema.org",
     "@graph": [
+      {
+        "@type": "TechArticle",
+        "@id": `${url}#article`,
+        headline: page.h1,
+        description: page.description,
+        inLanguage: lang,
+        dateModified: UPDATED[id],
+        author: { "@type": "Person", name: OPERATOR.name },
+        mainEntityOfPage: url,
+        isPartOf: { "@id": `${SITE_URL}/#website` },
+        about: { "@id": `${SITE_URL}/#app` },
+      },
       {
         "@type": "BreadcrumbList",
         itemListElement: [

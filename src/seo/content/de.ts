@@ -14,6 +14,7 @@ export const de: Content = {
     nav: { open: "TLM-Dateien öffnen", understand: "Telemetrie verstehen", radios: "Unterstützte Sender", help: "Hilfe", faq: "Häufige Fragen", compare: "Vergleich" },
     faq: "Häufige Fragen",
     linkToQuestion: "Link zu dieser Frage",
+    updated: "Aktualisiert am",
     skip: "Zum Inhalt springen",
   },
 
@@ -425,6 +426,23 @@ export const de: Content = {
         ] },
         { q: "Was ist ein Hold in der Spektrum-Telemetrie?", a: "Ein Hold ist etwa eine Sekunde ganz ohne Signal am Empfänger. Der Empfänger geht dann in seine Hold- oder Failsafe-Einstellung. TLMscope bewertet einen Hold im Flug immer als kritisch." },
         { q: "Wann sollte ich einen LiPo-Akku ausmustern?", a: "Eine gängige Faustregel lautet, einen Akku auszumustern, wenn sein Innenwiderstand etwa 15 mΩ je Zelle erreicht. TLMscope schätzt diesen Wert aus dem Spannungseinbruch im Flug und verfolgt ihn bei Spektrum Smart-Akkus über mehrere Flüge." },
+        { q: "Kann TLMscope meine Flugstunden je Modell zählen?", a: [
+          { t: "p", text: "Ja, für die Logs, die du lädst. Über der Sitzungsliste addiert TLMscope die Zeit in der Luft der geladenen Flüge, für alle Modelle oder das gewählte. Es zählt nur die Zeit in der Luft: Pausen von zwei Minuten oder mehr am Boden zwischen zwei Flügen einer Sitzung bleiben außen vor. Haben Flüge weder Höhensensor noch GPS, wird ihre Zeit aus Motor und Bewegung des Modells geschätzt, und die Summe ist mit „≈“ markiert." },
+          { t: "p", text: "TLMscope speichert zwischen zwei Besuchen nichts, die Summe gilt also für die gerade geladenen Dateien. Für ein Flugbuch nutze **Als CSV exportieren**, siehe die nächste Frage." },
+        ] },
+        { q: "Kann ich eine .TLM-Datei in CSV oder Excel umwandeln?", a: [
+          { t: "p", text: "Teilweise. **Als CSV exportieren** über der Sitzungsliste speichert eine Zeile je Sitzung: Modell, Datum, Startzeit, Art, Sitzungs- und Flugzeit, Frame Losses, Holds, niedrigste Empfängerspannung, Akku-ID, verbrauchte Ladung und die Quelldatei. Mit deutscher Einstellung nutzt die Datei Semikolon und Dezimalkomma, sodass Excel sie direkt öffnet." },
+          { t: "p", text: "Einen Export der rohen Sensorwerte gibt es nicht. Dafür exportiert TLM Viewer unter Windows CSV; siehe [Spektrum-TLM-Viewer im Vergleich](page:compare)." },
+        ] },
+        { q: "Wie sehe ich, ob AS3X oder SAFE im Flug an war?", a: "Mit einem Empfänger mit AS3X oder SAFE enthält das Log den Flugmodus und welche Funktionen an waren. Der Tab **Modell** zeigt die Zeit in der Luft je Funktion (AS3X, SAFE, Heading Hold oder keine Stabilisierung) und je Flugmodus, den AS3X-Gain für Rollen, Nicken und Gieren sowie die Flugmodi im Zeitverlauf. Ein Gain von 0 heißt, dass AS3X gar nicht korrigiert hat, etwa wenn der Gain-Drehknopf ganz zurückgedreht war. Mehr in [Deine Spektrum-Telemetrie verstehen](page:understand)." },
+        { q: "Was ist der Unterschied zwischen Hold und Brown-out?", a: [
+          { t: "ul", items: [
+            "**Hold:** Die Funkverbindung war etwa eine Sekunde weg, der Empfänger ging in seine Hold- oder Failsafe-Einstellung. Die Empfängerspannung bleibt normal. TLMscope bewertet das bei der Funkverbindung.",
+            "**Brown-out:** Die Spannung am Empfänger ist so weit gefallen, dass der Empfänger neu gestartet ist. Das ist ein Stromproblem, kein Funkproblem. Im Log zeigt es sich als Spannungseinbruch und meist als Lücke oder neue Sitzung, nicht als Hold.",
+          ] },
+          { t: "p", text: "Auch beim Abstecken des Akkus nach der Landung fällt die Spannung. TLMscope lässt diese Momente außen vor, damit sie nicht als Brown-out zählen." },
+        ] },
+        { q: "Kann TLMscope die Höhe ohne Vario zeigen?", a: "Ja, mit einem Spektrum-GPS-Sensor. TLMscope nimmt dann die Höhe über dem Startplatz aus der GPS-Höhe und zeigt den höchsten Punkt und das Höhenprofil. Die GPS-Höhe ist ungenauer, etwa ±5 bis 10 m, deshalb brauchen Steigflüge, Aufwind und Gleitflug weiterhin ein Vario. Ohne Vario und ohne GPS bleibt die Höhe leer, und die Zeit in der Luft wird aus Motor und Bewegung des Modells geschätzt." },
         { q: "Ist TLMscope kostenlos, und stammt es von Spektrum?", a: "TLMscope ist kostenlos, braucht kein Konto und ist ein unabhängiges Hobbyprojekt eines Modellfliegers. Es wird nicht von Spektrum oder Horizon Hobby hergestellt oder unterstützt. Wie es sich zu anderen Viewern verhält, steht in [Spektrum-TLM-Viewer im Vergleich](page:compare)." },
         { q: "Gibt es eine Alternative zu TLM Viewer?", a: [
           { t: "p", text: "Ja. Die wichtigsten Möglichkeiten:" },

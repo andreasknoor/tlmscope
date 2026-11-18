@@ -6,8 +6,11 @@ import { Inline } from "./Inline";
 import { answerBlocks, answerPlain } from "./markup.ts";
 import { Blocks } from "./Blocks";
 import { JsonLd } from "./JsonLd";
-import { homePath, legalPath, pagePath, PAGE_IDS, type Lang, type PageId } from "./pages.ts";
+import { homePath, legalPath, pagePath, PAGE_IDS, UPDATED, type Lang, type PageId } from "./pages.ts";
 import { faqId, guideStructuredData } from "./site.ts";
+
+/** 18 November 2026 / 18. November 2026, independent of the time zone. */
+const longDate = (lang: Lang, d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString(lang === "de" ? "de-DE" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 /** A guide page: the same content in both languages, with the language switch, navigation and footer. */
 export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
@@ -16,7 +19,7 @@ export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
   const other: Lang = lang === "de" ? "en" : "de";
   return (
     <>
-      <JsonLd data={guideStructuredData(lang, id, g.title, c.chrome.home, g.faq?.map((f) => ({ q: f.q, a: answerPlain(f.a) })))} />
+      <JsonLd data={guideStructuredData(lang, id, g, c.chrome.home, g.faq?.map((f) => ({ q: f.q, a: answerPlain(f.a) })))} />
       <a className="skip" href="#main">{c.chrome.skip}</a>
       <header className="sitehead">
         <Link className="brand" href={homePath(lang)}><Logo /><Wordmark /></Link>
@@ -30,6 +33,7 @@ export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
       <main id="main" className="doc">
         <h1>{g.h1}</h1>
         <p className="lead"><Inline text={g.lead} lang={lang} /></p>
+        <p className="updated">{c.chrome.updated} <time dateTime={UPDATED[id]}>{longDate(lang, UPDATED[id])}</time></p>
         {g.sections.map((s) => (
           <section key={s.h2}>
             <h2>{s.h2}</h2>

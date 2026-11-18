@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "1.96", date: "2026-11-18", changes: [["new", "Guides show when they were last updated; five new answers in the FAQ."]] },
   { version: "1.95", date: "2026-11-18", changes: [["fix", "Guides, FAQ and help describe the latest features in English and German."]] },
   { version: "1.94", date: "2026-11-18", changes: [["fix", "Total flight time written out as “6 h 28 min” instead of “6:28 h”."]] },
   { version: "1.93", date: "2026-11-18", changes: [["new", "The demo adds a 3D plane: bench run and flight with flight modes, hard loads and GPS height."]] },
