@@ -18,6 +18,12 @@ const pad = (n: number) => String(n).padStart(2, "0");
 /** m:ss */
 export const clock = (s: number) => `${Math.floor(s / 60)}:${pad(Math.floor(s % 60))}`;
 
+/** Long times: 3:52 h from an hour on, else minutes. */
+export function longDuration(s: number): string {
+  const min = Math.round(s / 60);
+  return min >= 60 ? `${Math.floor(min / 60)}:${String(min % 60).padStart(2, "0")}\u00a0h` : `${min}\u00a0min`;
+}
+
 export function duration(locale: Locale, s: number): string {
   return s >= 60 ? `${clock(s)}\u00a0min` : `${num(locale, s, 1)}\u00a0s`;
 }

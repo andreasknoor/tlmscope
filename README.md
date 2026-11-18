@@ -60,6 +60,22 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 - Changing settings on the transmitter or receiver. TLMscope only reads.
 - Cars and boats (Spektrum surface radios) are not a focus. Their logs may partly work.
 
+### Exporting the session list
+
+“Export as CSV” above the session list saves the sessions shown there (respecting the flights/all switch and the model choice) as a spreadsheet file, oldest first. The file is made in the browser and is not sent anywhere. German settings give a semicolon and a decimal comma, all others a comma and a decimal point; text starts with a byte order mark so Excel reads it as UTF-8.
+
+| Column | Meaning |
+|---|---|
+| `model`, `date`, `start_time` | Model name from the file; start in the time zone of your browser (empty without a time in the file) |
+| `type` | `flight`, `ground-test`, `powered-on` or `transmitter-only` |
+| `session_s` | Length of the session in seconds |
+| `air_time_s`, `air_time_source` | Time in the air without pauses on the ground between flights, and where it comes from: `height`, `gps` or `motion` (estimated from motor and movement) |
+| `frame_losses`, `holds`, `min_receiver_voltage_v` | The values of the radio link and receiver power cards, over the time in the air |
+| `battery_id`, `used_mah` | Smart battery ID and the charge used |
+| `file`, `session` | The source file and the session number in it |
+
+The metric columns are filled for flights only. The column names are fixed. Text cells starting with `=`, `+`, `-` or `@` get a leading apostrophe so a spreadsheet never runs them as a formula.
+
 ### Getting your log files
 
 - **NX and iX:** connect the transmitter by USB, choose the option to access internal storage in the USB settings, copy the `.TLM` files.

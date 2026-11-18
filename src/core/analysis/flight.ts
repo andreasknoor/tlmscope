@@ -44,6 +44,8 @@ export const FLIGHT = {
   motionWindowMinS: 4,
   /** With the motor on, climbing faster than this (m/s, 9 s average) is a motor climb; slower is "motor on". */
   motorClimbRate: 0.5,
+  /** A stretch this long (s) on the ground with the motor off, between two flights of one session, is not airtime. */
+  groundPauseS: 120,
   /** Airborne while above this height (m). */
   airborneAltitudeM: 3,
   /** Motor on above this throttle (%) or this current (A). */
@@ -165,6 +167,25 @@ function runs<T>(labels: T[]): { kind: T; start: number; end: number }[] {
   return out;
 }
 
+/**
+ * Per second: on the ground between two flights of one session (a battery change without switching the
+ * receiver off). Stretches of at least `groundPauseS` seconds inside the air window, by the same basis as the
+ * window, with the motor off. Shorter stops count as flying.
+ */
+export function groundPauses(g: Grid, basis: FlightBasis, alt: Series | null, motor: boolean[], start: number, end: number): boolean[] {
+  const flying = basis === "gps" ? gpsMoving(g) : basis === "motion" ? moving(g) : null;
+  const still = (i: number) => !motor[i] && (basis === "height" ? (alt?.[i] ?? Infinity) <= FLIGHT.airborneAltitudeM : flying !== null && !flying[i]);
+  const out = new Array<boolean>(g.n).fill(false);
+  for (let i = start; i <= end; i++) {
+    if (!still(i)) continue;
+    let j = i;
+    while (j + 1 <= end && still(j + 1)) j++;
+    if (j - i + 1 >= FLIGHT.groundPauseS) for (let k = i; k <= j; k++) out[k] = true;
+    i = j;
+  }
+  return out;
+}
+
 /** First and last second of the airborne time, by the given basis. */
 function airWindow(g: Grid, basis: FlightBasis, alt: Series | null): [number | null, number | null] {
   let s: number | null = null, e: number | null = null;
@@ -212,6 +233,7 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
     });
 
     const [airStart, airEnd] = kind === "flight" ? airWindow(g, basis, alt) : [null, null];
+    const paused = airStart === null ? null : groundPauses(g, basis, alt, motor, airStart, airEnd!);
 
     // motor pauses up to motorGapS belong to the same motor run
     const motorMerged = motor.slice();
@@ -222,7 +244,7 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
       if (i > 0 && j < n && j - i <= FLIGHT.motorGapS) for (let k = i; k < j; k++) motorMerged[k] = true;
       i = j;
     }
-    const inAir = (i: number) => airStart !== null && i >= airStart && i <= airEnd!;
+    const inAir = (i: number) => airStart !== null && i >= airStart && i <= airEnd! && !paused![i];
     const motorOffFor = (i: number) => !motorMerged.slice(Math.max(0, i - FLIGHT.liftMotorOffS), i + 1).some(Boolean);
     const raw: PhaseKind[] = Array.from({ length: n }, (_, i) => {
       if (motorMerged[i]) return alt && (smoothedClimb[i] ?? 0) > FLIGHT.motorClimbRate ? "motor" : "powered";
@@ -292,7 +314,8 @@ export function flightProfile(session: Session, g = new Grid(session)): Result<F
     const climbMah = climbs.reduce((s, c) => s + (c.mah ?? 0), 0);
     const climbGain = climbs.reduce((s, c) => s + c.gainM, 0);
     // Seconds in the air, first and last second included (like the lift seconds); the charge rate below uses the interval between the two readings.
-    const airtimeS = airStart === null ? 0 : airEnd! - airStart + 1;
+    // Pauses on the ground between two flights of one session do not count.
+    const airtimeS = airStart === null ? 0 : airEnd! - airStart + 1 - paused!.filter(Boolean).length;
 
     // charge per minute in the air, from the consumed-charge channel
     let mahPerMin: number | null = null;

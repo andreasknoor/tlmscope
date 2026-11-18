@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
-import { cssVar, clock, dayLabel, num, timeLabel } from "./format";
+import { cssVar, clock, dayLabel, longDuration, num, timeLabel } from "./format";
+import { flightTotal } from "./flight-total";
+import { downloadText, logbookCsv, logbookFileName } from "./logbook";
 import { Help } from "./views/Help";
 import { FeedbackDialog } from "./views/FeedbackDialog";
 import { SettingsDialog } from "./views/Settings";
@@ -141,6 +143,7 @@ function Sidebar() {
   const { entries, visible, selected, select, step, settings, filter, setFilter, addFiles, files, closeFile, closeAll, models, modelFilter } = useStore();
   const modelName = useModelName();
   const airtime = useAirtime();
+  const total = useMemo(() => flightTotal(modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter)), [entries, modelFilter]);
   const multi = models.length > 1;
   const kindEntries = modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter);
   const count = (m: string | null) => entries.filter((e) => (m === null || e.model.key === m) && (filter === "all" || e.a.kind === "flight")).length;
@@ -209,6 +212,14 @@ function Sidebar() {
           <ModelSelect id="model-filter" count={count} />
         </div>
       )}
+      {total.flights > 0 && (
+        <div className="total" title={`${t("app.totalHint")}${total.estimatedSeconds > 0 ? ` ${t("app.totalHintApprox")}` : ""}`}>
+          <b>{total.estimatedSeconds > 0 ? "≈ " : ""}{t("app.total", { time: longDuration(total.seconds), n: total.flights })}</b>
+          <span>{t(total.estimatedSeconds > 0 ? "app.totalSubApprox" : "app.totalSub")}</span>
+        </div>
+      )}
+      <button className="btn exportbtn" title={t("app.exportCsvHint")} disabled={visible.length === 0}
+        onClick={() => downloadText(logbookCsv(visible, loc), logbookFileName())}>{t("app.exportCsv")}</button>
       <div className="slist" ref={list} onKeyDown={onListKey}>
         {newestFirst.map((e, k) => {
           const d = dayOf(e);
@@ -259,7 +270,7 @@ function Footer({ offline }: { offline: boolean }) {
  */
 function PhoneFiles() {
   const t = useTranslations("app");
-  const { files, addFiles, closeFile, closeAll, settings } = useStore();
+  const { files, addFiles, closeFile, closeAll, settings, visible } = useStore();
   const input = useRef<HTMLInputElement>(null);
   const mb = files.reduce((sum, f) => sum + f.sizeBytes, 0) / 1e6;
   return (
@@ -274,7 +285,10 @@ function PhoneFiles() {
               <button className="x" aria-label={t("closeFile", { name: f.fileName })} onClick={() => closeFile(f.fileName)}>×</button>
             </div>
           ))}
-          <div><button className="btn" onClick={closeAll}>{t("closeAll")}</button></div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button className="btn" onClick={closeAll}>{t("closeAll")}</button>
+            <button className="btn" title={t("exportCsvHint")} disabled={visible.length === 0} onClick={() => downloadText(logbookCsv(visible, settings.locale), logbookFileName())}>{t("exportCsv")}</button>
+          </div>
         </div>
       </details>
       <button className="btn" onClick={() => input.current?.click()}>+ {t("addShort")}</button>

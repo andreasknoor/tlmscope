@@ -563,3 +563,8 @@ dialog.st-dialog::backdrop { background: rgb(8 20 26 / .55); }
 .detaillink { margin-top: auto; padding: 6px 0 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 600; text-align: left; cursor: pointer; }
 .detaillink:hover { text-decoration: underline; }
 .detailback { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 12px; background: var(--accent-soft, var(--surface)); border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--ink-2); }
+
+.total { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 8px 10px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--line); }
+.total b { font-size: 15px; }
+.total span { font-size: 12px; color: var(--ink-3); }
+.exportbtn { align-self: flex-start; }
