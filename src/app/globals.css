@@ -251,6 +251,8 @@ kbd { font: 500 11px var(--code); border: 1px solid var(--line); border-bottom-w
 .hint { font-size: 13.5px; color: var(--ink-2); }
 .lbl { font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); font-weight: 600; }
 .tile .v { font: 600 32px/1 var(--display); font-variant-numeric: tabular-nums; }
+/* A word instead of a number: as large as the words on the rating cards. */
+.tile .v.text { font: 600 22px/1.1 var(--display); }
 .tile .v small { font-size: 16px; color: var(--ink-2); margin-left: 3px; font-weight: 500; }
 .sectionhead { display: flex; align-items: baseline; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
 .sectionhead h2 { font-size: 20px; }

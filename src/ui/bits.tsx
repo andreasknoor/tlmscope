@@ -129,11 +129,11 @@ export function RatingCard(props: {
   );
 }
 
-export function Tile({ label, value, unit, sub, more }: { label: string; value: ReactNode; unit?: string; sub?: ReactNode; more?: ReactNode }) {
+export function Tile({ label, value, unit, sub, more, text }: { label: string; value: ReactNode; unit?: string; sub?: ReactNode; more?: ReactNode; text?: boolean }) {
   return (
     <div className="card tile">
       <div className="lbl">{label}</div>
-      <div className="v num">{value}{unit ? <small>{unit}</small> : null}</div>
+      <div className={`v num${text ? " text" : ""}`}>{value}{unit ? <small>{unit}</small> : null}</div>
       {sub ? <div className="hint">{sub}</div> : null}
       {more}
     </div>

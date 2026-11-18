@@ -173,6 +173,7 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
 
   // build channels
   const channels = set.build();
+  if (noSensor(channels.get("temperature.battery"))) channels.delete("temperature.battery");
   for (const ch of channels.values()) {
     if (ch.kind === "counter") {
       ch.rawCounter = { t: ch.t, v: ch.v };
@@ -297,6 +298,24 @@ export function negativeFlagWrong(samples: GpsAltSample[]): boolean {
   const flying = flagged.filter((s) => s.speed! > GPS_SIGN.flyingMs).map((s) => s.size!);
   if (still.length < GPS_SIGN.minSamples || flying.length < GPS_SIGN.minSamples) return false;
   return median(flying) > median(still) + GPS_SIGN.belowGroundM;
+}
+
+/** Fewest readings for a constant zero to count as "no sensor" rather than a very short run. */
+const NO_SENSOR_MIN_SAMPLES = 10;
+
+/**
+ * True when a temperature channel reads exactly 0 in every sample: a smart battery without a
+ * temperature sensor sends 0, which is not 0 °C. Such a channel is left out of the session.
+ */
+export function noSensor(ch: { v: ArrayLike<number> } | undefined): boolean {
+  if (!ch) return false;
+  let n = 0;
+  for (let i = 0; i < ch.v.length; i++) {
+    if (Number.isNaN(ch.v[i])) continue;
+    if (ch.v[i] !== 0) return false;
+    n++;
+  }
+  return n >= NO_SENSOR_MIN_SAMPLES;
 }
 
 export const GPS_SIGN = { stillMs: 1, flyingMs: 10, minSamples: 20, belowGroundM: 10 } as const;

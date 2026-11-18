@@ -61,7 +61,7 @@ export function AircraftTab() {
     <>
       <div className="grid g4">
         <TempCard a={a} /><RxCard a={a} /><StyleCard a={a} />
-        <Tile label={t(stab.inAir ? "aircraft.stabInAir" : "aircraft.stab")} value={top ? nameOf(top.bits, top.modes) : t("aircraft.notReported")}
+        <Tile text label={t(stab.inAir ? "aircraft.stabInAir" : "aircraft.stab")} value={top ? nameOf(top.bits, top.modes) : t("aircraft.notReported")}
           sub={top ? stab.uses.map((u) => (
             <div key={u.modes.join()}>{u.bits === null ? nameOf(null, u.modes) : `${nameOf(u.bits, u.modes)} (${t("aircraft.modes", { list: u.modes.map((m) => m + 1).join(", ") })})`}: {time(u.seconds)}
               {u.gain && (u.gain.every((x) => x === 0)

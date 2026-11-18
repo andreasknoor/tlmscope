@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "1.91", date: "2026-11-18", changes: [["fix", "No battery temperature of 0 °C from batteries without a temperature sensor."], ["fix", "The stabilization text is as large as the other words on the aircraft page."]] },
   { version: "1.90", date: "2026-11-17", changes: [["new", "Links from the overview to the details, with the cursor on the moment behind the rating.", "highlight"]] },
   { version: "1.89", date: "2026-11-17", changes: [["new", "Radio link over time: click a level to show only it and step through it."]] },
   { version: "1.88", date: "2026-11-17", changes: [["new", "Map options stay the same when switching flights and on the next visit."]] },
