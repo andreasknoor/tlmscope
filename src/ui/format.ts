@@ -18,10 +18,14 @@ const pad = (n: number) => String(n).padStart(2, "0");
 /** m:ss */
 export const clock = (s: number) => `${Math.floor(s / 60)}:${pad(Math.floor(s % 60))}`;
 
-/** Long times: 3:52 h from an hour on, else minutes. */
+/**
+ * Long times written out: "6 h 28 min", "6 h", "45 min". Not "6:28 h": everywhere else "8:21 min" means
+ * minutes and seconds, so a colon here would read as minutes too.
+ */
 export function longDuration(s: number): string {
-  const min = Math.round(s / 60);
-  return min >= 60 ? `${Math.floor(min / 60)}:${String(min % 60).padStart(2, "0")}\u00a0h` : `${min}\u00a0min`;
+  const min = Math.round(s / 60), h = Math.floor(min / 60), m = min % 60;
+  if (!h) return `${m}\u00a0min`;
+  return m ? `${h}\u00a0h ${m}\u00a0min` : `${h}\u00a0h`;
 }
 
 export function duration(locale: Locale, s: number): string {
