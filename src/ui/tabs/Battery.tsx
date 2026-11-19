@@ -64,7 +64,12 @@ export function BatteryTab() {
       {g.has("pack_voltage") && (
         <LineChart syncKey={e!.key} title={t("battery.voltage")} series={perCell} phases={a.kind === "flight" ? p?.phases : null} height={170} yMin={3.3} yMax={4.3}
           yFormat={(x) => `${num(loc, x, 1)}\u00a0V`} bands={[{ from: 3.3, to: 3.5, color: "--crit", alpha: 0.1 }, { from: 3.5, to: 3.7, color: "--warn", alpha: 0.1 }]}
-          extra={<div className="sub">{t("battery.voltageHint")}</div>} />
+          extra={<div className="sub">{t("battery.voltageHint")}</div>}
+          // The cursor shows the whole pack too: pilots know their pack by its total voltage.
+          readout={(i) => {
+            const v = g.get("pack_voltage")[i];
+            return v == null ? "–" : t("battery.voltageReadout", { cell: num(loc, v / cells, 2), pack: num(loc, v, 1) });
+          }} />
       )}
       {cellSeries.length > 0 && (
         <div className="lv-more">

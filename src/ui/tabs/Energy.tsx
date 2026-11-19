@@ -67,7 +67,8 @@ export function EnergyTab() {
         <LineChart syncKey={e!.key} title={t("overview.throttle")} series={thr} phases={flight ? p.phases : null} height={150} yMax={100}
           yFormat={(x) => `${axisNum(loc, x)}\u00a0%`} extra={flight ? <PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} /> : null} />
       )}
-      {g.has("motor_current") && <div className="lv-more"><LineChart syncKey={e!.key} title={t("energy.motorCurrent")} series={amps} height={150} yFormat={(x) => `${axisNum(loc, x)}\u00a0A`} /></div>}
+      {/* Always shown: with a Smart ESC the current is a key value, not a detail. */}
+      {g.has("motor_current") && <LineChart syncKey={e!.key} title={t("energy.motorCurrent")} series={amps} height={150} yFormat={(x) => `${axisNum(loc, x)}\u00a0A`} />}
       {g.has("rpm_electrical") && (
         <div className="lv-more"><LineChart syncKey={e!.key} title={t("energy.rpm")} series={rpm} height={130} yFormat={(x) => `${axisNum(loc, x / 1000)}k`} extra={<div className="sub">{t("energy.rpmHint")}</div>} /></div>
       )}
