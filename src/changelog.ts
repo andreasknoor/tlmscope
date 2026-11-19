@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.1", date: "2026-11-19", changes: [["fix", "The follow view stays on when scrolling over the map; Ctrl + wheel or two fingers zoom its camera out."]] },
   { version: "2.0", date: "2026-11-19", changes: [["new", "TLMscope has its own address: www.tlmscope.com. Settings from the old address are set again there.", "highlight"]] },
   { version: "1.99", date: "2026-11-19", changes: [["new", "Electrical power chart (W) with volts, amps and watts at the cursor, and the peak power.", "highlight"]] },
   { version: "1.98", date: "2026-11-19", changes: [["fix", "The motor current chart is always shown, not only with “Show details”."], ["fix", "The battery voltage chart shows the whole pack next to the value per cell."]] },

@@ -70,6 +70,12 @@ const CHASE_PLANE_PX = 120;
 const CHASE_PAD_TOP = 0.3;
 /** Share of the remaining course difference the chase camera turns per frame. */
 const CHASE_TURN = 0.06;
+/**
+ * How far the chase camera may be zoomed out from its usual distance (zoom levels), and how much one wheel pixel zooms.
+ * Not in: the camera aims at the ground point under the model, so closer in the model leaves the top of the picture.
+ */
+const CHASE_ZOOM_OUT = 3;
+const CHASE_WHEEL_ZOOM = 0.002;
 /** How often the ground height at the launch spot is read again while the relief is on (ms). */
 const ELEV_READ_MS = 500;
 const isDark = () => document.documentElement.dataset.theme === "dark" || (document.documentElement.dataset.theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
@@ -204,7 +210,8 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
   /** Ground elevation at the launch spot (m above sea level) while the relief is on; the logged heights start there. */
   const [elev, setElev] = useState(0);
   const boundsRef = useRef<[[number, number], [number, number]] | null>(null);
-  const chaseRef = useRef({ on: chase, bearing: null as number | null });
+  /** Chase view: on, the camera's course, and how far the pilot zoomed it from its usual distance (zoom levels). */
+  const chaseRef = useRef({ on: chase, bearing: null as number | null, zoomOffset: 0 });
   const onChaseEndRef = useRef(onChaseEnd);
   const onGroundRef = useRef(onGround);
   const groundSent = useRef({ at: 0, agl: null as number | null });
@@ -272,7 +279,27 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
       m.on("zoom", () => drawRef.current());
       // Grabbing the map ends the chase view, otherwise the next frame would pull the camera back.
       m.on("dragstart", () => { if (chaseRef.current.on) onChaseEndRef.current?.(); });
-      m.on("wheel", () => { if (chaseRef.current.on) onChaseEndRef.current?.(); });
+      // In the chase view the wheel and two fingers zoom the camera's distance instead (the map's own zoom is off
+      // then, see the chase effect): the next frame would undo a map zoom. On the page, the wheel zooms only with
+      // Ctrl / ⌘ as everywhere else, so plain scrolling still scrolls the page and keeps the chase view.
+      const box = m.getCanvasContainer();
+      const zoomBy = (d: number) => { const ch = chaseRef.current; ch.zoomOffset = Math.max(-CHASE_ZOOM_OUT, Math.min(0, ch.zoomOffset + d)); };
+      box.addEventListener("wheel", (ev) => {
+        if (!chaseRef.current.on || (coopRef.current?.on && !ev.ctrlKey && !ev.metaKey)) return;
+        ev.preventDefault();
+        const px = ev.deltaMode === 1 ? ev.deltaY * 40 : ev.deltaMode === 2 ? ev.deltaY * 800 : ev.deltaY;
+        zoomBy(-px * CHASE_WHEEL_ZOOM);
+      }, { passive: false });
+      let pinch: { dist: number; offset: number } | null = null;
+      const fingers = (ev: TouchEvent) => Math.hypot(ev.touches[0].clientX - ev.touches[1].clientX, ev.touches[0].clientY - ev.touches[1].clientY);
+      box.addEventListener("touchstart", (ev) => { pinch = chaseRef.current.on && ev.touches.length === 2 ? { dist: fingers(ev), offset: chaseRef.current.zoomOffset } : null; }, { passive: true });
+      box.addEventListener("touchmove", (ev) => {
+        if (!pinch || !chaseRef.current.on || ev.touches.length !== 2) return;
+        ev.preventDefault();
+        chaseRef.current.zoomOffset = pinch.offset;
+        zoomBy(Math.log2(fingers(ev) / Math.max(1, pinch.dist)));
+      }, { passive: false });
+      box.addEventListener("touchend", () => { pinch = null; });
       setReady(true);
       setMapGen((g) => g + 1);
     }).catch((err: unknown) => {
@@ -358,8 +385,10 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
   // Chase view: tilt and zoom the camera behind the model; the tick below moves it with the replay.
   useEffect(() => {
     const m = mapRef.current, st = chaseRef.current;
-    st.on = chase; st.bearing = null;
+    st.on = chase; st.bearing = null; st.zoomOffset = 0;
     if (!ready || !m) return;
+    // The map's own wheel and pinch zoom would fight the camera; in the chase view the listeners above zoom it.
+    if (chase) { m.scrollZoom.disable(); m.touchZoomRotate.disable(); } else { m.scrollZoom.enable(); m.touchZoomRotate.enable(); }
     if (chase) {
       m.easeTo({ pitch: CHASE_PITCH, duration: 500 });
       if (!anim.current.frame) anim.current.frame = requestAnimationFrame((t) => tickRef.current(t));
@@ -620,7 +649,7 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
           const want = attitude.heading[i0] + turnTo * f;
           ch.bearing = ch.bearing === null ? want : ch.bearing + (((want - ch.bearing + 540) % 360) - 180) * CHASE_TURN;
           // Zoom so that a screen pixel covers about CHASE_M_PER_PX metres on the ground.
-          const zoom = Math.log2((40_075_016.7 * Math.cos(lat * rad)) / (512 * CHASE_M_PER_PX));
+          const zoom = Math.log2((40_075_016.7 * Math.cos(lat * rad)) / (512 * CHASE_M_PER_PX)) + ch.zoomOffset;
           mp.jumpTo({ center: [lon, lat], bearing: (ch.bearing + 360) % 360, pitch: CHASE_PITCH, zoom, padding: { top: Math.round(mp.getContainer().clientHeight * CHASE_PAD_TOP), bottom: 0, left: 0, right: 0 } });
         }
       }
