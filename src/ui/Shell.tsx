@@ -20,6 +20,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
 import { OPERATOR, REPO_URL } from "@/legal/contact";
 import { WhatsNew } from "./WhatsNew";
+import { MovedNotice } from "./MovedNotice";
 import { PHASE_COLOR } from "./charts/LineChart";
 import { Logo, Wordmark } from "./brand";
 import { useLogoClicks } from "./StorkRace";
@@ -355,6 +356,7 @@ export function Shell({ helpRef, settingsRef, feedbackRef, messages, dismiss }: 
   );
   return (
     <>
+      <MovedNotice />
       {files.length === 0 ? <Start notices={notices} /> : (
         <>
         <Header />

@@ -294,7 +294,7 @@ export const en: Content = {
         {
           h2: "Help to widen the support",
           blocks: [
-            { t: "p", text: "Logs from NX and iX transmitters have been tested so far. If you fly a DX transmitter, or other Spektrum sensors, a log file helps a lot to check and extend the decoding. Tell me through the **Feedback** button in TLMscope (see [How can I send feedback or a log?](page:faq#send-feedback)), or open an issue in the [GitHub project](https://github.com/andreasknoor/tlmscope). To find out which value in a log belongs to which stick, switch or knob of your transmitter, the [transmitter ground test](https://tlmscope.andreasknoor.com/debug) guides you through moving each control while the transmitter records. Only share logs you are comfortable sharing: logs with GPS show where you fly." },
+            { t: "p", text: "Logs from NX and iX transmitters have been tested so far. If you fly a DX transmitter, or other Spektrum sensors, a log file helps a lot to check and extend the decoding. Tell me through the **Feedback** button in TLMscope (see [How can I send feedback or a log?](page:faq#send-feedback)), or open an issue in the [GitHub project](https://github.com/andreasknoor/tlmscope). To find out which value in a log belongs to which stick, switch or knob of your transmitter, the [transmitter ground test](https://www.tlmscope.com/debug) guides you through moving each control while the transmitter records. Only share logs you are comfortable sharing: logs with GPS show where you fly." },
             { t: "p", text: "TLMscope is an independent project and is not made or endorsed by Spektrum or Horizon Hobby." },
           ],
         },

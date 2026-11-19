@@ -9,13 +9,28 @@ const PAGES = ["/", "/de"];
 const STORED = new Set(URLS);
 /** On a slow connection at the field, wait this long for the network before using the stored page. */
 const PAGE_TIMEOUT_MS = 3000;
+/**
+ * The address before version 2.0 redirects to www.tlmscope.com, except this file (vercel.json). A browser that
+ * stored TLMscope there updates to this worker, which then deletes the stored copy, removes itself and reloads
+ * the open pages, so they follow the redirect.
+ */
+const RETIRE = self.location.hostname === "tlmscope.andreasknoor.com";
 
 self.addEventListener("install", (event) => {
+  if (RETIRE) { self.skipWaiting(); return; }
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(URLS.map((u) => new Request(u, { cache: "reload" })))));
   // The first worker takes over right away; later versions wait until the page asks (see "skip-waiting").
 });
 
 self.addEventListener("activate", (event) => {
+  if (RETIRE) {
+    event.waitUntil((async () => {
+      for (const key of await caches.keys()) if (key.startsWith("tlmscope-")) await caches.delete(key);
+      await self.registration.unregister();
+      for (const client of await self.clients.matchAll({ type: "window" })) client.navigate(client.url);
+    })());
+    return;
+  }
   event.waitUntil((async () => {
     for (const key of await caches.keys()) if (key.startsWith("tlmscope-") && key !== CACHE) await caches.delete(key);
     await self.clients.claim();
@@ -58,7 +73,7 @@ async function asset(request, path) {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== "GET") return;
+  if (RETIRE || request.method !== "GET") return;
   const url = new URL(request.url);
   // Map images, page-view counting and other hosts are left to the browser.
   if (url.origin !== self.location.origin) return;

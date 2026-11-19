@@ -6,7 +6,9 @@ import { LANGS, PAGE_IDS, UPDATED, homePath, pagePath, pathOf, type Lang, type P
 export const LATEST_RELEASE = CHANGELOG[0];
 
 /** The one place for what search engines and link previews are told about the site. */
-export const SITE_URL = "https://tlmscope.andreasknoor.com";
+export const SITE_URL = "https://www.tlmscope.com";
+/** The address before version 2.0: it redirects here (vercel.json) and shows a notice while an old copy is open. */
+export const OLD_HOST = "tlmscope.andreasknoor.com";
 export const SITE_NAME = "TLMscope";
 
 export const absolute = (path: string) => new URL(path, SITE_URL).toString();

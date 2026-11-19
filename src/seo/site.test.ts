@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { LANGS, PAGE_IDS, SLUGS, pathOf } from "./pages.ts";
 import { absolute, HOME_META, homeStructuredData, languageAlternates, SITE_SUMMARY, SITE_URL, SITEMAP } from "./site.ts";
@@ -48,7 +49,6 @@ describe("search engine basics", () => {
 describe("site summary", () => {
   it("is worded the same in the FAQ and the README", async () => {
     const { CONTENT } = await import("./content/index.ts");
-    const { readFileSync } = await import("node:fs");
     const { answerPlain } = await import("./markup.ts");
     expect(answerPlain(CONTENT.en.guides.faq.faq![0].a).startsWith(SITE_SUMMARY.split(". ")[0])).toBe(true);
     expect(readFileSync("README.md", "utf8")).toContain(SITE_SUMMARY);
@@ -83,5 +83,35 @@ describe("dates and full text for search engines and assistants", () => {
     expect(md).toContain("**this**");
     expect(md).toContain("- a\n- b");
     expect(md).toContain("| x | y |\n| --- | --- |\n| 1 | 2 |");
+  });
+});
+
+describe("the move to www.tlmscope.com", () => {
+  it("names the old address only where the move is handled", async () => {
+    const { readdirSync, statSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const allowed = new Set(["src/seo/site.ts", "src/seo/site.test.ts", "cli/sw.template.js", "vercel.json"]);
+    const files: string[] = [];
+    const walk = (dir: string) => { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) walk(p); else files.push(p); } };
+    for (const d of ["src", "cli", "public", "prototype"]) walk(d);
+    const hits = [...files, "vercel.json", "README.md", "CLAUDE.md"]
+      .filter((f) => /\.(ts|tsx|js|json|html|md|txt|css)$/.test(f) && !f.startsWith("public/maplibre") && f !== "public/debug.html")
+      .filter((f) => readFileSync(f, "utf8").includes("andreasknoor.com"))
+      .filter((f) => !allowed.has(f) && !(f === "CLAUDE.md"));
+    expect(hits).toEqual([]);
+  });
+
+  it("redirects every path of the old address except the worker, permanently", () => {
+    const v = JSON.parse(readFileSync("vercel.json", "utf8"));
+    const rules = v.redirects.filter((r: { has?: { value: string }[] }) => r.has?.[0]?.value === "tlmscope.andreasknoor.com");
+    expect(rules).toHaveLength(2);
+    for (const r of rules) {
+      expect(r.permanent).toBe(true);
+      expect(r.destination.startsWith(`${SITE_URL}/`)).toBe(true);
+    }
+    const re = /^\/(?!sw\.js$).+$/;
+    expect(re.test("/faq")).toBe(true);
+    expect(re.test("/sw.js")).toBe(false);
+    expect(rules[1].source).toBe("/:path((?!sw\\.js$).+)");
   });
 });

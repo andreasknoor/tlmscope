@@ -61,6 +61,8 @@
     "totalHintApprox": "Part of the time is estimated from motor and movement, because those flights have no height or GPS data.",
     "exportCsv": "Export as CSV",
     "exportCsvHint": "Saves the sessions shown in the list as a spreadsheet file. Nothing is sent anywhere.",
+    "moved": "TLMscope has moved to",
+    "movedSettings": "Settings saved at this address (units, battery names, map options) do not move along: please set them again there.",
     "approx": "about {time}",
     "sessionDuration": "Session {time}",
     "transmitterOnly": "Transmitter only",

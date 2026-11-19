@@ -2,11 +2,11 @@
 
 # TLMscope
 
-TLMscope is a free, browser-based viewer and analyzer for Spektrum .TLM telemetry logs. It runs on Windows, macOS, Linux, Android and iOS without installing anything, and the files stay on your device. It shows what happened during your RC flights: flight summaries, charts and simple ratings, with the exact values one click away. A free alternative to desktop TLM viewers, see [how it compares](https://tlmscope.andreasknoor.com/compare).
+TLMscope is a free, browser-based viewer and analyzer for Spektrum .TLM telemetry logs. It runs on Windows, macOS, Linux, Android and iOS without installing anything, and the files stay on your device. It shows what happened during your RC flights: flight summaries, charts and simple ratings, with the exact values one click away. A free alternative to desktop TLM viewers, see [how it compares](https://www.tlmscope.com/compare).
 
 Files are read in your browser and never uploaded. Only the map for GPS logs loads map tiles from [OpenFreeMap](https://openfreemap.org), which sees roughly where the flight was.
 
-**Open the app: [tlmscope.andreasknoor.com](https://tlmscope.andreasknoor.com)**, or try it with the built-in demo flight.
+**Open the app: [www.tlmscope.com](https://www.tlmscope.com)**, or try it with the built-in demo flight.
 
 ![TLMscope showing the demo flight: summary sentence, key numbers and the height profile with motor climbs, lift and gliding](docs/images/overview.jpg)
 

@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.0", date: "2026-11-19", changes: [["new", "TLMscope has its own address: www.tlmscope.com. Settings from the old address are set again there.", "highlight"]] },
   { version: "1.99", date: "2026-11-19", changes: [["new", "Electrical power chart (W) with volts, amps and watts at the cursor, and the peak power.", "highlight"]] },
   { version: "1.98", date: "2026-11-19", changes: [["fix", "The motor current chart is always shown, not only with “Show details”."], ["fix", "The battery voltage chart shows the whole pack next to the value per cell."]] },
   { version: "1.97", date: "2026-11-18", changes: [["fix", "Fades are named per receiver (main receiver A, remote receivers B, L, R), as Spektrum counts them."], ["fix", "“Move it” only for a remote receiver far above the others, never for the main receiver."], ["fix", "A hold is described as half a second or longer without signal (45 frames in a row)."]] },

@@ -61,6 +61,8 @@
     "totalHintApprox": "Ein Teil der Zeit ist aus Motor und Bewegung geschätzt, weil diese Flüge keine Höhen- oder GPS-Daten haben.",
     "exportCsv": "Als CSV exportieren",
     "exportCsvHint": "Speichert die Sitzungen der Liste als Tabellendatei. Es wird nichts gesendet.",
+    "moved": "TLMscope ist umgezogen nach",
+    "movedSettings": "Die an dieser Adresse gespeicherten Einstellungen (Einheiten, Akkunamen, Kartenoptionen) ziehen nicht mit um: Bitte setze sie dort neu.",
     "approx": "ca. {time}",
     "sessionDuration": "Sitzung {time}",
     "transmitterOnly": "Nur Sender",

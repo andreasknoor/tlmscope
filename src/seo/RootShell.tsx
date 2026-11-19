@@ -24,7 +24,7 @@ export function RootShell({ lang, children }: { lang: Lang; children: React.Reac
         <Script
           src="https://cloud.umami.is/script.js"
           data-website-id="172a6628-9f2e-4adb-804c-34d1355bc80c"
-          data-domains="tlmscope.andreasknoor.com"
+          data-domains="www.tlmscope.com"
           data-do-not-track="true"
           data-exclude-hash="true"
           data-exclude-search="true"
