@@ -386,6 +386,8 @@
     "motorCurrent": "Motor current",
     "rpm": "Motor speed (electrical rpm)",
     "rpmHint": "Divide by half the motor's pole count for shaft rpm.",
+    "power": "Electrical power",
+    "powerHint": "Input voltage × current at the motor controller. What reaches the propeller is less: the controller and the motor lose part of it.",
     "eachClimb": "Each motor run",
     "gained": "Height gained",
     "chargeUsed": "Charge used",

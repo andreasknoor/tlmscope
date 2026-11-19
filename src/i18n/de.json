@@ -386,6 +386,8 @@
     "motorCurrent": "Motorstrom",
     "rpm": "Motordrehzahl (elektrisch)",
     "rpmHint": "Für die Wellendrehzahl durch die halbe Polzahl des Motors teilen.",
+    "power": "Elektrische Leistung",
+    "powerHint": "Eingangsspannung × Strom am Motorregler. An der Luftschraube kommt weniger an: Regler und Motor verlieren einen Teil davon.",
     "eachClimb": "Jeder Motorlauf",
     "gained": "Höhengewinn",
     "chargeUsed": "Verbrauch",

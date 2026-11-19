@@ -43,6 +43,14 @@ export function EnergyTab() {
   const amps = useMemo(() => [{ data: g.get("motor_current"), color: "--s-motor", unit: "A", fill: 0.1 }], [g]);
   const rpm = useMemo(() => [{ data: g.get("rpm_electrical"), color: "--s-4", unit: "1/min", digits: 0 }], [g]);
   const maxA = Math.max(0, maxOf(g.get("motor_current", "max")) ?? 0);
+  // Electrical power at the controller's input: pack voltage × current, per second (both from the Smart ESC).
+  const power = useMemo(() => {
+    if (!g.has("motor_current") || !g.has("pack_voltage")) return null;
+    const a = g.get("motor_current"), v = g.get("pack_voltage");
+    return { amps: a, volts: v, watts: a.map((x, i) => (x === null || v[i] === null ? null : x * v[i]!)) };
+  }, [g]);
+  const maxW = power ? maxOf(power.watts) : null;
+  const powerSeries = useMemo(() => (power ? [{ data: power.watts, color: "--s-5", unit: "W", digits: 0, fill: 0.1 }] : []), [power]);
   const flight = a.kind === "flight" && p;
 
   return (
@@ -60,7 +68,7 @@ export function EnergyTab() {
           sub={!flight ? t("energy.onlyFlights") : p.mahPerMin != null ? t("energy.needsOtherFlights", { min: COMPARE_MIN_FLIGHTS, n: a.baseline?.counts.mahPerMin ?? 0 }) : undefined} />}
         {flight && a.efficiency ? <EfficiencyCard a={a} /> : <Tile label={t("rating.efficiency")} value="–"
           sub={!flight ? t("energy.onlyFlights") : p.basis !== "height" ? t("energy.needsHeight") : p.mPer100mAh != null ? t("energy.needsOtherFlights", { min: COMPARE_MIN_FLIGHTS, n: a.baseline?.counts.efficiency ?? 0 }) : undefined} />}
-        <Tile label={t("overview.motorTime")} value={clock(p?.motorSecs ?? 0)} unit={"\u00a0min"} sub={`max ${num(loc, maxA, 1)}\u00a0A`} />
+        <Tile label={t("overview.motorTime")} value={clock(p?.motorSecs ?? 0)} unit={"\u00a0min"} sub={`max ${num(loc, maxA, 1)}\u00a0A${maxW ? ` · ${num(loc, maxW, 0)}\u00a0W` : ""}`} />
       </div>
       {u && u.capacitySource !== "battery" && <CapacityInput key={e!.model.key} />}
       {thr[0].data.some((x) => x !== null) && (
@@ -69,6 +77,11 @@ export function EnergyTab() {
       )}
       {/* Always shown: with a Smart ESC the current is a key value, not a detail. */}
       {g.has("motor_current") && <LineChart syncKey={e!.key} title={t("energy.motorCurrent")} series={amps} height={150} yFormat={(x) => `${axisNum(loc, x)}\u00a0A`} />}
+      {power && maxW !== null && maxW > 0 && (
+        <LineChart syncKey={e!.key} title={t("energy.power")} series={powerSeries} height={150} yFormat={(x) => `${axisNum(loc, x)}\u00a0W`}
+          extra={<div className="sub">{t("energy.powerHint")}</div>} rest={`max ${num(loc, maxW, 0)}\u00a0W`}
+          readout={(i) => `${num(loc, power.volts[i], 1)}\u00a0V · ${num(loc, power.amps[i], 1)}\u00a0A · ${num(loc, power.watts[i], 0)}\u00a0W`} />
+      )}
       {g.has("rpm_electrical") && (
         <div className="lv-more"><LineChart syncKey={e!.key} title={t("energy.rpm")} series={rpm} height={130} yFormat={(x) => `${axisNum(loc, x / 1000)}k`} extra={<div className="sub">{t("energy.rpmHint")}</div>} /></div>
       )}
