@@ -3,7 +3,7 @@ import { normaliseSession, toSessionCounter } from "../../model/normalise.ts";
 import type { BatteryIdentity, LogAdapter, LogFile, ParseWarning, RawFieldStat, RawStream, Session } from "../../model/types.ts";
 import { readBlocks, PACKET_SIZE, type RawSession } from "./blocks.ts";
 import { ascii, bcdLe, hex, u16le } from "./bytes.ts";
-import { GPS_FIX_CATEGORIES, GPS_FLAG, KNOWN_UNDECODED, SENSORS, streamKey, type Field } from "./sensors.ts";
+import { GPS_FIX_CATEGORIES, GPS_FLAG, KNOWN_UNDECODED, SENSORS, streamKey, unwrapPacket, type Field } from "./sensors.ts";
 
 const FORMAT = "Spektrum TLM";
 /** Byte 2 of 0x05 by value: bit 0 = AS3X, bit 1 = SAFE (includes AS3X), bit 2 = heading hold. */
@@ -86,7 +86,7 @@ function parseSession(data: Uint8Array, rs: RawSession, warnings: ParseWarning[]
       prevTick = tick;
     }
     const t = (tick - base) / 100;
-    const p = data.subarray(rs.packetOffsets[i], rs.packetOffsets[i] + PACKET_SIZE);
+    const p = unwrapPacket(data.subarray(rs.packetOffsets[i], rs.packetOffsets[i] + PACKET_SIZE));
     const key = streamKey(p);
     const def = SENSORS[key];
     const fields: Field[] = def ? def.decode(p) : [];

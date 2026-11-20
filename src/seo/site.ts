@@ -22,7 +22,7 @@ export const FEATURES = [
   "Reads Spektrum .TLM telemetry logs (NX, iX, DX) in the browser",
   "Plain-language flight summaries with simple ratings",
   "Charts for height, climb, motor, battery and radio link",
-  "Flight path on a map with 3D replay and ground speed",
+  "Flight path on a map with 3D replay and ground speed, from a Spektrum GPS sensor or SkyID Remote ID module",
   "Height above ground from GPS when there is no vario",
   "Flight modes and stabilization (AS3X, SAFE, heading hold) with the AS3X gain",
   "Thermal detection",

@@ -602,7 +602,7 @@
     "d4": "Height and climb rate",
     "d4n": "Vario / altimeter sensor, or a receiver that reports it",
     "d4g": "Height above ground without a vario (less exact, no climbs or lift)",
-    "d4gn": "Spektrum GPS telemetry sensor",
+    "d4gn": "Spektrum GPS telemetry sensor or SkyID Remote ID module",
     "d5": "Loads (g) and rotation rates",
     "d5n": "Receiver with AS3X / SAFE",
     "d6": "Throttle stick position",
@@ -610,7 +610,7 @@
     "d7": "Stabilization (AS3X, SAFE, heading hold) per flight mode",
     "d7n": "Receiver with AS3X / SAFE",
     "d8": "Map, distance, speed over ground",
-    "d8n": "Spektrum GPS telemetry sensor",
+    "d8n": "Spektrum GPS telemetry sensor or SkyID Remote ID module",
     "d9": "Other sensors (airspeed, extra current or temperature sensors, …)",
     "d9n": "X-Bus / SRXL2 sensors",
     "st": {

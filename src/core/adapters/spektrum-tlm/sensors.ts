@@ -39,7 +39,24 @@ export function streamKey(p: Uint8Array): string {
   const k = "0x" + id.toString(16).padStart(2, "0");
   if (id === 0x42) return `${k}/0x${(p[2] & 0xf0).toString(16).padStart(2, "0")}`;
   if (id === 0x7a) return `${k}/${p[1]}`;
+  if (id === REMOTE_ID) return `${k}/0x${p[1].toString(16).padStart(2, "0")}`;
   return k;
+}
+
+/** Remote ID module (Spektrum SkyID): forwards its GPS packets with this id. */
+const REMOTE_ID = 0x27;
+
+/**
+ * A Remote ID module sends GPS packets as 0x27 with the real type (0x16 or 0x17) in byte 1 and
+ * bytes 2–15 laid out exactly as in the normal packet. These are returned as the normal packet
+ * (a copy, byte 1 set to 0) so they decode like any GPS; everything else is returned as is.
+ */
+export function unwrapPacket(p: Uint8Array): Uint8Array {
+  if (p[0] !== REMOTE_ID || (p[1] !== 0x16 && p[1] !== 0x17)) return p;
+  const q = new Uint8Array(p);
+  q[0] = p[1];
+  q[1] = 0;
+  return q;
 }
 
 export const SENSORS: Record<string, SensorDef> = {
@@ -234,13 +251,13 @@ export const SENSORS: Record<string, SensorDef> = {
   "0x16": {
     label: "GPS location",
     understood: "full",
-    note: "Little-endian BCD as in the specification. Checked against a real GPS log (Supra Fly, 2025/26): positions, course and HDOP are consistent. The altitude depends on the GPS module: in that log it equals the vario height (relative to the take-off spot) to 0.1 m; in logs from another GPS without a vario it is absolute (the same ground level of about 40–50 m at one field over several days, settling for about a minute after the first fix). The negative-altitude flag (bit 7 of byte 15) can be wrong: in one flight it was set from the first fix on, so the model would have flown below the ground.",
+    note: "Little-endian BCD as in the specification. Checked against a real GPS log (Supra Fly, 2025/26): positions, course and HDOP are consistent. The altitude depends on the GPS module: in that log it equals the vario height (relative to the take-off spot) to 0.1 m; in logs from another GPS without a vario it is absolute (the same ground level of about 40–50 m at one field over several days, settling for about a minute after the first fix). The negative-altitude flag (bit 7 of byte 15) can be wrong: in one flight it was set from the first fix on, so the model would have flown below the ground. Remote ID modules (Spektrum SkyID) send the same packet as 0x27 with 0x16 in byte 1; it is read the same way (checked against a KML track made from such a log: same positions within the 0.2 m rounding of the KML).",
     decode: (p) => decodeGpsLoc(p),
   },
   "0x17": {
     label: "GPS status",
     understood: "full",
-    note: "Little-endian BCD as in the specification. Checked against a real GPS log: the ground speed (knots) matches the distance between positions. Records that are all zero carry no data.",
+    note: "Little-endian BCD as in the specification. Checked against a real GPS log: the ground speed (knots) matches the distance between positions. Records that are all zero carry no data. Remote ID modules (Spektrum SkyID) send it as 0x27 with 0x17 in byte 1.",
     decode: (p) => decodeGpsStat(p),
   },
   "0x7a/1": {
@@ -294,6 +311,7 @@ export const KNOWN_UNDECODED: Record<string, string> = {
   "0x12": "Altitude sensor (declared; the Supra header pairs it with 0x40, the vario)",
   "0x11": "Airspeed sensor (declared, only zeros seen)",
   "0x50": "User-defined sensor (probably; content unknown)",
+  "0x27/0x27": "Remote ID module text (probably its ID)",
 };
 
 /** GPS flags, byte 15 of 0x16. */

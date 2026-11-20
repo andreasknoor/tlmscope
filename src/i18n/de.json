@@ -602,7 +602,7 @@
     "d4": "Höhe und Steigrate",
     "d4n": "Vario- / Höhensensor oder ein Empfänger, der sie meldet",
     "d4g": "Höhe über Grund ohne Vario (ungenauer, ohne Steigflüge und Aufwind)",
-    "d4gn": "Spektrum-GPS-Telemetriesensor",
+    "d4gn": "Spektrum-GPS-Telemetriesensor oder SkyID-Remote-ID-Modul",
     "d5": "Lasten (g) und Drehraten",
     "d5n": "Empfänger mit AS3X / SAFE",
     "d6": "Stellung des Gasknüppels",
@@ -610,7 +610,7 @@
     "d7": "Stabilisierung (AS3X, SAFE, Heading Hold) je Flugmodus",
     "d7n": "Empfänger mit AS3X / SAFE",
     "d8": "Karte, Entfernung, Geschwindigkeit über Grund",
-    "d8n": "Spektrum GPS-Telemetriesensor",
+    "d8n": "Spektrum-GPS-Telemetriesensor oder SkyID-Remote-ID-Modul",
     "d9": "Weitere Sensoren (Fahrtmesser, zusätzliche Strom- oder Temperatursensoren, …)",
     "d9n": "X-Bus- / SRXL2-Sensoren",
     "st": {
