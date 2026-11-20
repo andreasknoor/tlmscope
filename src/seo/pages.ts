@@ -21,7 +21,7 @@ export const SLUGS: Record<PageId, Record<Lang, string>> = {
  */
 export const UPDATED: Record<PageId, string> = {
   open: "2026-11-18",
-  understand: "2026-11-18",
+  understand: "2026-11-20",
   radios: "2026-11-20",
   help: "2026-11-18",
   faq: "2026-11-18",

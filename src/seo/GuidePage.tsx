@@ -5,6 +5,7 @@ import { CONTENT } from "./content/index.ts";
 import { Inline } from "./Inline";
 import { answerBlocks, answerPlain } from "./markup.ts";
 import { Blocks } from "./Blocks";
+import { FaqAnchors } from "./FaqAnchors";
 import { JsonLd } from "./JsonLd";
 import { homePath, legalPath, pagePath, PAGE_IDS, UPDATED, type Lang, type PageId } from "./pages.ts";
 import { faqId, guideStructuredData } from "./site.ts";
@@ -42,12 +43,15 @@ export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
         ))}
         {g.faq && (
           <section>
-            <h2>{c.chrome.faq}</h2>
+            {/* On a page that is only questions (the FAQ), the page title already says it. */}
+            {g.sections.length > 0 && <h2>{c.chrome.faq}</h2>}
+            {/* The open/close-all link only where there are many questions (the FAQ page). */}
+            <FaqAnchors toggle={g.faq.length > 6 ? c.chrome.allQuestions : undefined} />
             {g.faq.map((f) => (
-              <div key={f.q} id={faqId(f)} className="qa">
-                <h3>{f.q} <a className="qlink" href={`#${faqId(f)}`} aria-label={c.chrome.linkToQuestion}>#</a></h3>
+              <details key={f.q} id={faqId(f)} className="qa">
+                <summary><h3>{f.q} <a className="qlink" href={`#${faqId(f)}`} aria-label={c.chrome.linkToQuestion}>#</a></h3></summary>
                 <div className="qa-a"><Blocks blocks={answerBlocks(f.a)} lang={lang} /></div>
-              </div>
+              </details>
             ))}
           </section>
         )}

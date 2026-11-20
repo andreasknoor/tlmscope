@@ -14,6 +14,7 @@ export const de: Content = {
     nav: { open: "TLM-Dateien öffnen", understand: "Telemetrie verstehen", radios: "Unterstützte Sender", help: "Hilfe", faq: "Häufige Fragen", compare: "Vergleich" },
     faq: "Häufige Fragen",
     linkToQuestion: "Link zu dieser Frage",
+    allQuestions: { open: "Alle aufklappen", close: "Alle zuklappen" },
     updated: "Aktualisiert am",
     skip: "Zum Inhalt springen",
   },
@@ -169,6 +170,7 @@ export const de: Content = {
               "**Holds** sind eine halbe Sekunde oder länger ganz ohne Signal (45 Pakete in Folge, die kein Empfänger bekommen hat). Der Empfänger geht dann in seine Hold- oder Failsafe-Einstellung. Ein Hold im Flug bewertet die Funkverbindung immer als kritisch und ist in ihrem Zeitverlauf markiert.",
             ] },
             { t: "note", text: "Diese Zähler beginnen bei null, wenn der Empfänger startet. TLMscope zeigt, was während der Sitzung passiert ist." },
+            { t: "img", name: "link", alt: "Tab Funkverbindung eines Demo-Flugs: Funkverbindung hoch, Signalstärke normal, beide im Verlauf in Grün, Hellgrün und Gelb", caption: "Der Tab Funkverbindung: Grün ist gut, Gelb zeigt, wo das Signal schwach wurde." },
           ],
         },
         {
@@ -193,6 +195,7 @@ export const de: Content = {
               "**Innenwiderstand je Zelle** wird daraus geschätzt, wie weit die Spannung einbricht, wenn der Motor Strom zieht, und enthält deshalb die Verkabelung. Unter 10 mΩ je Zelle ist hervorragend, bis 12 mΩ akzeptabel, und über 15 mΩ ist es Zeit, den Akku auszumustern, eine Faustregel aus LiPo-Ratgebern. Die Seite Akkus verfolgt diesen Wert von Flug zu Flug und schätzt, wie viele Ladezyklen noch übrig sind.",
               "**Temperatur**: 35 bis 45 °C nach dem Flug sind normal. TLMscope warnt ab 45 °C und sieht 60 °C als übliche Obergrenze. Akkus ohne Temperatursensor senden 0; TLMscope zeigt dann keine Akkutemperatur.",
             ] },
+            { t: "img", name: "battery", alt: "Tab Akku eines Demo-Flugs: welcher Akku, Ladezustand von 99 auf 93 Prozent, Akkuzustand gut und die Spannung je Zelle mit Einbrüchen während der Motorläufe", caption: "Der Tab Akku: Die Spannung je Zelle bricht genau dann ein, wenn der Motor läuft." },
           ],
         },
         {
@@ -205,6 +208,7 @@ export const de: Content = {
           h2: "Höhe, Steigrate und Thermik",
           blocks: [
             { t: "p", text: "Ein Vario- oder Höhensensor meldet Höhe und Steigrate. TLMscope teilt einen Flug in Motorsteigflüge, Gleitflug und Aufwind: Steigen mit abgeschaltetem Motor von etwa zehn Sekunden oder länger wird als Aufwind markiert. Die Mittelpunkte der Thermik werden aus dem Kreisen geschätzt und auf der Karte angezeigt." },
+            { t: "img", name: "lift", alt: "Tab Höhe und Aufwind eines Demo-Flugs: Höhenprofil, aufgeteilt in Motorsteigflüge, Gleitflug und eine Thermik, darunter Motorläufe, Aufwind und Gleitzeit", caption: "Höhe und Aufwind: Motorsteigflüge, Gleitflug und die Thermik eines Flugs." },
             { t: "p", text: "Ohne Vario liefert ein Spektrum-GPS-Sensor die Höhe über dem Startplatz. Sie ist ungenauer, etwa ±5 bis 10 m, deshalb zeigt TLMscope den höchsten Punkt und das Höhenprofil, aber keine Steigflüge, keinen Aufwind und keinen Gleitflug." },
           ],
         },
@@ -224,6 +228,25 @@ export const de: Content = {
           h2: "Stabilisierung und Flugmodi",
           blocks: [
             { t: "p", text: "Empfänger mit AS3X oder SAFE melden auch den Flugmodus und welche Funktionen an sind: AS3X, SAFE und Heading Hold. Der Tab Modell zeigt die Zeit in der Luft je Funktion und je Flugmodus sowie den AS3X-Gain für Rollen, Nicken und Gieren. Ein Gain von 0 heißt, dass AS3X gar nicht korrigiert." },
+          ],
+        },
+        {
+          h2: "Fünf Fragen nach jedem Flug",
+          blocks: [
+            { t: "p", text: "Du musst nicht jeden Wert lesen. Diese fünf Fragen decken das Wichtigste ab:" },
+            { t: "ol", items: [
+              "**Gab es Holds?** Wenn ja, prüfe Antennenverlegung und Einbau vor dem nächsten Flug.",
+              "**Wie viel Ladung ist verbraucht?** Über 80 % heißt: beim nächsten Mal früher landen oder den Timer kürzer stellen.",
+              "**Blieb die Empfängerspannung stabil?** Einbrüche unter Last deuten auf die Stromversorgung hin: BEC, Kabel oder Stecker.",
+              "**Sind die Zellen ausgeglichen?** Ein Unterschied zwischen den Zellen, der von Flug zu Flug wächst, ist ein frühes Warnzeichen.",
+              "**Altert der Akku?** Die Seite Akkus verfolgt seinen Innenwiderstand über die Flüge; steigt er stetig, lässt der Akku nach, lange bevor er im Flug schlappmacht.",
+            ] },
+          ],
+        },
+        {
+          h2: "Was ein Log nicht verrät",
+          blocks: [
+            { t: "p", text: "Ein Log enthält nur, was die Sensoren im Modell gesendet haben: ohne Vario keine Steigrate. Es zeichnet in Abständen auf, nicht lückenlos, deshalb kann ein sehr kurzes Ereignis zwischen zwei Messungen liegen. Und es ersetzt nicht den Blick aufs Modell: Es zeigt, dass die Spannung eingebrochen ist, aber nicht, welcher Stecker locker ist." },
           ],
         },
       ],

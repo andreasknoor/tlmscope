@@ -14,6 +14,7 @@ export const en: Content = {
     nav: { open: "Open TLM files", understand: "Understand telemetry", radios: "Supported radios", help: "Help", faq: "FAQ", compare: "Compare" },
     faq: "Frequently asked questions",
     linkToQuestion: "Link to this question",
+    allQuestions: { open: "Open all", close: "Close all" },
     updated: "Updated",
     skip: "Skip to content",
   },
@@ -169,6 +170,7 @@ export const en: Content = {
               "**Holds** are half a second or longer without any signal (45 frames in a row missed by every receiver). The receiver then goes to its hold or failsafe setting. A hold in flight always rates the radio link as critical and is marked on its timeline.",
             ] },
             { t: "note", text: "These counters start at zero when the receiver powers up. TLMscope shows what happened during the session." },
+            { t: "img", name: "link", alt: "Radio link tab of a demo flight: radio link rated high, signal strength normal, and both over time in green, light green and yellow", caption: "The Radio link tab: green is good, yellow shows where the signal got weak." },
           ],
         },
         {
@@ -193,6 +195,7 @@ export const en: Content = {
               "**Internal resistance per cell** is estimated from how far the voltage sags when the motor draws current, so it includes the wiring. Under 10 mΩ per cell is excellent, up to 12 mΩ acceptable, and above 15 mΩ it is time to retire the pack, a rule of thumb from LiPo guides. The Batteries page follows this value from flight to flight and estimates how many charge cycles are left.",
               "**Temperature** of 35 to 45 °C after a flight is normal. TLMscope warns from 45 °C and treats 60 °C as the usual ceiling. Batteries without a temperature sensor send 0; TLMscope then shows no battery temperature.",
             ] },
+            { t: "img", name: "battery", alt: "Battery tab of a demo flight: which battery, charge level from 99 to 93 percent, battery condition good, and the voltage per cell with dips during the motor runs", caption: "The Battery tab: the voltage per cell dips exactly when the motor runs." },
           ],
         },
         {
@@ -205,6 +208,7 @@ export const en: Content = {
           h2: "Height, climb rate and thermals",
           blocks: [
             { t: "p", text: "A vario or altimeter sensor reports height and climb rate. TLMscope splits a flight into motor climbs, glides and lift: climbing with the motor off for about ten seconds or longer is marked as lift. The centres of thermals are estimated from circling flight and shown on the map." },
+            { t: "img", name: "lift", alt: "Height and lift tab of a demo flight: height profile split into motor climbs, gliding and one thermal, with motor runs, lift and gliding time below", caption: "Height and lift: motor climbs, glides and the thermal of one flight." },
             { t: "p", text: "Without a vario, a Spektrum GPS sensor gives the height above the take-off spot. It is less exact, about ±5 to 10 m, so TLMscope shows the highest point and the height profile, but no climbs, lift or glide." },
           ],
         },
@@ -224,6 +228,25 @@ export const en: Content = {
           h2: "Stabilization and flight modes",
           blocks: [
             { t: "p", text: "Receivers with AS3X or SAFE also report the flight mode and which functions are on: AS3X, SAFE and heading hold. The Aircraft tab shows the time in the air per function and per flight mode, and the AS3X gain for roll, pitch and yaw. A gain of 0 means AS3X does not correct at all." },
+          ],
+        },
+        {
+          h2: "Five questions after every flight",
+          blocks: [
+            { t: "p", text: "You do not need to read every value. These five questions cover what matters most:" },
+            { t: "ol", items: [
+              "**Were there holds?** If so, check the antenna routing and the installation before the next flight.",
+              "**How much charge was used?** Over 80 % means landing earlier next time or setting a shorter timer.",
+              "**Did the receiver voltage stay steady?** Dips under load point to the power supply: BEC, cables or connectors.",
+              "**Are the cells balanced?** A difference between cells that grows from flight to flight is an early warning.",
+              "**Is the battery ageing?** The Batteries page follows its internal resistance across flights; a value that keeps rising shows a pack wearing out long before it fails in flight.",
+            ] },
+          ],
+        },
+        {
+          h2: "What a log cannot tell you",
+          blocks: [
+            { t: "p", text: "A log holds only what the sensors in the model sent: no vario, no climb rate. It records at intervals, not continuously, so a very short event can fall between two readings. And it does not replace looking at the model: it shows that the voltage dropped, not which connector is loose." },
           ],
         },
       ],

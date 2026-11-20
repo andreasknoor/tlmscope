@@ -50,6 +50,8 @@ export interface Chrome {
   faq: string;
   /** Label of the "#" link next to each question (a deep link to it). */
   linkToQuestion: string;
+  /** Link above a long list of questions that opens or closes all of them. */
+  allQuestions: { open: string; close: string };
   /** Before the date a guide was last changed. */
   updated: string;
 }
