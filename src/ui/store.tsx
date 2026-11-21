@@ -14,6 +14,8 @@ import type { Theme } from "./theme";
 import { makeUnits, type UnitSystem, type Units } from "./units";
 
 export type View = "sessions" | "batteries" | "inventory";
+/** The tabs of the settings dialog. */
+export type SettingsTab = "display" | "batteries" | "logbook";
 export type Tab = "overview" | "height" | "path" | "energy" | "battery" | "link" | "aircraft" | "raw";
 
 /** One aircraft model in the loaded files. */
@@ -119,7 +121,10 @@ export interface Store {
   /** The guide the help shows; null until the help is first opened. */
   helpTarget: GuideTarget | null;
   setHelpTarget(t: GuideTarget): void;
-  openSettings(): void;
+  /** Opens the settings, on the given tab (default: the one shown last). */
+  openSettings(tab?: SettingsTab): void;
+  settingsTab: SettingsTab;
+  setSettingsTab(tab: SettingsTab): void;
   /** Opens the feedback dialog; `detail` is a fixed word such as the kind of file error. */
   openFeedback(entry: FeedbackEntry, detail?: string): void;
   /** Where the open feedback dialog was started from; null while it is closed. */

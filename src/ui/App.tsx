@@ -20,7 +20,7 @@ import { HOME_META } from "@/seo/site";
 import { MAP_DEFAULTS, readMapPrefs } from "./map-prefs";
 import { requestJump } from "./charts/sync";
 import { decide, EMPTY_LOGBOOK, mergeLogbook, parseLogbook, pendingModels, readLogbook, record, setFileOn, writeLogbook, type MyLogbook } from "./my-logbook";
-import { isCapacity, MAX_BATTERY_NAME, StoreContext, type Detail, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
+import { isCapacity, MAX_BATTERY_NAME, StoreContext, type Detail, type Entry, type Model, type Settings, type SettingsTab, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
 const DEFAULTS: Settings = { details: false, detailsTried: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null, batteryNames: {}, map: MAP_DEFAULTS, logbook: false, logbookAsk: true, logbookHintSeen: false };
@@ -106,6 +106,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const helpRef = useRef<HTMLDialogElement>(null);
   const [helpTarget, setHelpTarget] = useState<GuideTarget | null>(null);
   const settingsRef = useRef<HTMLDialogElement>(null);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("display");
   const feedbackRef = useRef<HTMLDialogElement>(null);
   const [feedbackFrom, setFeedbackFrom] = useState<FeedbackFrom | null>(null);
   const logbookRef = useRef<HTMLDialogElement>(null);
@@ -391,7 +392,11 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
       if (!helpRef.current?.open) helpRef.current?.showModal();
     },
     helpTarget, setHelpTarget,
-    openSettings: () => settingsRef.current?.showModal(),
+    openSettings: (tab) => {
+      if (tab) setSettingsTab(tab);
+      if (!settingsRef.current?.open) settingsRef.current?.showModal();
+    },
+    settingsTab, setSettingsTab,
     openFeedback: (entry, detail) => {
       setFeedbackFrom({ entry, detail });
       feedbackRef.current?.showModal();

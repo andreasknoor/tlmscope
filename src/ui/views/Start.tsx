@@ -97,7 +97,7 @@ export function Start({ notices }: { notices: ReactNode }) {
                 <button key={l} aria-pressed={lang === l} onClick={() => setSettings({ locale: l })}>{l.toUpperCase()}</button>
               ))}
             </div>
-            <SettingsButton onClick={openSettings} label={t("settings")} />
+            <SettingsButton onClick={() => openSettings()} label={t("settings")} />
             <FeedbackButton />
             {/* Nothing is loaded yet, so help can be the guide page itself; offline the guides open in the app instead. */}
             {online

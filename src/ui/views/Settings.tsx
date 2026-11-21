@@ -3,15 +3,21 @@
 import { useTranslations } from "next-intl";
 import { useState, type RefObject } from "react";
 import { useRich } from "../bits";
-import { isCapacity, useStore } from "../store";
+import { isCapacity, useStore, type SettingsTab } from "../store";
 import { THEMES } from "../theme";
 import { UNIT_SYSTEMS } from "../units";
 
-/** "My settings": everything the user can set, kept in this browser only. */
+const TABS: SettingsTab[] = ["display", "batteries", "logbook"];
+
+/**
+ * "My settings": everything the user can set, kept in this browser only. Three tabs, each short enough
+ * to need no scrolling; the current state shows under each tab, so it can be seen without opening it.
+ */
 export function SettingsDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogElement | null> }) {
   const t = useTranslations("settings");
+  const tl = useTranslations("logbook");
   const ta = useTranslations("app");
-  const { settings, setSettings, models } = useStore();
+  const { settings, setSettings, models, settingsTab: tab, setSettingsTab } = useStore();
   const rich = useRich();
   const nameOf = (key: string) => models.find((m) => m.key === key)?.name ?? (key || ta("unknownModel"));
   const capacities = Object.entries(settings.capacities).sort(([a], [b]) => a.localeCompare(b));
@@ -26,65 +32,88 @@ export function SettingsDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogE
     delete next[key];
     setSettings({ capacities: next });
   };
+  const summary: Record<SettingsTab, string> = {
+    display: [t(`theme_${settings.theme}`), t(`unitsShort_${settings.units}`), settings.locale === "en" ? "English" : "Deutsch", settings.details ? t("detailsAll") : t("detailsSimple")].join(" · "),
+    batteries: t("batteriesSummary", { caps: capacities.length + (settings.defaultCapacityMah ? 1 : 0), names: names.length }),
+    logbook: settings.logbook ? `${tl("on")} · ${settings.logbookAsk ? tl("ask") : tl("auto")}` : tl("off"),
+  };
+  // Arrow keys move between the tabs, as in any tab list.
+  const onTabKey = (ev: React.KeyboardEvent) => {
+    if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+    const next = TABS[(TABS.indexOf(tab) + (ev.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length];
+    setSettingsTab(next);
+    requestAnimationFrame(() => document.getElementById(`settab-${next}`)?.focus());
+  };
 
   return (
     <dialog className="helpdlg setdlg" ref={dialogRef} aria-labelledby="settingsTitle" onClick={(e) => { if (e.target === e.currentTarget) dialogRef.current?.close(); }}>
       <div className="hd"><h2 id="settingsTitle">{t("title")}</h2><button className="btn" onClick={() => dialogRef.current?.close()}>{ta("close")}</button></div>
-      <div className="bd">
-        <p className="hint">{t("intro")}</p>
+      <div className="settabs" role="tablist" aria-label={t("title")} onKeyDown={onTabKey}>
+        {TABS.map((k) => (
+          <button key={k} id={`settab-${k}`} role="tab" aria-selected={tab === k} aria-controls="setpanel" tabIndex={tab === k ? 0 : -1} onClick={() => setSettingsTab(k)}>
+            {t(`tab_${k}`)}<small>{summary[k]}</small>
+          </button>
+        ))}
+      </div>
+      <div className="bd" id="setpanel" role="tabpanel" aria-labelledby={`settab-${tab}`}>
+        {tab === "display" && (
+          <>
+            <div className="setting">
+              <span>{t("theme")}</span>
+              <div className="seg" role="group" aria-label={t("theme")}>
+                {THEMES.map((th) => <button key={th} aria-pressed={settings.theme === th} onClick={() => setSettings({ theme: th })}>{t(`theme_${th}`)}</button>)}
+              </div>
+            </div>
+            <div className="setting">
+              <span>{t("units")}</span>
+              <div className="seg" role="group" aria-label={t("units")}>
+                {UNIT_SYSTEMS.map((u) => <button key={u} aria-pressed={settings.units === u} onClick={() => setSettings({ units: u })}>{t(`units_${u}`)}</button>)}
+              </div>
+            </div>
+            <div className="setting">
+              <span>{t("language")}</span>
+              <div className="seg" role="group" aria-label={t("language")}>
+                {(["en", "de"] as const).map((l) => <button key={l} aria-pressed={settings.locale === l} onClick={() => setSettings({ locale: l })}>{l === "en" ? "English" : "Deutsch"}</button>)}
+              </div>
+            </div>
+            <div className="setting">
+              <span>{t("details")}</span>
+              <div className="seg" role="group" aria-label={t("details")}>
+                <button aria-pressed={!settings.details} onClick={() => setSettings({ details: false })}>{t("detailsSimple")}</button>
+                <button aria-pressed={settings.details} onClick={() => setSettings({ details: true })}>{t("detailsAll")}</button>
+              </div>
+            </div>
+          </>
+        )}
 
-        <h3>{t("appearance")}</h3>
-        <div className="setting">
-          <span>{t("theme")}</span>
-          <div className="seg" role="group" aria-label={t("theme")}>
-            {THEMES.map((th) => <button key={th} aria-pressed={settings.theme === th} onClick={() => setSettings({ theme: th })}>{t(`theme_${th}`)}</button>)}
-          </div>
-        </div>
-        <div className="setting">
-          <span>{t("units")}</span>
-          <div className="seg" role="group" aria-label={t("units")}>
-            {UNIT_SYSTEMS.map((u) => <button key={u} aria-pressed={settings.units === u} onClick={() => setSettings({ units: u })}>{t(`units_${u}`)}</button>)}
-          </div>
-        </div>
-        <div className="setting">
-          <span>{t("language")}</span>
-          <div className="seg" role="group" aria-label={t("language")}>
-            {(["en", "de"] as const).map((l) => <button key={l} aria-pressed={settings.locale === l} onClick={() => setSettings({ locale: l })}>{l === "en" ? "English" : "Deutsch"}</button>)}
-          </div>
-        </div>
-        <div className="setting">
-          <span>{t("details")}</span>
-          <div className="seg" role="group" aria-label={t("details")}>
-            <button aria-pressed={!settings.details} onClick={() => setSettings({ details: false })}>{t("detailsSimple")}</button>
-            <button aria-pressed={settings.details} onClick={() => setSettings({ details: true })}>{t("detailsAll")}</button>
-          </div>
-        </div>
+        {tab === "batteries" && (
+          <>
+            <p className="hint">{rich("settings.batteriesHint")}</p>
+            {/* Keyed by the saved value, so the field shows it once the settings are read from storage. */}
+            <DefaultCapacity key={settings.defaultCapacityMah ?? "none"} />
+            {capacities.length > 0 ? (
+              <div className="scroll"><table className="tbl">
+                <tbody>{capacities.map(([key, mah]) => (
+                  <tr key={key}><td>{nameOf(key)}</td><td className="r num">{mah} mAh</td>
+                    <td className="r"><button className="iconbtn sq" title={t("remove")} aria-label={`${t("remove")}: ${nameOf(key)}`} onClick={() => removeCapacity(key)}>✕</button></td></tr>
+                ))}</tbody>
+              </table></div>
+            ) : <p className="hint">{t("noCapacities")}</p>}
 
-        <h3>{t("batteries")}</h3>
-        <p className="hint">{rich("settings.batteriesHint")}</p>
-        {/* Keyed by the saved value, so the field shows it once the settings are read from storage. */}
-        <DefaultCapacity key={settings.defaultCapacityMah ?? "none"} />
-        {capacities.length > 0 ? (
-          <div className="scroll"><table className="tbl">
-            <thead><tr><th>{t("model")}</th><th className="r">{t("capacity")}</th><th /></tr></thead>
-            <tbody>{capacities.map(([key, mah]) => (
-              <tr key={key}><td>{nameOf(key)}</td><td className="r num">{mah} mAh</td><td className="r"><button className="btn" onClick={() => removeCapacity(key)}>{t("remove")}</button></td></tr>
-            ))}</tbody>
-          </table></div>
-        ) : <p className="hint">{t("noCapacities")}</p>}
+            <h3>{t("batteryNames")}</h3>
+            <p className="hint">{t("batteryNamesHint")}</p>
+            {names.length > 0 ? (
+              <div className="scroll"><table className="tbl">
+                <tbody>{names.map(([id, name]) => (
+                  <tr key={id}><td>{name}</td><td className="mono hint">{id}</td>
+                    <td className="r"><button className="iconbtn sq" title={t("remove")} aria-label={`${t("remove")}: ${name}`} onClick={() => removeName(id)}>✕</button></td></tr>
+                ))}</tbody>
+              </table></div>
+            ) : <p className="hint">{t("noBatteryNames")}</p>}
+          </>
+        )}
 
-        <h3>{t("batteryNames")}</h3>
-        <p className="hint">{t("batteryNamesHint")}</p>
-        {names.length > 0 ? (
-          <div className="scroll"><table className="tbl">
-            <thead><tr><th>{t("batteryNames")}</th><th>ID</th><th /></tr></thead>
-            <tbody>{names.map(([id, name]) => (
-              <tr key={id}><td>{name}</td><td className="mono hint">{id}</td><td className="r"><button className="btn" onClick={() => removeName(id)}>{t("remove")}</button></td></tr>
-            ))}</tbody>
-          </table></div>
-        ) : <p className="hint">{t("noBatteryNames")}</p>}
-
-        <LogbookSettings />
+        {tab === "logbook" && <LogbookSettings />}
 
         <p className="note">{t("local")}</p>
       </div>
@@ -107,8 +136,8 @@ function LogbookSettings() {
   };
   return (
     <>
-      <h3 id="set-logbook">{t("title")}</h3>
-      <p className="hint">{t("settingsHint")}</p>
+      <p className="hint">{t("settingsShort")}</p>
+      <details className="whatstored"><summary>{t("whatStored")}</summary><p className="hint">{t("settingsHint")}</p></details>
       <div className="setting">
         <span>{t("record")}</span>
         <div className="seg" role="group" aria-label={t("record")}>

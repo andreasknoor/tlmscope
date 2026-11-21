@@ -99,6 +99,15 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .setbtn svg { color: var(--accent); flex: none; }
 .st-bar .setbtn svg { color: #dcebf0; }
 .setdlg, .fbdlg { width: min(560px, calc(100% - 32px)); }
+/* Settings: three tabs with their current state underneath; the panel keeps one height so switching does not jump. */
+.settabs { display: flex; gap: 2px; padding: 0 16px; border-bottom: 1px solid var(--line); background: var(--surface); position: sticky; top: 61px; z-index: 1; }
+.settabs button { flex: 1; min-width: 0; border: 0; background: none; padding: 9px 8px 8px; font: 600 14.5px var(--text); color: var(--ink-2); cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -1px; text-align: center; }
+.settabs button small { display: block; font-weight: 400; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.settabs button:hover { color: var(--ink); }
+.settabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.setdlg .bd { min-height: min(360px, calc(100dvh - 220px)); }
+.whatstored summary { cursor: pointer; color: var(--accent); font-size: 13px; }
+.whatstored p { margin: 6px 0 0; }
 .setting { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
 .setting > span:first-child, .setting > label { font-weight: 600; color: var(--ink-2); }
 .helpbtn i { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--surface); font: 700 12px/18px var(--text); text-align: center; font-style: normal; }

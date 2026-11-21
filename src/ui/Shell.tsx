@@ -100,7 +100,7 @@ function Header() {
             <button key={l} aria-pressed={settings.locale === l} onClick={() => setSettings({ locale: l })}>{l.toUpperCase()}</button>
           ))}
         </div>
-        <SettingsButton onClick={openSettings} label={t("settings")} />
+        <SettingsButton onClick={() => openSettings()} label={t("settings")} />
         <FeedbackButton />
         <button className="helpbtn" aria-label={t("help")} onClick={() => openHelp()}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>
       </div>
@@ -251,8 +251,7 @@ function Sidebar() {
             {t("logbook.hint")}{" "}
             <button className="linkbtn" onClick={() => {
               setSettings({ logbookHintSeen: true });
-              openSettings();
-              requestAnimationFrame(() => document.getElementById("set-logbook")?.scrollIntoView({ block: "start" }));
+              openSettings("logbook");
             }}>{t("logbook.hintLink")}</button>
           </p>
         )}

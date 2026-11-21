@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.17", date: "2026-11-21", changes: [["new", "Settings in three tabs (display, batteries, logbook), each showing its current state."]] },
   { version: "2.16", date: "2026-11-21", changes: [["new", "“Close all files” is always visible next to “+” and can be undone for 10 seconds."]] },
   { version: "2.15", date: "2026-11-21", changes: [["fix", "Logbook: answering the question for a second model now always counts it."]] },
   { version: "2.14", date: "2026-11-21", changes: [
