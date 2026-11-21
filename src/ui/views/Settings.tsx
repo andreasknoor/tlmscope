@@ -163,6 +163,7 @@ function LogbookSettings() {
               <button aria-pressed={!settings.logbookAsk} onClick={() => setSettings({ logbookAsk: false })}>{t("auto")}</button>
             </div>
           </div>
+          <p className="hint">{t("newModelsHint")}</p>
           <p className="hint">{t("earlier")} {t("browserOnly")}</p>
         </>
       )}
