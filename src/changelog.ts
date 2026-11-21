@@ -20,6 +20,10 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.9", date: "2026-11-21", changes: [
+    ["new", "My logbook (off by default, in the settings): flight and simulator time over all files.", "highlight"],
+    ["new", "The logbook shows totals per year and model, leaves out other pilots' logs and saves a backup."],
+  ] },
   { version: "2.8", date: "2026-11-21", changes: [
     ["new", "Simulator sessions (WS3000 dongle) are recognised; the list sums up your simulator time.", "highlight"],
     ["fix", "A receiver voltage of 0 V counts as no reading, not as a critical value."],

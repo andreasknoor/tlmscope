@@ -14,6 +14,7 @@ import { useLogoClicks } from "../StorkRace";
 import { FeedbackButton, FeedbackLink, OfflineBadge, SettingsButton } from "../bits";
 import { useOnline } from "../offline";
 import { useStore } from "../store";
+import { LogbookBox } from "../Shell";
 
 /** The flight of the demo: motor climbs, glides and a thermal, in the colours of the app. Drawn once when the page opens. */
 const TRACE: { cls: string; d: string; delay: number }[] = [
@@ -135,6 +136,7 @@ export function Start({ notices }: { notices: ReactNode }) {
                 <Image src={`/img/overview-${lang}.jpg`} alt={h.demo.alt} width={1200} height={539} sizes="(max-width: 900px) 100vw, 470px" />
                 <span><Icon name="play" />{h.demo.label}</span>
               </button>
+              <LogbookBox line />
               <p className="fbnote st-fb">{t("feedbackStart")} <FeedbackLink entry="start">{t("feedbackStartLink")}</FeedbackLink></p>
             </div>
           </div>

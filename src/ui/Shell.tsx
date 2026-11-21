@@ -10,6 +10,8 @@ import { downloadText, logbookCsv, logbookFileName } from "./logbook";
 import { Guides } from "./views/Guides";
 import { FeedbackDialog } from "./views/FeedbackDialog";
 import { SettingsDialog } from "./views/Settings";
+import { LogbookDialog } from "./views/LogbookDialog";
+import { counted, totals } from "./my-logbook";
 import { Batteries } from "./views/Batteries";
 import { Inventory } from "./views/Inventory";
 import { SessionView } from "./views/SessionView";
@@ -141,7 +143,7 @@ function Spark({ e }: { e: Entry }) {
 
 function Sidebar() {
   const t = useTranslations();
-  const { entries, visible, selected, select, step, settings, filter, setFilter, addFiles, files, closeFile, closeAll, models, modelFilter } = useStore();
+  const { entries, visible, selected, select, step, settings, setSettings, filter, setFilter, addFiles, files, closeFile, closeAll, models, modelFilter, openSettings } = useStore();
   const modelName = useModelName();
   const airtime = useAirtime();
   const total = useMemo(() => flightTotal(modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter)), [entries, modelFilter]);
@@ -226,6 +228,17 @@ function Sidebar() {
           <span>{t("app.simTotalSub", { time: longDuration(sim.connectedSeconds) })}</span>
         </div>
       )}
+      <LogbookBox />
+      {!settings.logbook && !settings.logbookHintSeen && total.flights + sim.sessions > 0 && (
+        <p className="bookhint hint">
+          {t("logbook.hint")}{" "}
+          <button className="linkbtn" onClick={() => {
+            setSettings({ logbookHintSeen: true });
+            openSettings();
+            requestAnimationFrame(() => document.getElementById("set-logbook")?.scrollIntoView({ block: "start" }));
+          }}>{t("logbook.hintLink")}</button>
+        </p>
+      )}
       <button className="btn exportbtn" title={t("app.exportCsvHint")} disabled={visible.length === 0}
         onClick={() => downloadText(logbookCsv(visible, loc), logbookFileName())}>{t("app.exportCsv")}</button>
       <div className="slist" ref={list} onKeyDown={onListKey}>
@@ -254,6 +267,43 @@ function Sidebar() {
       </div>
       <div className="keys"><kbd>←</kbd> <kbd>→</kbd> {t("app.keys")} · <kbd>↑</kbd> <kbd>↓</kbd> {t("app.keysList")}</div>
     </aside>
+  );
+}
+
+/** The logbook's totals over all files, when it is on; opens the logbook. */
+export function LogbookBox({ line = false }: { line?: boolean }) {
+  const t = useTranslations("logbook");
+  const { settings, book, openLogbook } = useStore();
+  const all = useMemo(() => totals(counted(book)), [book]);
+  if (!settings.logbook) return null;
+  const values = { air: longDuration(all.airS), sim: longDuration(all.simActiveS) };
+  if (line) return all.flights + all.simSessions > 0 ? <button type="button" className="st-book" onClick={openLogbook}>{t("startLine", values)} ›</button> : null;
+  return (
+    <button type="button" className="total bookbox" onClick={openLogbook}>
+      <b>{t("title")}</b>
+      <span>{t("sidebar", values)}</span>
+    </button>
+  );
+}
+
+/** One question per new model while the logbook asks: count its sessions, or leave them out as another pilot's log. */
+function LogbookAsk() {
+  const t = useTranslations("logbook");
+  const { bookPending, bookDecide } = useStore();
+  const modelName = useModelName();
+  if (!bookPending.length) return null;
+  return (
+    <div className="stack" role="status">
+      {bookPending.map((m) => (
+        <div key={m.key} className="infobox bookask">
+          <span><ModelBadge model={m} /> {t("askModel", { name: modelName(m) })}</span>
+          <span className="bookacts">
+            <button className="btn" onClick={() => bookDecide(m, true)}>{t("yesMine")}</button>
+            <button className="btn" onClick={() => bookDecide(m, false)}>{t("noOther")}</button>
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -347,7 +397,7 @@ function LoadCard({ m }: { m: LoadMessage }) {
   );
 }
 
-export function Shell({ helpRef, settingsRef, feedbackRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; settingsRef: RefObject<HTMLDialogElement | null>; feedbackRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
+export function Shell({ helpRef, settingsRef, feedbackRef, logbookRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; settingsRef: RefObject<HTMLDialogElement | null>; feedbackRef: RefObject<HTMLDialogElement | null>; logbookRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
   const t = useTranslations();
   const { files, view, selected, tab, helpTarget, setHelpTarget } = useStore();
   const sw = useServiceWorker();
@@ -371,6 +421,7 @@ export function Shell({ helpRef, settingsRef, feedbackRef, messages, dismiss }: 
           <Sidebar />
           <main className="main">
             <PhoneFiles />
+            <LogbookAsk />
             {notices}
             <ErrorBoundary resetKey={`${view}|${selected?.key}|${tab}`} onError={() => track({ name: "view-error", view: view === "sessions" ? `sessions/${tab}` : view })} fallback={(reset) => (
               <div className="errorbox stack">
@@ -389,6 +440,7 @@ export function Shell({ helpRef, settingsRef, feedbackRef, messages, dismiss }: 
       <UpdateBar sw={sw} />
       <Guides dialogRef={helpRef} target={helpTarget} setTarget={setHelpTarget} />
       <SettingsDialog dialogRef={settingsRef} />
+      <LogbookDialog dialogRef={logbookRef} />
       <FeedbackDialog dialogRef={feedbackRef} />
     </>
   );

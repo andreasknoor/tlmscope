@@ -337,7 +337,7 @@ export const en: Content = {
               "Drop one or more `.TLM` files onto the start page, or click to choose them. You can add more files any time.",
               "Pick a session in the list on the left. On a phone the list is a picker at the top. Each power-up of the receiver is one session.",
               "“Flights” shows real flights only, “All” also ground tests and short power-ups. With several models loaded, you can limit the list to one model.",
-              "Above the list you see the total flight time of the loaded flights, for the chosen model. “Export as CSV” saves the sessions of the list as a spreadsheet file, made in your browser.",
+              "Above the list you see the total flight time of the loaded flights, for the chosen model. “Export as CSV” saves the sessions of the list as a spreadsheet file, made in your browser. To add up over every file you ever open, switch on “My logbook” in the settings.",
             ] },
             { t: "img", name: "overview", alt: "TLMscope overview of a demo flight: summary sentence, key numbers and the height profile with motor climbs, lift and gliding", caption: "The overview of a flight: summary, key numbers and height profile." },
           ],
@@ -451,7 +451,8 @@ export const en: Content = {
         { q: "When should I retire a LiPo battery?", a: "A common rule of thumb is to retire a pack when its internal resistance reaches about 15 mΩ per cell. TLMscope estimates this value from the voltage sag in flight and follows it across flights for Spektrum Smart batteries." },
         { q: "Can TLMscope count my flight hours per model?", a: [
           { t: "p", text: "Yes, for the logs you load. Above the session list, TLMscope adds up the time in the air of the loaded flights, for all models or the one you choose. Only time in the air counts: pauses of two minutes or more on the ground between two flights of one session are left out. When some flights have neither a height sensor nor GPS, their time is estimated from the motor and the model's movement, and the total is marked “≈”." },
-          { t: "p", text: "TLMscope stores nothing between visits, so the total covers the files loaded now. To keep a flight log, use **Export as CSV**, see the next question." },
+          { t: "p", text: "Unless you switch it on, TLMscope stores nothing between visits, so the total covers the files loaded now. Under **Settings → My logbook** you can switch on a logbook: from then on it keeps one short entry per flight in your browser and adds up your flight time over every file you open, per model and per year. Opening the same log again does not count a flight twice. You decide per model whether it counts, so logs of other pilots stay out. It can be saved as a backup file and exported as CSV." },
+          { t: "p", text: "Time in a flight simulator flown through a Spektrum WS3000 dongle is recognised from the log and counted apart: only the time with the sticks moved, never as time in the air." },
         ] },
         { q: "Can I convert a .TLM file to CSV or Excel?", a: [
           { t: "p", text: "Partly. **Export as CSV** above the session list saves one line per session: model, date, start time, type, session and air time, frame losses, holds, lowest receiver voltage, battery ID, charge used and the source file. With German settings it uses a semicolon and a decimal comma, so Excel opens it directly." },

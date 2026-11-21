@@ -67,7 +67,7 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 | Column | Meaning |
 |---|---|
 | `model`, `date`, `start_time` | Model name from the file; start in the time zone of your browser (empty without a time in the file) |
-| `type` | `flight`, `ground-test`, `powered-on` or `transmitter-only` |
+| `type` | `flight`, `ground-test`, `powered-on`, `transmitter-only` or `simulator` |
 | `session_s` | Length of the session in seconds |
 | `air_time_s`, `air_time_source` | Time in the air without pauses on the ground between flights, and where it comes from: `height`, `gps` or `motion` (estimated from motor and movement) |
 | `frame_losses`, `holds`, `min_receiver_voltage_v` | The values of the radio link and receiver power cards, over the time in the air |
@@ -75,6 +75,10 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 | `file`, `session` | The source file and the session number in it |
 
 The metric columns are filled for flights only. The column names are fixed. Text cells starting with `=`, `+`, `-` or `@` get a leading apostrophe so a spreadsheet never runs them as a formula.
+
+### My logbook
+
+Off by default; it is switched on in the settings, and only then is anything from the logs stored. From then on every flight and simulator session of the opened files gets a short entry in the browser's local storage (`tlmscope.logbook`: start, length, model, time in the air or with the sticks moved, file name), never the file itself. A session is known by its start and length, so opening a growing transmitter log again adds only its new sessions and refreshes the others; the demo flight never counts. Each new model is asked about once ("my model" or "another pilot's log"), or counted without asking if chosen in the settings; models and single files can be switched off in the logbook later. The logbook shows totals for time in the air and simulator time, per year and per model, and saves a JSON backup (loaded backups are joined, a session counts once) and a CSV file. Switching it off asks whether to delete or keep what is stored.
 
 ### Getting your log files
 

@@ -84,9 +84,61 @@ export function SettingsDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogE
           </table></div>
         ) : <p className="hint">{t("noBatteryNames")}</p>}
 
+        <LogbookSettings />
+
         <p className="note">{t("local")}</p>
       </div>
     </dialog>
+  );
+}
+
+/** "My logbook": off unless switched on here; switching it off asks whether to keep what is stored. */
+function LogbookSettings() {
+  const t = useTranslations("logbook");
+  const { settings, setSettings, book, bookClear, openLogbook } = useStore();
+  const [stopping, setStopping] = useState(false);
+  const stored = Object.keys(book.sessions).length;
+  const turn = (on: boolean) => {
+    if (on === settings.logbook) return;
+    setSettings(on ? { logbook: true, logbookHintSeen: true } : { logbook: false });
+    // Ask the browser not to clear the logbook on its own when space runs low.
+    if (on) void navigator.storage?.persist?.().catch(() => false);
+    setStopping(!on && (stored > 0 || Object.keys(book.models).length > 0));
+  };
+  return (
+    <>
+      <h3 id="set-logbook">{t("title")}</h3>
+      <p className="hint">{t("settingsHint")}</p>
+      <div className="setting">
+        <span>{t("record")}</span>
+        <div className="seg" role="group" aria-label={t("record")}>
+          <button aria-pressed={!settings.logbook} onClick={() => turn(false)}>{t("off")}</button>
+          <button aria-pressed={settings.logbook} onClick={() => turn(true)}>{t("on")}</button>
+        </div>
+      </div>
+      {stopping && (
+        <div className="infobox bookconfirm" role="status">
+          <span>{t("stopQuestion", { n: stored })}</span>
+          <span className="bookacts">
+            <button className="btn" onClick={() => { bookClear(); setStopping(false); }}>{t("delete")}</button>
+            <button className="btn" onClick={() => setStopping(false)}>{t("keep")}</button>
+          </span>
+        </div>
+      )}
+      {settings.logbook && (
+        <>
+          <div className="setting">
+            <span>{t("newModels")}</span>
+            <div className="seg" role="group" aria-label={t("newModels")}>
+              <button aria-pressed={settings.logbookAsk} onClick={() => setSettings({ logbookAsk: true })}>{t("ask")}</button>
+              <button aria-pressed={!settings.logbookAsk} onClick={() => setSettings({ logbookAsk: false })}>{t("auto")}</button>
+            </div>
+          </div>
+          <p className="hint">{t("earlier")} {t("browserOnly")}</p>
+        </>
+      )}
+      {(settings.logbook || stored > 0) && <p><button className="btn" onClick={openLogbook}>{t("open")}</button></p>}
+    </>
   );
 }
 

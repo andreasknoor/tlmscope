@@ -337,7 +337,7 @@ export const de: Content = {
               "Lege eine oder mehrere `.TLM`-Dateien auf der Startseite ab oder klicke, um sie auszuwählen. Du kannst jederzeit weitere Dateien hinzufügen.",
               "Wähle links in der Liste eine Sitzung. Auf dem Handy ist die Liste eine Auswahl oben. Jeder Start des Empfängers ist eine Sitzung.",
               "„Flüge“ zeigt nur echte Flüge, „Alle“ auch Bodentests und kurze Einschaltphasen. Sind mehrere Modelle geladen, kannst du die Liste auf ein Modell beschränken.",
-              "Über der Liste steht die Gesamtflugzeit der geladenen Flüge, für das gewählte Modell. „Als CSV exportieren“ speichert die Sitzungen der Liste als Tabellendatei, erzeugt in deinem Browser.",
+              "Über der Liste steht die Gesamtflugzeit der geladenen Flüge, für das gewählte Modell. „Als CSV exportieren“ speichert die Sitzungen der Liste als Tabellendatei, erzeugt in deinem Browser. Um über alle Dateien zu summieren, die du je öffnest, schalte in den Einstellungen „Mein Logbuch“ ein.",
             ] },
             { t: "img", name: "overview", alt: "TLMscope-Übersicht eines Demo-Flugs: Zusammenfassung, Kennzahlen und Höhenprofil mit Motorsteigflügen, Aufwind und Gleitflug", caption: "Die Übersicht eines Flugs: Zusammenfassung, Kennzahlen und Höhenprofil." },
           ],
@@ -451,7 +451,8 @@ export const de: Content = {
         { q: "Wann sollte ich einen LiPo-Akku ausmustern?", a: "Eine gängige Faustregel lautet, einen Akku auszumustern, wenn sein Innenwiderstand etwa 15 mΩ je Zelle erreicht. TLMscope schätzt diesen Wert aus dem Spannungseinbruch im Flug und verfolgt ihn bei Spektrum Smart-Akkus über mehrere Flüge." },
         { q: "Kann TLMscope meine Flugstunden je Modell zählen?", a: [
           { t: "p", text: "Ja, für die Logs, die du lädst. Über der Sitzungsliste addiert TLMscope die Zeit in der Luft der geladenen Flüge, für alle Modelle oder das gewählte. Es zählt nur die Zeit in der Luft: Pausen von zwei Minuten oder mehr am Boden zwischen zwei Flügen einer Sitzung bleiben außen vor. Haben Flüge weder Höhensensor noch GPS, wird ihre Zeit aus Motor und Bewegung des Modells geschätzt, und die Summe ist mit „≈“ markiert." },
-          { t: "p", text: "TLMscope speichert zwischen zwei Besuchen nichts, die Summe gilt also für die gerade geladenen Dateien. Für ein Flugbuch nutze **Als CSV exportieren**, siehe die nächste Frage." },
+          { t: "p", text: "Solange du es nicht einschaltest, speichert TLMscope zwischen zwei Besuchen nichts, die Summe gilt also für die gerade geladenen Dateien. Unter **Einstellungen → Mein Logbuch** kannst du ein Logbuch einschalten: Ab dann merkt es sich in deinem Browser einen kurzen Eintrag pro Flug und zählt deine Flugzeit über alle Dateien zusammen, die du öffnest, je Modell und je Jahr. Öffnest du dasselbe Log noch einmal, zählt kein Flug doppelt. Du entscheidest je Modell, ob es mitzählt, so bleiben Logs anderer Piloten außen vor. Es lässt sich als Sicherungsdatei speichern und als CSV exportieren." },
+          { t: "p", text: "Zeit im Flugsimulator über einen Spektrum-WS3000-Dongle erkennt TLMscope am Log und zählt sie getrennt: nur die Zeit mit bewegten Knüppeln, nie als Zeit in der Luft." },
         ] },
         { q: "Kann ich eine .TLM-Datei in CSV oder Excel umwandeln?", a: [
           { t: "p", text: "Teilweise. **Als CSV exportieren** über der Sitzungsliste speichert eine Zeile je Sitzung: Modell, Datum, Startzeit, Art, Sitzungs- und Flugzeit, Frame Losses, Holds, niedrigste Empfängerspannung, Akku-ID, verbrauchte Ladung und die Quelldatei. Mit deutscher Einstellung nutzt die Datei Semikolon und Dezimalkomma, sodass Excel sie direkt öffnet." },

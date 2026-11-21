@@ -19,10 +19,11 @@ import { defaultUnits, UNIT_SYSTEMS, type UnitSystem } from "./units";
 import { HOME_META } from "@/seo/site";
 import { MAP_DEFAULTS, readMapPrefs } from "./map-prefs";
 import { requestJump } from "./charts/sync";
+import { decide, EMPTY_LOGBOOK, mergeLogbook, parseLogbook, pendingModels, readLogbook, record, setFileOn, writeLogbook, type MyLogbook } from "./my-logbook";
 import { isCapacity, MAX_BATTERY_NAME, StoreContext, type Detail, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
-const DEFAULTS: Settings = { details: false, detailsTried: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null, batteryNames: {}, map: MAP_DEFAULTS };
+const DEFAULTS: Settings = { details: false, detailsTried: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null, batteryNames: {}, map: MAP_DEFAULTS, logbook: false, logbookAsk: true, logbookHintSeen: false };
 const SETTINGS_KEY = "tlmscope.settings";
 export const DEMO_FILE = "demo-flight.TLM";
 /** Larger files are refused: real logs are a few MB, and parsing needs several times the file size in memory. */
@@ -59,7 +60,10 @@ function readSettings(initial: Locale): Settings {
       }
     }
     const detailsTried = details || saved.detailsTried === true;
-    return { details, detailsTried, locale, filter, theme, units, capacities, defaultCapacityMah, batteryNames, map: readMapPrefs(saved.map) };
+    const logbook = saved.logbook === true;
+    const logbookAsk = saved.logbookAsk !== false;
+    const logbookHintSeen = saved.logbookHintSeen === true;
+    return { details, detailsTried, locale, filter, theme, units, capacities, defaultCapacityMah, batteryNames, map: readMapPrefs(saved.map), logbook, logbookAsk, logbookHintSeen };
   } catch {
     return base;
   }
@@ -99,10 +103,14 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const settingsRef = useRef<HTMLDialogElement>(null);
   const feedbackRef = useRef<HTMLDialogElement>(null);
   const [feedbackFrom, setFeedbackFrom] = useState<FeedbackFrom | null>(null);
+  const logbookRef = useRef<HTMLDialogElement>(null);
+  const [book, setBook] = useState<MyLogbook>(EMPTY_LOGBOOK);
 
   // Browser-only storage can only be read after hydration; the server render uses the defaults.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setSettingsState(readSettings(initialLocale)), [initialLocale]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setBook(readLogbook()), []);
   useEffect(() => {
     document.documentElement.lang = settings.locale;
     document.body.dataset.details = settings.details ? "on" : "off";
@@ -226,6 +234,22 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     if (next) select(next.key);
   }, [visible, selected, select]);
 
+  /** Shows and stores a new logbook; tells the user when the browser refuses to store it. */
+  const saveBook = useCallback((next: MyLogbook | null) => {
+    setBook(next ?? EMPTY_LOGBOOK);
+    if (!writeLogbook(next)) setMessages((m) => [...m.filter((x) => x.text !== "logbook.writeFailed"), { kind: "error", text: "logbook.writeFailed", values: {} }]);
+  }, []);
+
+  // My logbook, when switched on: the loaded flights and simulator sessions of counted models are recorded.
+  useEffect(() => {
+    if (!settings.logbook || !entries.length) return;
+    const next = record(book, entries, DEMO_FILE, !settings.logbookAsk);
+    // Syncs the loaded files into the stored logbook; `record` returns null once nothing is new, so this settles at once.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (next) saveBook(next);
+  }, [settings.logbook, settings.logbookAsk, entries, book, saveBook]);
+  const bookPending = useMemo(() => (settings.logbook && settings.logbookAsk ? pendingModels(book, entries, DEMO_FILE) : []), [settings.logbook, settings.logbookAsk, book, entries]);
+
   // Names of the loaded files, for the "replaced" notice; read inside the async loader.
   const loadedNames = useRef<Set<string>>(new Set());
   useEffect(() => { loadedNames.current = new Set(files.map((f) => f.fileName)); }, [files]);
@@ -331,13 +355,26 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     },
     feedbackFrom,
     closeFeedback: () => setFeedbackFrom(null),
+    book, bookPending,
+    bookDecide: (m, on) => saveBook(decide(book, m.key, m.name, on)),
+    bookFileOn: (file, on) => saveBook(setFileOn(book, file, on)),
+    bookClear: () => saveBook(null),
+    bookImport: (text) => {
+      let raw: unknown;
+      try { raw = JSON.parse(text); } catch { return null; }
+      if (!raw || typeof raw !== "object" || (raw as { v?: unknown }).v !== 1) return null;
+      const next = mergeLogbook(book, parseLogbook(raw));
+      saveBook(next);
+      return Object.keys(next.sessions).length - Object.keys(book.sessions).length;
+    },
+    openLogbook: () => logbookRef.current?.showModal(),
   };
 
   return (
     <ErrorBoundary fallback={() => <PageError />} onError={() => track({ name: "view-error", view: "page" })}>
       <NextIntlClientProvider locale={settings.locale} messages={MESSAGES[settings.locale]} timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}>
         <StoreContext.Provider value={store}>
-          <Shell helpRef={helpRef} settingsRef={settingsRef} feedbackRef={feedbackRef} messages={messages} dismiss={(i) => setMessages((m) => m.filter((_, k) => k !== i))} />
+          <Shell helpRef={helpRef} settingsRef={settingsRef} feedbackRef={feedbackRef} logbookRef={logbookRef} messages={messages} dismiss={(i) => setMessages((m) => m.filter((_, k) => k !== i))} />
         </StoreContext.Provider>
       </NextIntlClientProvider>
     </ErrorBoundary>

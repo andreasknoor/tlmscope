@@ -29,6 +29,7 @@ export const FEATURES = [
   "Battery ageing across flights",
   "Total flight time per model and CSV export of the session list",
   "Simulator sessions (Spektrum WS3000 dongle) recognised, with the simulator time summed up separately",
+  "Optional logbook in the browser (off by default): flight and simulator time over every file opened, per model and year, with backup and CSV export",
   "Works offline after the first visit",
   "Files never leave the browser",
 ];

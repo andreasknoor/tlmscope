@@ -9,6 +9,7 @@ import type { FeedbackEntry, FeedbackFrom } from "./feedback";
 import type { GuideTarget } from "./views/Guides";
 import type { Locale } from "./format";
 import type { MapPrefs } from "./map-prefs";
+import type { MyLogbook } from "./my-logbook";
 import type { Theme } from "./theme";
 import { makeUnits, type UnitSystem, type Units } from "./units";
 
@@ -54,6 +55,12 @@ export interface Settings {
   batteryNames: Record<string, string>;
   /** Map options on the flight path page, kept between flights. */
   map: MapPrefs;
+  /** "My logbook" records the opened files (off unless the user switches it on). */
+  logbook: boolean;
+  /** Ask before a model is counted in the logbook (else every new model counts). */
+  logbookAsk: boolean;
+  /** True once the hint that points to the logbook was used; it then stays away. */
+  logbookHintSeen: boolean;
 }
 
 /** Longest battery name accepted. */
@@ -117,6 +124,18 @@ export interface Store {
   feedbackFrom: FeedbackFrom | null;
   closeFeedback(): void;
   visible: Entry[];
+  /** "My logbook" as stored (empty when never switched on). */
+  book: MyLogbook;
+  /** Loaded models the logbook still has to ask about. */
+  bookPending: Model[];
+  /** Count a model in the logbook, or leave it out (logs of other pilots). */
+  bookDecide(model: Model | { key: string; name: string | null }, on: boolean): void;
+  bookFileOn(file: string, on: boolean): void;
+  /** Deletes the stored logbook. */
+  bookClear(): void;
+  /** Joins a backup file; returns the number of sessions added, or null when the file is not a logbook. */
+  bookImport(text: string): number | null;
+  openLogbook(): void;
 }
 
 export const StoreContext = createContext<Store | null>(null);

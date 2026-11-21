@@ -597,5 +597,15 @@ dialog.st-dialog::backdrop { background: rgb(8 20 26 / .55); }
 .total b { font-size: 15px; }
 .total span { font-size: 12px; color: var(--ink-3); }
 .total.sim { background: transparent; }
+.bookbox { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; background: transparent; }
+.bookbox:hover { border-color: var(--accent); }
+.bookhint { margin: 0; font-size: 12px; }
+.bookask { display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: space-between; align-items: center; }
+.bookacts { display: flex; flex-wrap: wrap; gap: 8px; }
+.bookconfirm { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.booktotals { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.bookdlg .bookacts { margin-top: 16px; }
+.bookdlg tr.dim td { color: var(--ink-3); }
+.st-book { display: block; margin: 10px 0 0; padding: 0; border: 0; background: none; font: inherit; font-weight: 600; color: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .exportbtn { align-self: flex-start; }
 .infobox.moved { margin: 10px 16px; }
