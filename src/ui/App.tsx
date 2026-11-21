@@ -234,20 +234,29 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     if (next) select(next.key);
   }, [visible, selected, select]);
 
-  /** Shows and stores a new logbook; tells the user when the browser refuses to store it. */
-  const saveBook = useCallback((next: MyLogbook | null) => {
-    setBook(next ?? EMPTY_LOGBOOK);
-    if (!writeLogbook(next)) setMessages((m) => [...m.filter((x) => x.text !== "logbook.writeFailed"), { kind: "error", text: "logbook.writeFailed", values: {} }]);
+  /**
+   * Changes the logbook, always from its latest state: two changes close together (an answer while the
+   * loaded files are still being recorded) must not undo each other. `change` returns the same book for
+   * no change and null to delete it. The new book is stored; the user hears when the browser refuses.
+   */
+  const updateBook = useCallback((change: (prev: MyLogbook) => MyLogbook | null) => {
+    setBook((prev) => {
+      const next = change(prev);
+      if (next === prev) return prev;
+      if (!writeLogbook(next)) {
+        queueMicrotask(() => setMessages((m) => [...m.filter((x) => x.text !== "logbook.writeFailed"), { kind: "error", text: "logbook.writeFailed", values: {} }]));
+      }
+      return next ?? EMPTY_LOGBOOK;
+    });
   }, []);
 
-  // My logbook, when switched on: the loaded flights and simulator sessions of counted models are recorded.
+  // My logbook, when switched on: the loaded flights and simulator sessions of counted models are recorded
+  // (again after each answer, which changes the book). `record` returns null once nothing is new, so this settles at once.
   useEffect(() => {
     if (!settings.logbook || !entries.length) return;
-    const next = record(book, entries, DEMO_FILE, !settings.logbookAsk);
-    // Syncs the loaded files into the stored logbook; `record` returns null once nothing is new, so this settles at once.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (next) saveBook(next);
-  }, [settings.logbook, settings.logbookAsk, entries, book, saveBook]);
+    updateBook((prev) => record(prev, entries, DEMO_FILE, !settings.logbookAsk) ?? prev);
+  }, [settings.logbook, settings.logbookAsk, entries, book, updateBook]);
   const bookPending = useMemo(() => (settings.logbook && settings.logbookAsk ? pendingModels(book, entries, DEMO_FILE) : []), [settings.logbook, settings.logbookAsk, book, entries]);
 
   // Names of the loaded files, for the "replaced" notice; read inside the async loader.
@@ -356,16 +365,17 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     feedbackFrom,
     closeFeedback: () => setFeedbackFrom(null),
     book, bookPending,
-    bookDecide: (m, on) => saveBook(decide(book, m.key, m.name, on)),
-    bookFileOn: (file, on) => saveBook(setFileOn(book, file, on)),
-    bookClear: () => saveBook(null),
+    bookDecide: (m, on) => updateBook((prev) => decide(prev, m.key, m.name, on)),
+    bookFileOn: (file, on) => updateBook((prev) => setFileOn(prev, file, on)),
+    bookClear: () => updateBook(() => null),
     bookImport: (text) => {
       let raw: unknown;
       try { raw = JSON.parse(text); } catch { return null; }
       if (!raw || typeof raw !== "object" || (raw as { v?: unknown }).v !== 1) return null;
-      const next = mergeLogbook(book, parseLogbook(raw));
-      saveBook(next);
-      return Object.keys(next.sessions).length - Object.keys(book.sessions).length;
+      const backup = parseLogbook(raw);
+      updateBook((prev) => mergeLogbook(prev, backup));
+      // The count for the message, from the book as shown; the change itself builds on the latest state.
+      return Object.keys(mergeLogbook(book, backup).sessions).length - Object.keys(book.sessions).length;
     },
     openLogbook: () => logbookRef.current?.showModal(),
   };
