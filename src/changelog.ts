@@ -20,6 +20,11 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.8", date: "2026-11-21", changes: [
+    ["new", "Simulator sessions (WS3000 dongle) are recognised; the list sums up your simulator time.", "highlight"],
+    ["fix", "A receiver voltage of 0 V counts as no reading, not as a critical value."],
+    ["fix", "The total flight time counts a session in two copies of a log only once."],
+  ] },
   { version: "2.7", date: "2026-11-21", changes: [["new", "Help in the app shows all guides (FAQ, telemetry, radios …) without closing your logs.", "highlight"], ["new", "Help on the start page opens the help page of the website."]] },
   { version: "2.6", date: "2026-11-21", changes: [["new", "“Show details” is now “More charts & values”; each tab names what it adds until it is used once."]] },
   { version: "2.5", date: "2026-11-21", changes: [["new", "The demo 3D flight now has a remote receiver and one hold, to try out fades and holds."]] },

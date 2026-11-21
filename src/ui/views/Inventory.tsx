@@ -51,7 +51,7 @@ export function Inventory() {
           <div key={f.fileName} className="stack">
             <div className="grid g4">
               <Tile label={t("inv.file")} value={<span style={{ fontSize: 20, wordBreak: "break-all" }}>{f.fileName}</span>} sub={`${num(loc, f.sizeBytes / 1e6, 1)} MB · ${f.adapterId}`} />
-              <Tile label={t("inv.sessions")} value={f.sessions.length} sub={t("inv.kinds", { flight: count("flight"), ground: count("ground-test"), power: count("powered-on"), tx: count("transmitter-only") })} />
+              <Tile label={t("inv.sessions")} value={f.sessions.length} sub={t("inv.kinds", { flight: count("flight"), ground: count("ground-test"), power: count("powered-on"), tx: count("transmitter-only"), sim: count("simulator") })} />
               <Tile label={t("inv.streams")} value={streams.length} sub={t("inv.notFully", { n: streams.filter((s) => s.understood !== "full").length })} />
               <Tile label={t("inv.gps")} value={gps ? t("inv.gpsFound") : t("inv.gpsNone")} sub={gps ? undefined : t("inv.gpsHint")} />
             </div>

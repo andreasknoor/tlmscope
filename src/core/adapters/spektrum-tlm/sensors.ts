@@ -269,9 +269,9 @@ export const SENSORS: Record<string, SensorDef> = {
       return [
         { name: "Knob or slider? @2", unit: "", value: v(2), channel: "raw:spektrum.0x7a.@2" },
         { name: "Throttle stick", unit: "%", value: Math.round(((v(4) + 2047) / 4094) * 1000) / 10, channel: "throttle_command" },
-        { name: "Elevator stick @6", unit: "", value: v(6), channel: "raw:spektrum.0x7a.@6" },
-        { name: "Aileron stick @8", unit: "", value: v(8), channel: "raw:spektrum.0x7a.@8" },
-        { name: "Rudder stick @10", unit: "", value: v(10), channel: "raw:spektrum.0x7a.@10" },
+        { name: "Elevator stick @6", unit: "", value: v(6), channel: "stick.elevator" },
+        { name: "Aileron stick @8", unit: "", value: v(8), channel: "stick.aileron" },
+        { name: "Rudder stick @10", unit: "", value: v(10), channel: "stick.rudder" },
         { name: "Value @12", unit: "", value: v(12) },
         { name: "Value @14", unit: "", value: v(14) },
       ];
@@ -300,7 +300,8 @@ function decodeFlightLog(p: Uint8Array): Field[] {
     { name: "Fades R", unit: "count", value: none16(u16be(p, 8), 1), channel: "fades.r", counter: true },
     { name: "Frame losses", unit: "count", value: none16(u16be(p, 10), 1), channel: "frame_losses", counter: true },
     { name: "Holds", unit: "count", value: none16(u16be(p, 12), 1), channel: "holds", counter: true },
-    { name: "Receiver voltage", unit: "V", value: r(none16(u16be(p, 14), 0.01)), channel: "rx_voltage" },
+    // A receiver that sends cannot be at 0 V: simulator dongles (WS3000) send 0 for "no reading".
+    { name: "Receiver voltage", unit: "V", value: u16be(p, 14) === 0 ? null : r(none16(u16be(p, 14), 0.01)), channel: "rx_voltage" },
   ];
 }
 

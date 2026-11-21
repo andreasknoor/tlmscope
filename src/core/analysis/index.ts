@@ -1,6 +1,7 @@
 import { modelKey } from "../model/model-name.ts";
 import type { LogFile, Session } from "../model/types.ts";
 import { batteryCondition, batteryUse, cellBalance, chargeEstimate, type BatteryCondition, type BatteryUse, type CellBalance, type ChargeEstimate } from "./battery.ts";
+import { simulatorTime, type SimulatorTime } from "./simulator.ts";
 import { altitudeFlat, circling, classify, flightProfile, type Circling, type FlightProfile, type SessionKind } from "./flight.ts";
 import { track, type Track } from "./gps.ts";
 import { stabilization, type Stabilization } from "./stabilization.ts";
@@ -14,6 +15,8 @@ import { rate, THRESHOLDS, type Level } from "./thresholds.ts";
 export interface SessionAnalysis {
   session: Session;
   kind: SessionKind;
+  /** Connected and actively flown time; only for simulator sessions. */
+  simulator: SimulatorTime | null;
   grid: Grid;
   profile: Result<FlightProfile>;
   circling: Result<Circling>;
@@ -63,6 +66,7 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
   const tr = track(session, grid, p);
   return {
     session, kind, grid, profile,
+    simulator: kind === "simulator" ? simulatorTime(session) : null,
     circling: circ,
     track: tr,
     thermals: p && kind === "flight" ? thermals(p, grid, val(circ), val(tr)) : null,
@@ -177,4 +181,5 @@ export { attitudeFromPath, type Attitude } from "./attitude.ts";
 export { batteryUse } from "./battery.ts";
 export { batteryAgeing, AGEING, type Ageing, type AgeingPoint } from "./ageing.ts";
 export type { Thermal, Thermals, ThermalCircle } from "./thermals.ts";
+export type { SimulatorTime } from "./simulator.ts";
 export type { SessionKind, FlightProfile, Circling, Track, LinkAnalysis, SignalAnalysis, BatteryUse, BatteryCondition, ChargeEstimate, CellBalance, Temperatures, ReceiverPower, Loads, DataIssue, Moment, Result };

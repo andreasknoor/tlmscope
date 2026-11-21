@@ -63,7 +63,7 @@ export function SessionView() {
               {e.a.kind === "flight" && p ? t("app.airtime", { time: airtime(p) }) : t("app.sessionDuration", { time: duration(loc, s.durationS) })}
             </span>
             {e.batteryLetter ? <span className="pill">{batteryName(e)} · {t("app.cycles", { n: s.battery?.chargeCycles ?? "?" })}</span>
-              : e.a.kind !== "transmitter-only" ? <span className="pill">{t("app.batteryNotIdentified")}</span> : null}
+              : e.a.kind !== "transmitter-only" && e.a.kind !== "simulator" ? <span className="pill">{t("app.batteryNotIdentified")}</span> : null}
             {multi && modelFilter !== e.model.key && <button className="linkbtn" onClick={() => setModelFilter(e.model.key)}>{t("app.onlyModel", { name: modelName(e.model) })}</button>}
             <span className="lv-more mono">{e.file.fileName} · #{s.index} · {t("app.records", { n: Number(s.meta.records ?? 0) })}{s.meta.modelNameSource ? ` · ${t("app.nameFromFile")}` : ""}</span>
           </div>
@@ -76,6 +76,13 @@ export function SessionView() {
       {isDemo && <div className="simbanner"><b>Demo</b><span className="hint">{t("app.demoBanner")}</span></div>}
       {e.a.kind === "transmitter-only" ? (
         <Alert level="info" title={t("app.transmitterOnly")}>{t("app.transmitterOnlyText")}</Alert>
+      ) : e.a.kind === "simulator" && e.a.simulator ? (
+        <Alert level="info" title={t("app.simulator")}>
+          {t("app.simulatorText")}{" "}
+          {e.a.simulator.activeS !== null
+            ? t("app.simulatorTimes", { active: duration(loc, e.a.simulator.activeS), connected: duration(loc, e.a.simulator.connectedS) })
+            : t("app.simulatorConnected", { connected: duration(loc, e.a.simulator.connectedS) })}
+        </Alert>
       ) : (
         <>
           <div className="tabs" role="tablist">

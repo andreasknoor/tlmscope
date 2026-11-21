@@ -28,6 +28,7 @@ export const FEATURES = [
   "Thermal detection",
   "Battery ageing across flights",
   "Total flight time per model and CSV export of the session list",
+  "Simulator sessions (Spektrum WS3000 dongle) recognised, with the simulator time summed up separately",
   "Works offline after the first visit",
   "Files never leave the browser",
 ];

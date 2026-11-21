@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
 import { cssVar, clock, dayLabel, longDuration, num, timeLabel } from "./format";
-import { flightTotal } from "./flight-total";
+import { flightTotal, simulatorTotal } from "./flight-total";
 import { downloadText, logbookCsv, logbookFileName } from "./logbook";
 import { Guides } from "./views/Guides";
 import { FeedbackDialog } from "./views/FeedbackDialog";
@@ -26,7 +26,7 @@ import { Logo, Wordmark } from "./brand";
 import { useLogoClicks } from "./StorkRace";
 import { useServiceWorker, type OfflineState } from "./offline";
 
-export const KIND_COLOR: Record<string, string> = { flight: "var(--s-alt)", "ground-test": "var(--s-motor)", "powered-on": "var(--s-glide)", "transmitter-only": "var(--s-ground)" };
+export const KIND_COLOR: Record<string, string> = { flight: "var(--s-alt)", "ground-test": "var(--s-motor)", "powered-on": "var(--s-glide)", "transmitter-only": "var(--s-ground)", simulator: "var(--s-4)" };
 
 /** Coloured square of a model; the name is always shown next to it. */
 export function ModelBadge({ model, large = false }: { model: Model; large?: boolean }) {
@@ -145,6 +145,7 @@ function Sidebar() {
   const modelName = useModelName();
   const airtime = useAirtime();
   const total = useMemo(() => flightTotal(modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter)), [entries, modelFilter]);
+  const sim = useMemo(() => simulatorTotal(modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter)), [entries, modelFilter]);
   const multi = models.length > 1;
   const kindEntries = modelFilter === null ? entries : entries.filter((e) => e.model.key === modelFilter);
   const count = (m: string | null) => entries.filter((e) => (m === null || e.model.key === m) && (filter === "all" || e.a.kind === "flight")).length;
@@ -217,6 +218,12 @@ function Sidebar() {
         <div className="total" title={`${t("app.totalHint")}${total.estimatedSeconds > 0 ? ` ${t("app.totalHintApprox")}` : ""}`}>
           <b>{total.estimatedSeconds > 0 ? "≈ " : ""}{t("app.total", { time: longDuration(total.seconds), n: total.flights })}</b>
           <span>{t(total.estimatedSeconds > 0 ? "app.totalSubApprox" : "app.totalSub")}</span>
+        </div>
+      )}
+      {sim.sessions > 0 && (
+        <div className="total sim" title={t("app.simTotalHint")}>
+          <b>{t("app.simTotal", { time: longDuration(sim.activeSeconds), n: sim.sessions })}</b>
+          <span>{t("app.simTotalSub", { time: longDuration(sim.connectedSeconds) })}</span>
         </div>
       )}
       <button className="btn exportbtn" title={t("app.exportCsvHint")} disabled={visible.length === 0}

@@ -159,7 +159,7 @@ Analyses work only on canonical channels, resampled to a 1-second grid, so they 
 
 | Analysis | Needs | Result |
 |---|---|---|
-| Session kind | any channel from the model; `altitude` or `ground_speed` for flights | flight, ground test, powered on, transmitter only (no data from the model, at most the transmitter's own sticks and switches) |
+| Session kind | any channel from the model; `altitude` or `ground_speed` for flights | flight, ground test, powered on, transmitter only (no data from the model, at most the transmitter's own sticks and switches), simulator (a simulator dongle such as the WS3000: a link report with 0 V, no fades and 100 % link quality, nothing from a model; the list sums up the time with the sticks moved) |
 | Flight profile | `altitude` and one of `throttle_output`, `motor_current`, `throttle_command`; without a height sensor `altitude` comes from `gps.altitude` minus the ground level (highest point only, airtime from `ground_speed`) | phases (ground, motor climb, glide, lift), climbs with height gained and charge used, lift, glide sink rate, airtime |
 | Circling | `rotation_rate.pitch`, `rotation_rate.yaw` | full circles, direction, time turning |
 | Thermals | flight profile; circles with `rotation_rate.pitch/yaw`; centre and drift with GPS | per lift phase: gain, average and best 10 s climb, circles and height per circle, drift, motor time and mAh saved |

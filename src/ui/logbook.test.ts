@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parseLog } from "../core/adapters/registry.ts";
 import { analyseLogs } from "../core/analysis/index.ts";
-import { flightTotal } from "./flight-total";
+import { flightTotal, simulatorTotal } from "./flight-total";
 import { csvText, LOGBOOK_COLUMNS, logbookCsv, logbookFileName } from "./logbook";
 import type { Entry } from "./store";
 
@@ -75,7 +75,7 @@ describe("logbook CSV", () => {
 
 describe("total flight time", () => {
   it("sums the time in the air of the flights only", () => {
-    const t = flightTotal([entry(), entry({ key: "0-1" }), entry({ key: "0-2", a: { ...a, kind: "ground-test" } as typeof a })]);
+    const t = flightTotal([entry(), entry({ key: "0-1", startMs: Date.UTC(2026, 5, 15, 10) }), entry({ key: "0-2", startMs: Date.UTC(2026, 5, 16, 10), a: { ...a, kind: "ground-test" } as typeof a })]);
     expect(t.flights).toBe(2);
     expect(t.seconds).toBe(2 * p!.airtimeS);
     expect(t.estimatedSeconds).toBe(p!.basis === "motion" ? t.seconds : 0);
@@ -88,5 +88,22 @@ describe("total flight time", () => {
 
   it("is empty without flights", () => {
     expect(flightTotal([])).toEqual({ flights: 0, seconds: 0, estimatedSeconds: 0 });
+  });
+
+  it("counts a session found in two copies of a log once", () => {
+    const copy = { ...log, fileName: "copy.TLM" };
+    expect(flightTotal([entry(), entry({ key: "1-0", fileIndex: 1, file: copy })]).flights).toBe(1);
+    expect(flightTotal([entry({ startMs: null }), entry({ key: "1-0", startMs: null })]).flights).toBe(2);
+  });
+});
+
+describe("total simulator time", () => {
+  const sim = (activeS: number | null, startMs: number) =>
+    entry({ key: `s-${startMs}`, startMs, a: { ...a, kind: "simulator", simulator: { connectedS: 600, activeS } } as typeof a });
+
+  it("sums the time with the sticks moved apart from the flights", () => {
+    const entries = [entry(), sim(500, 1), sim(null, 2), sim(500, 1)];
+    expect(simulatorTotal(entries)).toEqual({ sessions: 2, activeSeconds: 1100, connectedSeconds: 1200 });
+    expect(flightTotal(entries).flights).toBe(1);
   });
 });

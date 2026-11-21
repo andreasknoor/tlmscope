@@ -2,8 +2,9 @@ import { isGpsHeight } from "../model/normalise.ts";
 import type { Session } from "../model/types.ts";
 import { Grid, maxOf, medianOf, minOf, sumOf, type Series } from "./grid.ts";
 import { withNeeds, type Result } from "./requirements.ts";
+import { isSimulator } from "./simulator.ts";
 
-export type SessionKind = "flight" | "ground-test" | "powered-on" | "transmitter-only";
+export type SessionKind = "flight" | "ground-test" | "powered-on" | "transmitter-only" | "simulator";
 /**
  * Phases per second. "motor" = climbing with the motor; "powered" = motor on without a
  * measured climb (level flight, or no height sensor); "unpowered" = motor off without
@@ -149,6 +150,8 @@ const count = (a: boolean[] | null) => (a ? a.reduce((s, x) => s + (x ? 1 : 0), 
 export function classify(session: Session, g = new Grid(session)): SessionKind {
   // Only the transmitter's own sticks and switches (or nothing at all): no data came from the model.
   if (![...session.channels.values()].some((c) => !c.source.transmitter)) return "transmitter-only";
+  // The transmitter flew a simulator through a dongle: a link report but nothing from a model.
+  if (isSimulator(session)) return "simulator";
   const alt = usableAltitude(g);
   if (alt) {
     if ((maxOf(alt) ?? 0) > FLIGHT.flightAltitudeM) return "flight";
