@@ -20,10 +20,10 @@ export const SLUGS: Record<PageId, Record<Lang, string>> = {
  * Shown on the page, given to search engines (dateModified, sitemap lastmod): change it with the content, not otherwise.
  */
 export const UPDATED: Record<PageId, string> = {
-  open: "2026-11-18",
+  open: "2026-11-21",
   understand: "2026-11-20",
   radios: "2026-11-20",
-  help: "2026-11-18",
+  help: "2026-11-21",
   faq: "2026-11-18",
   compare: "2026-11-18",
 };

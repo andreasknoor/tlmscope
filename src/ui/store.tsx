@@ -38,6 +38,8 @@ export interface Entry {
 
 export interface Settings {
   details: boolean;
+  /** True once the details were switched on; the hints that point to them then stay away. */
+  detailsTried: boolean;
   locale: Locale;
   filter: "flights" | "all";
   theme: Theme;

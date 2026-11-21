@@ -21,7 +21,7 @@ import { requestJump } from "./charts/sync";
 import { isCapacity, MAX_BATTERY_NAME, StoreContext, type Detail, type Entry, type Model, type Settings, type Store, type Tab, type View } from "./store";
 
 const MESSAGES = { en, de };
-const DEFAULTS: Settings = { details: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null, batteryNames: {}, map: MAP_DEFAULTS };
+const DEFAULTS: Settings = { details: false, detailsTried: false, locale: "en", filter: "flights", theme: "system", units: "metric", capacities: {}, defaultCapacityMah: null, batteryNames: {}, map: MAP_DEFAULTS };
 const SETTINGS_KEY = "tlmscope.settings";
 export const DEMO_FILE = "demo-flight.TLM";
 /** Larger files are refused: real logs are a few MB, and parsing needs several times the file size in memory. */
@@ -57,7 +57,8 @@ function readSettings(initial: Locale): Settings {
         if (typeof v === "string" && v.trim()) batteryNames[k] = v.trim().slice(0, MAX_BATTERY_NAME);
       }
     }
-    return { details, locale, filter, theme, units, capacities, defaultCapacityMah, batteryNames, map: readMapPrefs(saved.map) };
+    const detailsTried = details || saved.detailsTried === true;
+    return { details, detailsTried, locale, filter, theme, units, capacities, defaultCapacityMah, batteryNames, map: readMapPrefs(saved.map) };
   } catch {
     return base;
   }
@@ -115,6 +116,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const setSettings = useCallback((patch: Partial<Settings>) => {
     setSettingsState((s) => {
       const next = { ...s, ...patch };
+      if (next.details) next.detailsTried = true;
       try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(next)); } catch { /* storage may be blocked */ }
       return next;
     });

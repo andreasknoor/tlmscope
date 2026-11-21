@@ -5,7 +5,7 @@ import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useOnline } from "../offline";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Legend, Tile, useLevelWord } from "../bits";
+import { Alert, Legend, Tile, useLevelWord, MoreHint } from "../bits";
 import { FlightMap, LINE_STYLES, MARKER_STYLES, PATH_MODES, type LineStyle, type MarkerStyle, type PathMode } from "../charts/FlightMap";
 import type { MapPrefs } from "../map-prefs";
 import { Replay } from "../charts/Replay";
@@ -222,6 +222,7 @@ function GpsView() {
           yMin={0} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("speed")}`} rest={tr.maxSpeed !== null ? `max ${U.fmt("speed", tr.maxSpeed)}` : undefined}
           readout={(i) => `${U.fmt("speed", tr.speed[i])} · ${p?.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} onCursor={setMarker} />
       )}
+      <MoreHint items={[t("more.distance"), sig && t("more.dbmMap")]} />
       <div className="lv-more"><LineChart syncKey={e!.key} title={t("path.distFromStart")} series={distSeries} height={130} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("distance")}`} onCursor={setMarker} /></div>
     </>
   );

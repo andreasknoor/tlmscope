@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import type { Level } from "@/core/analysis";
-import { Legend, useLevelWord } from "../bits";
+import { Legend, useLevelWord, MoreHint } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { Scatter } from "../charts/Scatter";
 import { Strip } from "../charts/Strip";
@@ -26,7 +26,7 @@ export function levelColor(l: Level | null): string | null {
 export function LinkTab() {
   const t = useTranslations();
   const word = useLevelWord();
-  const { selected: e, settings, setSettings } = useStore();
+  const { selected: e, settings } = useStore();
   const a = e!.a;
   const loc = settings.locale;
   const U = useUnits();
@@ -116,9 +116,7 @@ export function LinkTab() {
           })}
         </div>
       ) : <Legend items={[[cssVar("--good"), lw(4)], [withAlpha(cssVar("--good"), 0.45), lw(3)], [cssVar("--warn"), lw(2)], [cssVar("--crit"), lw(1)]]} />}
-      {(sig || g.has("frame_losses")) && !settings.details && (
-        <p className="hint">{t("link.moreHint")} <button type="button" className="linkbtn inline" onClick={() => setSettings({ details: true })}>{t("app.showDetails")}</button></p>
-      )}
+      <MoreHint items={[sig && t("more.dbm"), g.has("frame_losses") && t("more.frameLosses"), fades.length > 0 && t("more.fades"), (sigVsDistance.length > 0 || sigVsHeight.length > 0) && t("more.sigVs")]} />
       {sig && <div className="lv-more"><LineChart syncKey={e!.key} title={t("link.dbm")} series={dbm} height={160} yMin={-100} yMax={-30}
         bands={[{ from: -100, to: -85, color: "--crit" }, { from: -85, to: -80, color: "--warn" }]} /></div>}
       {g.has("frame_losses") && <div className="lv-more"><LineChart syncKey={e!.key} title={t("link.fl")} series={fl} height={130} marks={holds}

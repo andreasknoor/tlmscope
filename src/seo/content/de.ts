@@ -114,7 +114,7 @@ export const de: Content = {
               "Öffne [TLMscope](home) in einem aktuellen Browser.",
               "Lege eine oder mehrere `.TLM`-Dateien auf der Seite ab oder klicke, um sie auszuwählen.",
               "Wähle eine Sitzung in der Liste. Jeder Start des Empfängers ist eine Sitzung; Flüge, Bodentests und kurze Einschaltphasen sind gekennzeichnet.",
-              "Nutze die Tabs für Höhe, Motor und Energie, Akku, Funkverbindung und das Modell. Mit „Details anzeigen“ siehst du die genauen Werte.",
+              "Nutze die Tabs für Höhe, Motor und Energie, Akku, Funkverbindung und das Modell. Mit „Mehr Diagramme & Werte“ siehst du die genauen Werte; eine Zeile in jedem Tab sagt, was dort dazukommt.",
             ] },
             { t: "p", text: "Große Logs mit vielen Flügen brauchen ein paar Sekunden zum Lesen. Alles geschieht auf deinem Gerät, nichts wird hochgeladen." },
           ],
@@ -345,7 +345,7 @@ export const de: Content = {
         {
           h2: "Einfache Ansicht und Details",
           blocks: [
-            { t: "p", text: "Standardmäßig siehst du verständliche Zusammenfassungen und Bewertungen in vier Stufen, zum Beispiel Kritisch, Schwach, Normal und Hoch. Mit „Details anzeigen“ oben rechts siehst du die genauen Werte, mehr Diagramme und die Grenzen hinter jeder Bewertung. Die Gründe für die Grenzen erklärt [Deine Spektrum-Telemetrie verstehen](page:understand). Die Karten der Übersicht verlinken auf die Seite mit dem Detail dahinter und setzen den Cursor auf den Moment hinter der Bewertung, zum Beispiel das schwächste Signal." },
+            { t: "p", text: "Standardmäßig siehst du verständliche Zusammenfassungen und Bewertungen in vier Stufen, zum Beispiel Kritisch, Schwach, Normal und Hoch. Mit „Mehr Diagramme & Werte“ oben rechts (auf dem Handy „Details“) siehst du die genauen Werte, mehr Diagramme und die Grenzen hinter jeder Bewertung. Die Gründe für die Grenzen erklärt [Deine Spektrum-Telemetrie verstehen](page:understand). Die Karten der Übersicht verlinken auf die Seite mit dem Detail dahinter und setzen den Cursor auf den Moment hinter der Bewertung, zum Beispiel das schwächste Signal." },
           ],
         },
         {
@@ -359,7 +359,7 @@ export const de: Content = {
               "**Akku**: Ladestand, Zellspannungen und der Spannungseinbruch, aus dem sich der Innenwiderstand ergibt.",
               "**Funkverbindung**: Signalstärke, Frame Losses und Holds im Zeitverlauf sowie das Signal über der Höhe. Ein Klick auf eine Stufe unter dem Zeitverlauf zeigt nur diese und springt durch ihre Stellen.",
               "**Modell**: Temperaturen, Empfänger- und BEC-Spannung, Belastungen, die Flugmodi im Zeitverlauf und die Stabilisierung je Flugmodus mit dem AS3X-Gain.",
-              "**Rohdaten**: alle dekodierten Sensordatenströme, sichtbar mit „Details anzeigen“.",
+              "**Rohdaten**: alle dekodierten Sensordatenströme, sichtbar mit „Mehr Diagramme & Werte“.",
             ] },
           ],
         },

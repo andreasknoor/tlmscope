@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import type { FlightProfile } from "@/core/analysis/flight";
 import { DetailLink } from "../DetailLink";
-import { FeedbackLink, Legend, Tile, useAirtime, useLevelWord, useRich } from "../bits";
+import { FeedbackLink, Legend, Tile, useAirtime, useLevelWord, useRich, MoreHint } from "../bits";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { jumpTo } from "../charts/sync";
 import { axisNum, clock, duration, num } from "../format";
@@ -133,6 +133,7 @@ export function OverviewTab() {
           </tbody></table>
         </div>
       )}
+      <MoreHint items={[t("more.minMax"), t("more.raw")]} />
       <MinMaxCard a={a} syncKey={e!.key} />
     </>
   );

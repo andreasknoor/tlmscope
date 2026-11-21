@@ -3,7 +3,7 @@
 import { maxOf, minOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
-import { DetailRows, Legend, RatingCard, useLevelWord, useRich } from "../bits";
+import { DetailRows, Legend, RatingCard, useLevelWord, useRich, MoreHint } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { Scatter } from "../charts/Scatter";
 import { num, volts } from "../format";
@@ -71,6 +71,7 @@ export function BatteryTab() {
             return v == null ? "–" : t("battery.voltageReadout", { cell: num(loc, v / cells, 2), pack: num(loc, v, 1) });
           }} />
       )}
+      <MoreHint items={[b && t("more.batteryId"), cellSeries.length > 0 && t("more.cells"), cellSeries.length > 1 && t("more.balance"), cond && sagPoints.length > 0 && t("more.sag")]} />
       {cellSeries.length > 0 && (
         <div className="lv-more">
           <LineChart syncKey={e!.key} title={t("battery.cells")} series={cellSeries} height={160} yMin={(minOf(allCells) ?? 3.3) - 0.02} yMax={(maxOf(allCells) ?? 4.2) + 0.02}

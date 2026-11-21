@@ -3,7 +3,7 @@
 import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
-import { Meter, Tile, useLevelWord, LEVEL_COLOR } from "../bits";
+import { Meter, Tile, useLevelWord, LEVEL_COLOR, MoreHint } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { jumpTo } from "../charts/sync";
 import { axisNum, clock, num } from "../format";
@@ -82,6 +82,7 @@ export function EnergyTab() {
           extra={<div className="sub">{t("energy.powerHint")}</div>} rest={`max ${num(loc, maxW, 0)}\u00a0W`}
           readout={(i) => `${num(loc, power.volts[i], 1)}\u00a0V · ${num(loc, power.amps[i], 1)}\u00a0A · ${num(loc, power.watts[i], 0)}\u00a0W`} />
       )}
+      <MoreHint items={[g.has("rpm_electrical") && t("more.rpm"), flight && p.climbs.length > 0 && t("more.perMah", { unit: U.u("height") })]} />
       {g.has("rpm_electrical") && (
         <div className="lv-more"><LineChart syncKey={e!.key} title={t("energy.rpm")} series={rpm} height={130} yFormat={(x) => `${axisNum(loc, x / 1000)}k`} extra={<div className="sub">{t("energy.rpmHint")}</div>} /></div>
       )}

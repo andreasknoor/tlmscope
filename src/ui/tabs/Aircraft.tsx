@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo } from "react";
-import { Legend, Tile } from "../bits";
+import { Legend, Tile, MoreHint } from "../bits";
 import { LineChart } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
 import { axisNum, cssVar, duration, num } from "../format";
@@ -71,6 +71,7 @@ export function AircraftTab() {
       </div>
       {temps.length > 0 && <LineChart syncKey={e!.key} title={t("rating.temps")} series={temps} height={160} yMin={U.v("temp", 0)!} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("temp")}`}
         extra={<Legend items={temps.map((s) => [`var(${s.color})`, s.label, true])} />} />}
+      <MoreHint items={[stab.uses.some((u) => u.gain && u.gain.some((x) => x !== 0)) && t("more.gains"), power.length > 0 && t("more.rxVoltage"), g.has("accel.x") && t("more.loads"), modes.length > 0 && t("more.modes")]} />
       {power.length > 0 && <div className="lv-more"><LineChart syncKey={e!.key} title={t("rating.rx")} series={power} height={140} yMin={4} yMax={6.5}
         yFormat={(x) => `${num(loc, x, 1)}\u00a0V`} bands={[{ from: 4, to: 4.8, color: "--crit", alpha: 0.1 }]}
         extra={<Legend items={power.map((s) => [`var(${s.color})`, s.label, true])} />} /></div>}

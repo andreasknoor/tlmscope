@@ -75,6 +75,24 @@ export function useLevelWord() {
   return (scale: string, level: Level | null) => (level ? (t.raw(`levels.${scale}`) as string[])[level - 1] : "");
 }
 
+/**
+ * One line in a tab naming what "More charts & values" adds there, with a button that switches it on.
+ * Shown until the details have been switched on once, so people find the toggle where they miss something.
+ */
+export function MoreHint({ items }: { items: (string | false | null | undefined)[] }) {
+  const { settings, setSettings } = useStore();
+  const t = useTranslations("app");
+  const list = items.filter((x): x is string => !!x);
+  if (settings.details || settings.detailsTried || !list.length) return null;
+  const text = new Intl.ListFormat(settings.locale === "de" ? "de-DE" : "en-GB", { type: "conjunction" }).format(list);
+  return (
+    <p className="morehint">
+      <span>{t("moreLead")} {text}.</span>
+      <button type="button" className="linkbtn inline" onClick={() => setSettings({ details: true })}>{t("moreOn")}</button>
+    </p>
+  );
+}
+
 export function DetailRows({ rows }: { rows: [ReactNode, ReactNode][] | null }) {
   const { settings } = useStore();
   const t = useTranslations("app");

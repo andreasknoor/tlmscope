@@ -114,7 +114,7 @@ export const en: Content = {
               "Open [TLMscope](home) in any current browser.",
               "Drop one or more `.TLM` files onto the page, or click to choose them.",
               "Pick a session in the list. Each power-up of the receiver is one session; flights, ground tests and short power-ups are labelled.",
-              "Use the tabs for height, motor and energy, battery, radio link and the aircraft. Switch on “Show details” for exact values.",
+              "Use the tabs for height, motor and energy, battery, radio link and the aircraft. Switch on “More charts & values” for exact values; a line in each tab names what it adds there.",
             ] },
             { t: "p", text: "Large logs with many flights take a few seconds to read. Everything happens on your device, nothing is uploaded." },
           ],
@@ -345,7 +345,7 @@ export const en: Content = {
         {
           h2: "Plain view and details",
           blocks: [
-            { t: "p", text: "By default you see plain-language summaries and four-level ratings, for example Critical, Weak, Normal and High. Switch on “Show details” at the top right for exact values, more charts and the limits behind every rating. The reasons for the limits are explained in [Understand your Spektrum telemetry](page:understand). The cards of the overview link to the page with the detail behind them and put the cursor on the moment behind the rating, for example the weakest signal." },
+            { t: "p", text: "By default you see plain-language summaries and four-level ratings, for example Critical, Weak, Normal and High. Switch on “More charts & values” at the top right (“Details” on phones) for exact values, more charts and the limits behind every rating. The reasons for the limits are explained in [Understand your Spektrum telemetry](page:understand). The cards of the overview link to the page with the detail behind them and put the cursor on the moment behind the rating, for example the weakest signal." },
           ],
         },
         {
@@ -359,7 +359,7 @@ export const en: Content = {
               "**Battery**: charge level, cell voltages and the voltage sag that gives the internal resistance.",
               "**Radio link**: signal strength, frame losses and holds over time, and the signal against height. Click a level under the timeline to show only it and step through it.",
               "**Aircraft**: temperatures, receiver and BEC voltage, loads, the flight modes over time and the stabilization per flight mode with the AS3X gain.",
-              "**Raw data**: all decoded sensor streams, shown with “Show details”.",
+              "**Raw data**: all decoded sensor streams, shown with “More charts & values”.",
             ] },
           ],
         },

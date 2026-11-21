@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo } from "react";
-import { Missing, Tile } from "../bits";
+import { Missing, Tile, MoreHint } from "../bits";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
 import { jumpTo } from "../charts/sync";
@@ -53,6 +53,7 @@ export function HeightTab() {
         extra={<PhaseLegend kinds={[...new Set(p.phases.map((x) => x.kind))]} />} yFormat={(x) => `${axisNum(loc, x)}\u00a0${U.u("height")}`}
         readout={(i) => `${U.fmt("height", alt[i], 1)} · ${p.phaseAt[i] ? t(`phase.${p.phaseAt[i]}`) : ""}`} />
       <Strip syncKey={e!.key} label={t("height.phases")} n={p.n} colorAt={phaseColor} height={18} />
+      <MoreHint items={[t("more.climbRate"), t("more.climbPerPhase")]} />
       <div className="lv-more">
         <LineChart syncKey={e!.key} title={t("height.climbRate")} series={climbSeries} height={150} yMin={U.v("vspeed", -4)!} yMax={U.v("vspeed", 6)!}
           bands={[{ from: U.v("vspeed", 0.2)!, to: U.v("vspeed", 6)!, color: "--s-lift", alpha: 0.07 }]} extra={<div className="sub">{t("height.climbHint", { v: U.fmt("vspeed", 0.2, 1) })}</div>} />

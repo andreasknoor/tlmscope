@@ -1,5 +1,6 @@
 "use client";
 
+import { MoreHint } from "../bits";
 import { useTranslations } from "next-intl";
 import type { Thermal, Thermals } from "@/core/analysis";
 import { jumpTo } from "../charts/sync";
@@ -26,6 +27,7 @@ function CircleBars({ th }: { th: Thermal }) {
 /** Thermals of one flight: a summary in words and one row per thermal. */
 export function ThermalsCard({ thermals }: { thermals: Thermals }) {
   const t = useTranslations("thermals");
+  const tm = useTranslations("more");
   const { selected: e, settings } = useStore();
   const loc = settings.locale;
   const U = useUnits();
@@ -67,6 +69,7 @@ export function ThermalsCard({ thermals }: { thermals: Thermals }) {
         ))}</tbody>
       </table></div>
       <p className="hint lv-more">{t("perCircleHint")} {t("savedHint")}</p>
+      <MoreHint items={[tm("best10s"), tm("circles"), hasDrift && tm("drift")]} />
     </div>
   );
 }

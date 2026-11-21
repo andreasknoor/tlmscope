@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { medianOf } from "@/core/analysis/grid";
 import { AGEING, batteryAgeing, rate, THRESHOLDS, type AgeingPoint } from "@/core/analysis";
 import { AgeingChart } from "../charts/AgeingChart";
-import { Meter, RatingCard, Tile, useLevelWord } from "../bits";
+import { Meter, RatingCard, Tile, useLevelWord, MoreHint } from "../bits";
 import { dateShort, num, timeLabel } from "../format";
 import { ModelBadge, ModelSelect, useModelName } from "../Shell";
 import { BatteryHeading } from "./BatteryHeading";
@@ -93,6 +93,7 @@ export function Batteries() {
               {ageing.points.length >= 2 && <AgeingChart ageing={ageing} title={t("batteries.ageingTitle")} note={t("batteries.ageingNote")} />}
               {ageing.points.some((p) => !p.used) && <p className="hint">{t("batteries.ageingCold", { t: U.fmt("temp", AGEING.minTempC) })}</p>}
             </div>
+            <MoreHint items={[ageing.enough && ageing.current !== null && t("more.ageingNow"), t("more.cellVolts"), t("more.resistance")]} />
             <details className="more sessionlist">
               <summary>{t("batteries.sessionList", { n: list.length })}</summary>
               <div className="scroll"><table className="tbl">
