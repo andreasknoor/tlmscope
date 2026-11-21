@@ -3,8 +3,9 @@ import { describe, expect, it } from "vitest";
 import { parseLog } from "../core/adapters/registry.ts";
 import { analyseLogs } from "../core/analysis/index.ts";
 import {
-  bookable, bookCsv, byFile, byModel, byYear, counted, decide, EMPTY_LOGBOOK, mergeLogbook, parseLogbook, pendingModels, record, sessionKey, setFileOn, totals,
+  BOOK_COLUMNS, bookable, bookCsv, byFile, byModel, byYear, counted, decide, EMPTY_LOGBOOK, mergeLogbook, parseLogbook, pendingModels, record, sessionKey, setFileOn, totals,
 } from "./my-logbook";
+import { SESSION_COLUMNS } from "./session-csv";
 import type { Entry, Model } from "./store";
 
 const log = parseLog(new Uint8Array(readFileSync("public/demo/demo-flight.TLM")), "mine.TLM");
@@ -91,7 +92,15 @@ describe("my logbook", () => {
   it("writes all stored sessions as CSV, marking what counts", () => {
     const book = setFileOn(record(EMPTY_LOGBOOK, [sim(at(10), 100)], DEMO, true)!, "mine.TLM", false);
     const lines = bookCsv(book, "en", "Unknown").replace(/^﻿/, "").trimEnd().split("\r\n");
-    expect(lines[0]).toBe("model,date,start_time,type,session_s,time_s,connected_s,estimated,file,counted");
-    expect(lines[1].split(",")).toEqual(expect.arrayContaining(["Glider", "simulator", "100", "600", "mine.TLM", "no"]));
+    expect(lines[0]).toBe("model,date,start_time,type,session_s,air_time_s,air_time_source,file,sim_active_s,sim_connected_s,counted");
+    const row = Object.fromEntries(BOOK_COLUMNS.map((c, i) => [c, lines[1].split(",")[i]]));
+    expect(row).toMatchObject({ model: "Glider", type: "simulator", air_time_s: "", sim_active_s: "100", sim_connected_s: "600", file: "mine.TLM", counted: "no" });
+  });
+
+  it("names the columns it shares with the session list export the same", () => {
+    for (const c of BOOK_COLUMNS) if (c !== "counted") expect(SESSION_COLUMNS, c).toContain(c);
+    const flight = bookCsv(record(EMPTY_LOGBOOK, [entry()], DEMO, true)!, "en", "Unknown").replace(/^\uFEFF/, "").split("\r\n")[1].split(",");
+    expect(flight[BOOK_COLUMNS.indexOf("air_time_s")]).toBe(String(Math.round(p!.airtimeS)));
+    expect(flight[BOOK_COLUMNS.indexOf("air_time_source")]).toBe(p!.basis);
   });
 });

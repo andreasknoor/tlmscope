@@ -62,7 +62,7 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 
 ### Exporting the session list
 
-“Export as CSV” above the session list saves the sessions shown there (respecting the flights/all switch and the model choice) as a spreadsheet file, oldest first. The file is made in the browser and is not sent anywhere. German settings give a semicolon and a decimal comma, all others a comma and a decimal point; text starts with a byte order mark so Excel reads it as UTF-8.
+“Export as CSV” above the session list saves the sessions shown there (respecting the flights/all switch and the model choice) as a spreadsheet file (`tlmscope-sessions-<date>.csv`), oldest first. The file is made in the browser and is not sent anywhere. German settings give a semicolon and a decimal comma, all others a comma and a decimal point; text starts with a byte order mark so Excel reads it as UTF-8.
 
 | Column | Meaning |
 |---|---|
@@ -73,12 +73,13 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 | `frame_losses`, `holds`, `min_receiver_voltage_v` | The values of the radio link and receiver power cards, over the time in the air |
 | `battery_id`, `used_mah` | Smart battery ID and the charge used |
 | `file`, `session` | The source file and the session number in it |
+| `sim_active_s`, `sim_connected_s` | Simulator sessions only: time with the sticks moved, and the connected time |
 
-The metric columns are filled for flights only. The column names are fixed. Text cells starting with `=`, `+`, `-` or `@` get a leading apostrophe so a spreadsheet never runs them as a formula.
+The metric columns are filled for flights only. New columns are added at the end. The column names are fixed. Text cells starting with `=`, `+`, `-` or `@` get a leading apostrophe so a spreadsheet never runs them as a formula.
 
 ### My logbook
 
-Off by default; it is switched on in the settings, and only then is anything from the logs stored. From then on every flight and simulator session of the opened files gets a short entry in the browser's local storage (`tlmscope.logbook`: start, length, model, time in the air or with the sticks moved, file name), never the file itself. A session is known by its start and length, so opening a growing transmitter log again adds only its new sessions and refreshes the others; the demo flight never counts. Each new model is asked about once ("my model" or "another pilot's log"), or counted without asking if chosen in the settings; models and single files can be switched off in the logbook later. The logbook shows totals for time in the air and simulator time, per year and per model, and saves a JSON backup (loaded backups are joined, a session counts once) and a CSV file. Switching it off asks whether to delete or keep what is stored.
+Off by default; it is switched on in the settings, and only then is anything from the logs stored. From then on every flight and simulator session of the opened files gets a short entry in the browser's local storage (`tlmscope.logbook`: start, length, model, time in the air or with the sticks moved, file name), never the file itself. A session is known by its start and length, so opening a growing transmitter log again adds only its new sessions and refreshes the others; the demo flight never counts. Each new model is asked about once ("my model" or "another pilot's log"), or counted without asking if chosen in the settings; models and single files can be switched off in the logbook later. The logbook shows totals for time in the air and simulator time, per year and per model, and saves a JSON backup (loaded backups are joined, a session counts once) and a CSV file (`tlmscope-logbook-<date>.csv`). Its columns use the names of the session list export where they hold the same values (`model`, `date`, `start_time`, `type`, `session_s`, `air_time_s`, `air_time_source`, `file`, `sim_active_s`, `sim_connected_s`), plus `counted` (yes when the session counts in the totals). Switching it off asks whether to delete or keep what is stored.
 
 ### Getting your log files
 

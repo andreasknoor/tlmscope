@@ -1,4 +1,4 @@
-import { csvText } from "./logbook";
+import { csvText } from "./session-csv";
 import type { Locale } from "./format";
 import type { Entry } from "./store";
 
@@ -24,6 +24,8 @@ export interface BookSession {
   c?: number;
   /** Flight: time estimated from motor and movement (no height or GPS). */
   est?: boolean;
+  /** Flight: where the time in the air comes from (missing in entries stored by 2.9). */
+  src?: "height" | "gps" | "motion";
   /** Name of the file the session was last seen in. */
   file: string;
 }
@@ -74,6 +76,7 @@ export function parseLogbook(raw: unknown): MyLogbook {
       const b: BookSession = { start: x.start, dur: x.dur, model, kind: x.kind, s: x.s, file };
       if (x.kind === "simulator" && isTime(x.c)) b.c = x.c;
       if (x.kind === "flight" && x.est === true) b.est = true;
+      if (x.kind === "flight" && (x.src === "height" || x.src === "gps" || x.src === "motion")) b.src = x.src;
       out.sessions[sessionKey(b.start, b.dur)] = b;
       if (!out.models[model]) out.models[model] = { name: null, on: true };
     }
@@ -108,7 +111,7 @@ function bookSession(e: Entry): BookSession | null {
   const a = e.a, base = { start: e.startMs, dur: Math.round(a.session.durationS * 10) / 10, model: e.model.key, file: e.file.fileName };
   if (a.kind === "flight" && a.profile.available) {
     const p = a.profile.value;
-    return { ...base, kind: "flight", s: p.airtimeS, ...(p.basis === "motion" ? { est: true } : {}) };
+    return { ...base, kind: "flight", s: p.airtimeS, ...(p.basis === "motion" ? { est: true } : {}), src: p.basis };
   }
   if (a.kind === "simulator" && a.simulator) return { ...base, kind: "simulator", s: a.simulator.activeS ?? a.simulator.connectedS, c: a.simulator.connectedS };
   return null;
@@ -226,14 +229,20 @@ export function mergeLogbook(mine: MyLogbook, other: MyLogbook): MyLogbook {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** tlmscope-my-logbook-2026-11-21.json */
-export function backupFileName(now = new Date()): string {
-  return `tlmscope-my-logbook-${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.json`;
-}
+const day = (now: Date) => `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 
-export const BOOK_COLUMNS = ["model", "date", "start_time", "type", "session_s", "time_s", "connected_s", "estimated", "file", "counted"] as const;
+/** tlmscope-logbook-backup-2026-11-21.json */
+export const backupFileName = (now = new Date()) => `tlmscope-logbook-backup-${day(now)}.json`;
+/** tlmscope-logbook-2026-11-21.csv; the session list export is tlmscope-sessions-….csv. */
+export const bookCsvFileName = (now = new Date()) => `tlmscope-logbook-${day(now)}.csv`;
 
-/** All stored sessions as a CSV file, oldest first; `time_s` is the time in the air or, in the simulator, with the sticks moved. */
+/**
+ * Columns of the logbook CSV. Where they hold the same thing as the session list export (`SESSION_COLUMNS`),
+ * they have the same name, so both files can be used in one spreadsheet.
+ */
+export const BOOK_COLUMNS = ["model", "date", "start_time", "type", "session_s", "air_time_s", "air_time_source", "file", "sim_active_s", "sim_connected_s", "counted"] as const;
+
+/** All stored sessions as a CSV file, oldest first. */
 export function bookCsv(book: MyLogbook, locale: Locale, unknownModel: string): string {
   const sep = locale === "de" ? ";" : ",";
   const counts = new Set(counted(book));
@@ -245,10 +254,11 @@ export function bookCsv(book: MyLogbook, locale: Locale, unknownModel: string): 
       `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`,
       s.kind,
       String(Math.round(s.dur)),
-      String(Math.round(s.s)),
-      s.c !== undefined ? String(Math.round(s.c)) : "",
-      s.est ? "yes" : "",
+      s.kind === "flight" ? String(Math.round(s.s)) : "",
+      s.kind === "flight" ? (s.src ?? (s.est ? "motion" : "")) : "",
       csvText(s.file, sep),
+      s.kind === "simulator" ? String(Math.round(s.s)) : "",
+      s.kind === "simulator" ? String(Math.round(s.c ?? s.s)) : "",
       counts.has(s) ? "yes" : "no",
     ].join(sep);
   });

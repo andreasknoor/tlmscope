@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { parseLog } from "../core/adapters/registry.ts";
 import { analyseLogs } from "../core/analysis/index.ts";
 import { flightTotal, simulatorTotal } from "./flight-total";
-import { csvText, LOGBOOK_COLUMNS, logbookCsv, logbookFileName } from "./logbook";
+import { csvText, SESSION_COLUMNS, sessionCsv, sessionCsvFileName } from "./session-csv";
 import type { Entry } from "./store";
 
 const log = parseLog(new Uint8Array(readFileSync("public/demo/demo-flight.TLM")), "demo-flight.TLM");
@@ -26,14 +26,14 @@ describe("CSV text cells", () => {
   });
 });
 
-describe("logbook CSV", () => {
-  const csv = logbookCsv([entry()], "en");
+describe("session list CSV", () => {
+  const csv = sessionCsv([entry()], "en");
   const lines = csv.replace(/^\uFEFF/, "").trimEnd().split("\r\n");
-  const row = Object.fromEntries(LOGBOOK_COLUMNS.map((c, i) => [c, lines[1].split(",")[i]]));
+  const row = Object.fromEntries(SESSION_COLUMNS.map((c, i) => [c, lines[1].split(",")[i]]));
 
   it("starts with a byte order mark and the fixed header", () => {
     expect(csv.startsWith("\uFEFF")).toBe(true);
-    expect(lines[0]).toBe(LOGBOOK_COLUMNS.join(","));
+    expect(lines[0]).toBe(SESSION_COLUMNS.join(","));
   });
 
   it("has one row per entry with the flight's values", () => {
@@ -48,28 +48,37 @@ describe("logbook CSV", () => {
   });
 
   it("uses a semicolon and a decimal comma for German", () => {
-    const de = logbookCsv([entry()], "de").replace(/^\uFEFF/, "").split("\r\n");
-    expect(de[0]).toBe(LOGBOOK_COLUMNS.join(";"));
-    const rx = de[1].split(";")[LOGBOOK_COLUMNS.indexOf("min_receiver_voltage_v")];
+    const de = sessionCsv([entry()], "de").replace(/^\uFEFF/, "").split("\r\n");
+    expect(de[0]).toBe(SESSION_COLUMNS.join(";"));
+    const rx = de[1].split(";")[SESSION_COLUMNS.indexOf("min_receiver_voltage_v")];
     expect(rx).toMatch(/^\d,\d\d$/);
   });
 
   it("leaves the time empty when the file has none, and keeps hostile names harmless", () => {
     const hostile = entry({ startMs: null, model: { key: "x", name: "=cmd|' /C calc'!A0", color: "", sessions: 1 } });
-    const cells = logbookCsv([hostile], "en").replace(/^\uFEFF/, "").split("\r\n")[1];
+    const cells = sessionCsv([hostile], "en").replace(/^\uFEFF/, "").split("\r\n")[1];
     expect(cells.startsWith(`'=cmd`)).toBe(true);
-    expect(cells.split(",")[LOGBOOK_COLUMNS.indexOf("date")]).toBe("");
+    expect(cells.split(",")[SESSION_COLUMNS.indexOf("date")]).toBe("");
   });
 
   it("fills the flight metrics for flights only", () => {
     const ground = entry({ a: { ...a, kind: "ground-test" } as typeof a });
-    const r = logbookCsv([ground], "en").replace(/^\uFEFF/, "").split("\r\n")[1].split(",");
-    for (const c of ["air_time_s", "air_time_source", "frame_losses", "holds", "min_receiver_voltage_v"] as const) expect(r[LOGBOOK_COLUMNS.indexOf(c)], c).toBe("");
-    expect(r[LOGBOOK_COLUMNS.indexOf("type")]).toBe("ground-test");
+    const r = sessionCsv([ground], "en").replace(/^\uFEFF/, "").split("\r\n")[1].split(",");
+    for (const c of ["air_time_s", "air_time_source", "frame_losses", "holds", "min_receiver_voltage_v"] as const) expect(r[SESSION_COLUMNS.indexOf(c)], c).toBe("");
+    expect(r[SESSION_COLUMNS.indexOf("type")]).toBe("ground-test");
+  });
+
+  it("gives the simulator time in its own columns", () => {
+    const sim = entry({ a: { ...a, kind: "simulator", simulator: { connectedS: 600.4, activeS: 420.2 } } as typeof a });
+    const r = sessionCsv([sim], "en").replace(/^\uFEFF/, "").split("\r\n")[1].split(",");
+    expect(r[SESSION_COLUMNS.indexOf("sim_active_s")]).toBe("420");
+    expect(r[SESSION_COLUMNS.indexOf("sim_connected_s")]).toBe("600");
+    expect(r[SESSION_COLUMNS.indexOf("air_time_s")]).toBe("");
+    expect(sessionCsv([entry()], "en").split("\r\n")[1].endsWith(",,")).toBe(true);
   });
 
   it("names the file by date only", () => {
-    expect(logbookFileName(new Date(2026, 10, 18))).toBe("tlmscope-logbook-2026-11-18.csv");
+    expect(sessionCsvFileName(new Date(2026, 10, 18))).toBe("tlmscope-sessions-2026-11-18.csv");
   });
 });
 

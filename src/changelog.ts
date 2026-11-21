@@ -20,6 +20,10 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.10", date: "2026-11-21", changes: [
+    ["new", "The CSV of the session list adds the simulator time and is now named tlmscope-sessions-….csv."],
+    ["new", "The logbook CSV uses the same column names as the session list CSV."],
+  ] },
   { version: "2.9", date: "2026-11-21", changes: [
     ["new", "My logbook (off by default, in the settings): flight and simulator time over all files.", "highlight"],
     ["new", "The logbook shows totals per year and model, leaves out other pilots' logs and saves a backup."],

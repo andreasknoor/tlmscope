@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
 import { cssVar, clock, dayLabel, longDuration, num, timeLabel } from "./format";
 import { flightTotal, simulatorTotal } from "./flight-total";
-import { downloadText, logbookCsv, logbookFileName } from "./logbook";
+import { downloadText, sessionCsv, sessionCsvFileName } from "./session-csv";
 import { Guides } from "./views/Guides";
 import { FeedbackDialog } from "./views/FeedbackDialog";
 import { SettingsDialog } from "./views/Settings";
@@ -240,7 +240,7 @@ function Sidebar() {
         </p>
       )}
       <button className="btn exportbtn" title={t("app.exportCsvHint")} disabled={visible.length === 0}
-        onClick={() => downloadText(logbookCsv(visible, loc), logbookFileName())}>{t("app.exportCsv")}</button>
+        onClick={() => downloadText(sessionCsv(visible, loc), sessionCsvFileName())}>{t("app.exportCsv")}</button>
       <div className="slist" ref={list} onKeyDown={onListKey}>
         {newestFirst.map((e, k) => {
           const d = dayOf(e);
@@ -345,7 +345,7 @@ function PhoneFiles() {
           ))}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button className="btn" onClick={closeAll}>{t("closeAll")}</button>
-            <button className="btn" title={t("exportCsvHint")} disabled={visible.length === 0} onClick={() => downloadText(logbookCsv(visible, settings.locale), logbookFileName())}>{t("exportCsv")}</button>
+            <button className="btn" title={t("exportCsvHint")} disabled={visible.length === 0} onClick={() => downloadText(sessionCsv(visible, settings.locale), sessionCsvFileName())}>{t("exportCsv")}</button>
           </div>
         </div>
       </details>

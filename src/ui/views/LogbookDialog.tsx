@@ -3,8 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useMemo, useRef, useState, type RefObject } from "react";
 import { longDuration } from "../format";
-import { downloadText } from "../logbook";
-import { backupFileName, bookCsv, byFile, byModel, byYear, counted, totals, type BookTotals } from "../my-logbook";
+import { downloadText } from "../session-csv";
+import { backupFileName, bookCsv, bookCsvFileName, byFile, byModel, byYear, counted, totals, type BookTotals } from "../my-logbook";
 import { useStore } from "../store";
 
 /** Largest backup file accepted (a logbook of many years is far below this). */
@@ -95,7 +95,7 @@ export function LogbookDialog({ dialogRef }: { dialogRef: RefObject<HTMLDialogEl
         <div className="bookacts">
           <button className="btn" disabled={stored === 0} onClick={() => downloadText(JSON.stringify(book), backupFileName(), "application/json")}>{t("backup")}</button>
           {settings.logbook && <button className="btn" onClick={() => input.current?.click()}>{t("restore")}</button>}
-          <button className="btn" disabled={stored === 0} onClick={() => downloadText(bookCsv(book, settings.locale, ta("unknownModel")), backupFileName().replace(/\.json$/, ".csv"))}>{t("csv")}</button>
+          <button className="btn" disabled={stored === 0} onClick={() => downloadText(bookCsv(book, settings.locale, ta("unknownModel")), bookCsvFileName())}>{t("csv")}</button>
           <button className="btn" disabled={stored === 0 && Object.keys(book.models).length === 0} onClick={() => setConfirm(true)}>{t("clear")}</button>
           <input ref={input} type="file" accept=".json,application/json" hidden onChange={(e) => { void restore(e.target.files?.[0]); e.target.value = ""; }} />
         </div>
