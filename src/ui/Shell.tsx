@@ -442,6 +442,9 @@ export function Shell({ helpRef, settingsRef, feedbackRef, logbookRef, messages,
         <Header />
         <div className="app">
           <Sidebar />
+          {/* The footer sits in the right column: a footer below the whole grid would end the sticky sidebar's
+              room early and push the sidebar (with the loaded files) up under the header at the end of the page. */}
+          <div className="maincol">
           <main className="main">
             <PhoneFiles />
             <LogbookAsk />
@@ -456,10 +459,12 @@ export function Shell({ helpRef, settingsRef, feedbackRef, logbookRef, messages,
               {view === "batteries" ? <Batteries /> : view === "inventory" ? <Inventory /> : selected ? <SessionView key={selected.key} /> : null}
             </ErrorBoundary>
           </main>
+          <Footer offline={sw.ready} />
+          </div>
         </div>
         </>
       )}
-      <Footer offline={sw.ready} />
+      {files.length === 0 && <Footer offline={sw.ready} />}
       <UpdateBar sw={sw} />
       <Guides dialogRef={helpRef} target={helpTarget} setTarget={setHelpTarget} />
       <SettingsDialog dialogRef={settingsRef} />
