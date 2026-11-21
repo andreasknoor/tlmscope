@@ -24,8 +24,11 @@ export interface ChartSeries {
 
 export interface Band { from: number; to: number; color: string; alpha?: number }
 
-/** Vertical lines at single seconds, e.g. holds; drawn over the series. */
-export interface Marks { at: number[]; color: string }
+/**
+ * Single seconds marked over the series: dashed lines across the chart (e.g. holds), or short
+ * solid ticks along the bottom edge for events that come often (e.g. frame losses).
+ */
+export interface Marks { at: number[]; color: string; style?: "line" | "tick" }
 
 interface Props {
   syncKey: string;
@@ -35,7 +38,7 @@ interface Props {
   height?: number;
   phases?: Phase[] | null;
   bands?: Band[];
-  marks?: Marks;
+  marks?: Marks | Marks[];
   yMin?: number;
   yMax?: number;
   yFormat?: (v: number) => string;
@@ -142,19 +145,24 @@ export function LineChart(props: Props) {
           ],
           draw: [
             (uu) => {
-              const m = propsRef.current.marks;
-              if (!m?.at.length) return;
+              const all = propsRef.current.marks;
               const ctx = uu.ctx;
               const { top, height } = uu.bbox;
-              ctx.save();
-              ctx.strokeStyle = cssVar(m.color);
-              ctx.lineWidth = 2 * devicePixelRatio;
-              ctx.setLineDash([4 * devicePixelRatio, 3 * devicePixelRatio]);
-              for (const i of m.at) {
-                const x = Math.round(uu.valToPos(i, "x", true));
-                ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + height); ctx.stroke();
+              // Ticks first, so lines (the rarer, more serious events) stay on top.
+              const list = (Array.isArray(all) ? all : all ? [all] : []).filter((m) => m.at.length).sort((a, b) => Number(a.style !== "tick") - Number(b.style !== "tick"));
+              for (const m of list) {
+                const tick = m.style === "tick";
+                ctx.save();
+                ctx.strokeStyle = cssVar(m.color);
+                ctx.lineWidth = (tick ? 2.5 : 2) * devicePixelRatio;
+                if (!tick) ctx.setLineDash([4 * devicePixelRatio, 3 * devicePixelRatio]);
+                const from = tick ? top + height * 0.78 : top;
+                for (const i of m.at) {
+                  const x = Math.round(uu.valToPos(i, "x", true));
+                  ctx.beginPath(); ctx.moveTo(x, from); ctx.lineTo(x, top + height); ctx.stroke();
+                }
+                ctx.restore();
               }
-              ctx.restore();
             },
           ],
           setCursor: [

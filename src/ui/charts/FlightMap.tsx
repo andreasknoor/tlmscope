@@ -22,6 +22,11 @@ const REST_ALPHA = 60;
 /** Dash and gap length in pixels. */
 const DASH: [number, number] = [10, 7];
 
+/** A second with frame losses (how many) or a hold, to mark on the path. */
+export interface LinkEvent { i: number; losses: number; hold: boolean }
+
+const NO_EVENTS: LinkEvent[] = [];
+
 interface Props {
   track: Track;
   /** Height per second in metres, used for the 3D path. */
@@ -42,6 +47,9 @@ interface Props {
   air?: { start: number | null; end: number | null };
   /** Thermal centres to mark: strength in m/s, `own` for this flight. */
   spots?: { lat: number; lon: number; climb: number; own: boolean }[];
+  /** Seconds with frame losses (`hold` for a hold), marked on the path; a click calls `onEvent` with the second. */
+  events?: LinkEvent[];
+  onEvent?: (i: number) => void;
   /** Experimental: terrain relief from free elevation tiles (the path and the model then sit on top of it). */
   relief?: boolean;
   /** Experimental: the camera follows the model during the replay. */
@@ -179,10 +187,13 @@ const toRgb = (c: string): [number, number, number] => {
 };
 
 /** Map with the flight path in 3D. Libraries load only in the browser. */
-export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pathMode, markerStyle, shadow: showShadow, flapping, air, spots = [], relief = false, chase = false, onChaseEnd, onGround, failedText, cooperative }: Props) {
+export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pathMode, markerStyle, shadow: showShadow, flapping, air, spots = [], events = NO_EVENTS, onEvent, relief = false, chase = false, onChaseEnd, onGround, failedText, cooperative }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MlMap | null>(null);
   const overlayRef = useRef<MapboxOverlay | null>(null);
+  // The click handler changes with every render of the page; the layer reads it here, so it is not rebuilt for that.
+  const onEventRef = useRef(onEvent);
+  useEffect(() => { onEventRef.current = onEvent; }, [onEvent]);
   // Read when the map is (re)built; later changes go through the effect below.
   const coopRef = useRef(cooperative);
   useEffect(() => { coopRef.current = cooperative; }, [cooperative]);
@@ -453,10 +464,20 @@ export function FlightMap({ track, height, colorAt, marker, pitch, lineStyle, pa
         getLineColor: toRgb(cssVar("--ink")), stroked: true, getLineWidth: (d: (typeof spots)[number]) => (d.own ? 2 : 0), lineWidthUnits: "pixels",
         getRadius: (d: (typeof spots)[number]) => 12 + Math.max(0, d.climb) * 14, radiusUnits: "meters",
       }),
+      // Frame losses and holds on the path: small orange dots, holds larger and red with a white ring; drawn over the path.
+      ...(events.length ? [new layers.ScatterplotLayer({
+        id: "link-events", data: events.filter((d) => track.lat[d.i] != null && track.lon[d.i] != null),
+        getPosition: (d: LinkEvent) => [track.lon[d.i]!, track.lat[d.i]!, elev + Math.max(0, height[d.i] ?? 0)],
+        getFillColor: (d: LinkEvent) => toRgb(cssVar(d.hold ? "--crit" : "--s-motor")),
+        getLineColor: [255, 255, 255], stroked: true, getLineWidth: (d: LinkEvent) => (d.hold ? 2 : 1), lineWidthUnits: "pixels",
+        getRadius: (d: LinkEvent) => (d.hold ? 8 : 3.5 + Math.min(4, Math.sqrt(d.losses))), radiusUnits: "pixels", billboard: true,
+        parameters: { depthCompare: "always" }, pickable: true, autoHighlight: true, highlightColor: [255, 255, 255, 120],
+        onClick: (info: { object?: LinkEvent }) => { if (info.object) onEventRef.current?.(info.object.i); },
+      })] : []),
       new layers.ScatterplotLayer({ id: "home", data: [track.home], getPosition: (d: Track["home"]) => [d.lon, d.lat, elev], getFillColor: toRgb(cssVar("--ink")), getRadius: 6, radiusUnits: "pixels", billboard: true }),
     ];
     drawRef.current();
-  }, [ready, mapGen, track, pathData, spots, lineStyle, showShadow, pathMode, relief, elev]);
+  }, [ready, mapGen, track, pathData, spots, events, height, lineStyle, showShadow, pathMode, relief, elev]);
 
   // The model layers for the shown (fractional) second, drawn together with the static layers.
   useEffect(() => {

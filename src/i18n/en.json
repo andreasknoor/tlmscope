@@ -319,6 +319,15 @@
     "noFlight": "No flight in this session, so there is no height profile."
   },
   "path": {
+    "linkChart": "Radio link · signal (dBm) and frame losses",
+    "linkChartLosses": "Radio link · frame losses per second",
+    "lossMarks": "{n, plural, one {# second with frame losses} other {# seconds with frame losses}}",
+    "holdMarks": "{n, plural, one {# hold} other {# holds}}",
+    "lossesAt": "{n, plural, one {# frame loss} other {# frame losses}}",
+    "holdAt": "hold",
+    "linkMarksHint": "Dots on the path: frame losses (orange) and holds (red). Click a dot to jump to that moment.",
+    "noLinkEvents": "No frame losses or holds in this flight.",
+    "placeOrAttitude": "A weak spot can lie in the place or in the model's attitude there (tail towards you, banked). Only when it comes back in other flights does it most likely lie in the place.",
     "title": "Flight path",
     "noGpsTitle": "No GPS in this log, so no map",
     "noGpsText": "Map, distance and speed need a GPS sensor. Without one we only know the height, not where the model was. A path guessed from the rotation sensors would drift by tens of metres within seconds, so it is not shown.",

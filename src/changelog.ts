@@ -20,6 +20,10 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.13", date: "2026-11-21", changes: [
+    ["new", "Flight path: frame losses and holds as dots on the map, to find weak spots in your airspace.", "highlight"],
+    ["new", "A radio link chart (signal and frame losses) right below the map, moving with the model."],
+  ] },
   { version: "2.12", date: "2026-11-21", changes: [["fix", "Switches show the chosen option filled in colour, so it is clear at a glance."]] },
   { version: "2.11", date: "2026-11-21", changes: [
     ["new", "The sidebar keeps room for the sessions: many files fold into one line, totals share one box."],

@@ -48,6 +48,7 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 | Throttle stick position | Recent NX firmware (AutoLog files) | Tested |
 | Stabilization (AS3X, SAFE, heading hold) per flight mode | Receiver with AS3X / SAFE | Tested |
 | Map, distance, speed over ground | Spektrum GPS telemetry sensor or SkyID Remote ID module | Tested with real GPS logs |
+| Weak link spots on the map: path coloured by signal, frame losses and holds as dots, link chart below the map | GPS plus a telemetry receiver | Tested |
 | Other sensors (airspeed, extra current or temperature sensors, …) | X-Bus / SRXL2 sensors | Shown as raw data for now |
 
 ### Not supported

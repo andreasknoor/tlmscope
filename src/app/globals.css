@@ -136,6 +136,7 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .stotals .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .stotals b { font-size: 14.5px; }
 .stotals .row > span:last-child { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+.maphint { margin: 4px 0 0; }
 .sidehead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .sidehead h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
 .slist { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }

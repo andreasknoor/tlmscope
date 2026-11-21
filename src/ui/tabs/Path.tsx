@@ -6,10 +6,10 @@ import { useTranslations } from "next-intl";
 import { useOnline } from "../offline";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Legend, Tile, useLevelWord, MoreHint } from "../bits";
-import { FlightMap, LINE_STYLES, MARKER_STYLES, PATH_MODES, type LineStyle, type MarkerStyle, type PathMode } from "../charts/FlightMap";
+import { FlightMap, type LinkEvent, LINE_STYLES, MARKER_STYLES, PATH_MODES, type LineStyle, type MarkerStyle, type PathMode } from "../charts/FlightMap";
 import type { MapPrefs } from "../map-prefs";
 import { Replay } from "../charts/Replay";
-import { requestPlay } from "../charts/sync";
+import { moveAll, requestPlay } from "../charts/sync";
 import { LineChart, PHASE_COLOR } from "../charts/LineChart";
 import { Strip } from "../charts/Strip";
 import { axisNum, clock, cssVar, mix, num, withAlpha } from "../format";
@@ -116,6 +116,28 @@ function GpsView() {
     return cssVar(k === "glide" || k === "unpowered" || !k ? MAP_GLIDE : PHASE_COLOR[k]);
   }, [colourBy, alt, top, sig, p, dbmScale, dbm]);
   const hasHeight = p?.maxAltitudeM != null;
+  // Frame losses and holds per second: marks on the path (when coloured by signal) and in the link chart below the map.
+  const lossInc = useMemo(() => (g.has("frame_losses") ? g.get("frame_losses", "increase") : []), [g]);
+  const holdInc = useMemo(() => (g.has("holds") ? g.get("holds", "increase") : []), [g]);
+  const linkEvents = useMemo<LinkEvent[]>(() => {
+    const out: LinkEvent[] = [];
+    for (let i = 0; i < g.n; i++) {
+      const losses = Math.max(0, lossInc[i] ?? 0), hold = (holdInc[i] ?? 0) > 0;
+      if (losses > 0 || hold) out.push({ i, losses, hold });
+    }
+    return out;
+  }, [g, lossInc, holdInc]);
+  const hasLink = sig !== null || g.has("frame_losses");
+  const linkSeries = useMemo(() => (g.has("signal_dbm")
+    ? [{ data: dbm, color: "--s-5", unit: "dBm", digits: 0 }]
+    : [{ data: lossInc, color: "--s-motor", unit: "/s", digits: 0, bars: true, fill: 0.9, width: 0 }]), [g, dbm, lossInc]);
+  const linkMarks = useMemo(() => [
+    { at: linkEvents.filter((x) => x.losses > 0).map((x) => x.i), color: "--s-motor", style: "tick" as const },
+    { at: linkEvents.filter((x) => x.hold).map((x) => x.i), color: "--crit" },
+  ], [linkEvents]);
+  const nLoss = linkMarks[0].at.length, nHold = linkMarks[1].at.length;
+  // A click on a mark on the map puts the model and every chart of the flight on that second.
+  const showEvent = useCallback((i: number) => { setMarker(i); moveAll(e!.key, i); }, [e]);
   // The stork flaps its wings in motor climbs and glides otherwise.
   const flapping = useMemo(() => p?.phaseAt.map((k) => k === "motor") ?? [], [p]);
   const air = useMemo(() => ({ start: p?.airStart ?? null, end: p?.airEnd ?? null }), [p]);
@@ -191,7 +213,7 @@ function GpsView() {
             </div>
           </div>}
           <div className="mapwrap">
-            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} relief={relief} chase={chase} onChaseEnd={() => chooseView("3d")} onGround={setAgl} failedText={t("path.mapFailed")}
+            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} events={colourBy === "signal" ? linkEvents : undefined} onEvent={showEvent} relief={relief} chase={chase} onChaseEnd={() => chooseView("3d")} onGround={setAgl} failedText={t("path.mapFailed")}
               cooperative={{ on: !full, windows: t("path.zoomCtrl"), mac: t("path.zoomCmd"), mobile: t("path.twoFingers") }} />}
             {online && (relief || chase) && marker !== null && (
               <div className="hud" aria-label={t("path.hud")}>
@@ -209,10 +231,29 @@ function GpsView() {
           : colourBy === "height" ? <Legend items={[[`linear-gradient(90deg, var(--h-low), var(--h-high))`, `0 – ${U.fmt("height", top)}`]]} />
           : dbmScale ? <Legend items={[[`linear-gradient(90deg, var(--crit), var(--warn), var(--good))`, `${num(loc, DBM_LOW, 0)} … ${num(loc, DBM_HIGH, 0)} dBm`]]} />
           : <Legend items={[[cssVar("--good"), word("signal", 4)], [withAlpha(cssVar("--good"), 0.45), word("signal", 3)], [cssVar("--warn"), word("signal", 2)], [cssVar("--crit"), word("signal", 1)]]} />}
+        {online && colourBy === "signal" && hasLink && (
+          <>
+            {(nLoss > 0 || nHold > 0) && <Legend items={[
+              ...(nLoss > 0 ? [[cssVar("--s-motor"), t("path.lossMarks", { n: nLoss })] as [string, string]] : []),
+              ...(nHold > 0 ? [[cssVar("--crit"), t("path.holdMarks", { n: nHold })] as [string, string]] : []),
+            ]} />}
+            <p className="hint maphint">{t(nLoss + nHold > 0 ? "path.linkMarksHint" : "path.noLinkEvents")} {t("path.placeOrAttitude")}</p>
+          </>
+        )}
       </div>
       {online && spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
       <Replay a={a} syncKey={e!.key} clatter={markerStyle === "stork"} />
       </div>
+      {hasLink && (
+        <LineChart syncKey={e!.key} title={t(g.has("signal_dbm") ? "path.linkChart" : "path.linkChartLosses")} series={linkSeries} height={130} marks={linkMarks}
+          yFormat={(x) => `${axisNum(loc, x)}${g.has("signal_dbm") ? "" : "/s"}`}
+          extra={(nLoss > 0 || nHold > 0) ? <Legend items={[
+            ...(nLoss > 0 ? [[cssVar("--s-motor"), t("path.lossMarks", { n: nLoss })] as [string, string]] : []),
+            ...(nHold > 0 ? [[cssVar("--crit"), t("path.holdMarks", { n: nHold }), true] as [string, string, boolean]] : []),
+          ]} /> : undefined}
+          readout={(i) => [g.has("signal_dbm") && dbm[i] != null ? `${num(loc, dbm[i], 0)} dBm` : null, (lossInc[i] ?? 0) > 0 ? t("path.lossesAt", { n: lossInc[i]! }) : null, (holdInc[i] ?? 0) > 0 ? t("path.holdAt") : null, t("path.away", { d: U.fmt("distance", tr.distance[i]) })].filter(Boolean).join(" · ")}
+          onCursor={setMarker} />
+      )}
       <LineChart syncKey={e!.key} title={t(hasHeight ? "path.follow" : "path.followThrottle")} series={followSeries} phases={p?.phases} height={150}
         yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? U.u("height") : "%"}`}
         readout={(i) => `${num(loc, followSeries[0].data[i], 0)} ${hasHeight ? U.u("height") : "%"} · ${t("path.away", { d: U.fmt("distance", tr.distance[i]) })}${colourBy === "signal" && sig && dbm[i] != null ? ` · ${num(loc, dbm[i], 0)} dBm` : ""}`} onCursor={setMarker} />

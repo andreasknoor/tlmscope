@@ -319,6 +319,15 @@
     "noFlight": "In dieser Sitzung wurde nicht geflogen, daher gibt es kein Höhenprofil."
   },
   "path": {
+    "linkChart": "Funkverbindung · Signal (dBm) und Frame-Verluste",
+    "linkChartLosses": "Funkverbindung · Frame-Verluste pro Sekunde",
+    "lossMarks": "{n, plural, one {# Sekunde mit Frame-Verlusten} other {# Sekunden mit Frame-Verlusten}}",
+    "holdMarks": "{n, plural, one {# Hold} other {# Holds}}",
+    "lossesAt": "{n, plural, one {# Frame-Verlust} other {# Frame-Verluste}}",
+    "holdAt": "Hold",
+    "linkMarksHint": "Punkte auf der Flugbahn: Frame-Verluste (orange) und Holds (rot). Ein Klick auf einen Punkt springt zu diesem Moment.",
+    "noLinkEvents": "Keine Frame-Verluste oder Holds in diesem Flug.",
+    "placeOrAttitude": "Eine schwache Stelle kann am Ort liegen oder an der Fluglage dort (Heck zum Piloten, Schräglage). Erst wenn sie in anderen Flügen wiederkommt, liegt es sehr wahrscheinlich am Ort.",
     "title": "Flugweg",
     "noGpsTitle": "Kein GPS in diesem Log, daher keine Karte",
     "noGpsText": "Karte, Entfernung und Geschwindigkeit brauchen einen GPS-Sensor. Ohne ihn kennen wir nur die Höhe, nicht wo das Modell war. Ein aus den Drehratensensoren geschätzter Weg würde in Sekunden um Dutzende Meter abweichen und wird deshalb nicht gezeigt.",
