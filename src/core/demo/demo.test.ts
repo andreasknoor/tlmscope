@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseLog } from "../adapters/registry.ts";
 import { analyseLogs, batteryUse, withCapacities, type Result } from "../analysis/index.ts";
-import { DEMO_3D_GAINS, DEMO_3D_MODEL } from "./demo-3d.ts";
+import { DEMO_3D_GAINS, DEMO_3D_HOLD_AT_S, DEMO_3D_MODEL } from "./demo-3d.ts";
 import { demoFileTlm } from "./demo-file.ts";
 import { DEMO_HOME, demoFlightTlm } from "./demo-flight.ts";
 
@@ -132,13 +132,21 @@ describe("demo file: glider, then the 3D model's bench run and flight", () => {
     for (const u of uses) expect(u.gain).toEqual([...DEMO_3D_GAINS]);
   });
 
-  it("has one weak stretch on the far pass, without a hold", () => {
+  it("has one weak stretch on the far pass, with one hold in it", () => {
     const l = value(flight.link), s = value(flight.signal);
-    expect(l.holdsAirborne).toBe(0);
-    expect(s.minDbm!).toBeLessThan(-80);
-    expect(s.minDbm!).toBeGreaterThan(-85);
+    expect(l.holdsAirborne).toBe(1);
+    expect(l.overall!.level).toBe(1);
+    expect(l.worstSecond!.at).toBeGreaterThanOrEqual(DEMO_3D_HOLD_AT_S);
+    expect(l.worstSecond!.at).toBeLessThan(DEMO_3D_HOLD_AT_S + 2);
+    expect(s.minDbm!).toBeLessThan(-85);
     expect(s.minAt!).toBeGreaterThan(110);
     expect(s.minAt!).toBeLessThan(140);
+  });
+
+  it("has a badly placed remote receiver B that fades far more than A", () => {
+    const l = value(flight.link);
+    expect(l.fades.b!).toBeGreaterThan(2 * l.fades.a!);
+    expect(l.moveRemote).toEqual(["b"]);
   });
 
   it("runs the motor on the bench without flying", () => {

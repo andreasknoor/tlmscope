@@ -3,9 +3,10 @@
  *
  * A ground test (motor run on the bench) and, seven minutes later, a 6½ minute flight:
  * take-off in FM1 (AS3X + SAFE), loops and rolls in FM2 (AS3X), knife edge with one low pass
- * far out where the link gets weak, hover and torque roll in FM3 (AS3X + heading hold), tumbles
+ * far out where the link gets weak (with one hold, half a second of failsafe), hover and torque roll in FM3 (AS3X + heading hold), tumbles
  * up to 7 g, harrier passes and the landing back in FM1. Height comes from the GPS only.
- * A second smart battery (4S 2200). All values are invented and deterministic.
+ * A second smart battery (4S 2200). The receiver has one remote receiver (B), mounted badly: it fades far more
+ * than the main receiver in the knife edge and the tumbles. All values are invented and deterministic.
  */
 import { modelHeader, Packet, sensorHeader, type EncodedRecord } from "../adapters/spektrum-tlm/encode.ts";
 import { DEMO_HOME, DEMO_START_UNIX } from "./demo-flight.ts";
@@ -18,6 +19,10 @@ export const DEMO_3D_MODEL = "Demo 3D";
 export const DEMO_3D_GAINS = [45, 55, 70] as const;
 
 const CAPACITY_MAH = 2200;
+/** Start of the hold on the low pass far out, in seconds from power-up, and its length in records (0.1 s each). */
+export const DEMO_3D_HOLD_AT_S = 124;
+const HOLD_AT_S = DEMO_3D_HOLD_AT_S;
+const HOLD_RECORDS = 6;
 const CELLS = 4;
 const BATTERY_ID = [0x5a, 0x91, 0x3c, 0x7e, 0x08, 0xb2, 0x01, 0x01];
 
@@ -154,15 +159,25 @@ function records(sim: State[], startUnix: number, tickBase: number, mahBefore: n
   const recs: EncodedRecord[] = [];
   const kx = 6_371_000 * (Math.PI / 180) * Math.cos((DEMO_HOME.lat * Math.PI) / 180);
   const ky = 6_371_000 * (Math.PI / 180);
-  let frameLosses = 0, fades = 0;
+  let frameLosses = 0, fades = 0, fadesB = 0, holds = 0;
+  // The hold: half a second without any frame, in the middle of the low pass far out.
+  const holdFrom = sim.findIndex((s) => s.t >= HOLD_AT_S);
+  const inHold = (i: number) => holdFrom >= 0 && i >= holdFrom && i < holdFrom + HOLD_RECORDS;
   sim.forEach((s, i) => {
     const tick = tickBase + i * 10;
     const dist = Math.hypot(s.east, s.north);
     // Low and far out the signal drops sharply (trees between pilot and model).
     const shade = s.alt < 10 && dist > 200 ? 13 : 0;
-    const dbm = Math.round(-44 - 0.1 * dist - s.alt * 0.05 - shade + noise(i * 5) * 2);
-    if (dbm < -80) frameLosses++;
+    const dbm = inHold(i) ? -91 + Math.round(noise(i * 5)) : Math.round(-44 - 0.1 * dist - s.alt * 0.05 - shade + noise(i * 5) * 2);
+    if (inHold(i)) {
+      // 45 frames in a row lost on every receiver; counted once when it ends.
+      frameLosses += 8; fades += 8; fadesB += 8;
+      if (i === holdFrom + HOLD_RECORDS - 1) holds++;
+    } else if (dbm < -80) frameLosses++;
     if (dbm < -68 && noise(i * 13) > 0.4) fades++;
+    // Remote receiver B sits where the fuselage shades it on its side and upside down.
+    const sideways = Math.abs(s.yaw) > 60 || Math.abs(s.roll) > 250 || Math.abs(s.pitch) > 250;
+    if ((dbm < -64 && noise(i * 17) > 0.2) || (sideways && noise(i * 19) > 0.55)) fadesB++;
     if (i === 1) recs.push({ tick, packet: new Packet(0x7c).u32le(8, startUnix).b });
     const cellV = 4.18 - ((mahBefore + s.mah) / CAPACITY_MAH) * 0.55;
     if (i % 2 === 0) {
@@ -170,7 +185,7 @@ function records(sim: State[], startUnix: number, tickBase: number, mahBefore: n
       recs.push({ tick: tick + 1, packet: new Packet(0x20).u16be(2, s.throttle > 1 ? 2000 + s.throttle * 45 : 0).u16be(4, v * 100).u16be(6, s.escT * 10).u16be(8, s.amps * 100)
         .u16be(10, (s.escT - 6) * 10).u8(12, 0xff).u8(13, s.rxV / 0.05).u8(14, s.throttle * 2).u8(15, s.throttle * 1.8).b });
     }
-    recs.push({ tick: tick + 2, packet: new Packet(0x7f).u16be(2, fades).u16be(4, 0xffff).u16be(6, 0xffff).u16be(8, 0xffff).u16be(10, frameLosses).u16be(12, 0).u16be(14, s.rxV * 100).b });
+    recs.push({ tick: tick + 2, packet: new Packet(0x7f).u16be(2, fades).u16be(4, fadesB).u16be(6, 0xffff).u16be(8, 0xffff).u16be(10, frameLosses).u16be(12, holds).u16be(14, s.rxV * 100).b });
     recs.push({ tick: tick + 3, packet: new Packet(0x7e).u16be(2, 0xffff).u16be(4, 0xffff).u16be(6, 0x7fff).i8(8, dbm).i8(9, Math.max(1, Math.min(100, 100 + (dbm + 50) * 1.6))).u16be(14, 900 + Math.floor(i / 10)).b });
     if (i % 3 === 0) {
       recs.push({ tick: tick + 4, packet: new Packet(0x14).i16be(2, noise(i) * 30).i16be(4, noise(i * 2) * 30).i16be(6, -s.g * 100).i16be(8, 60).i16be(10, 60).i16be(12, 700).i16be(14, -300).b });
