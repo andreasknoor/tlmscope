@@ -74,3 +74,12 @@ export function batteryLetter(k: number): string {
 export function volts(locale: Locale, v: number | null | undefined): string {
   return v === null || v === undefined || !Number.isFinite(v) ? "–" : `${num(locale, v, 2)}\u00a0V`;
 }
+
+/**
+ * A file name in two parts, so a long one is shortened in the middle: the start may be cut, the end
+ * (the date a transmitter adds, and the extension) stays whole: "002~Easy Gl…_20261003.TLM".
+ */
+export function splitFileName(name: string): { head: string; tail: string } {
+  const m = /^(.+?)((?:[_ -]\d{6,8})?\.[^.]+)$/.exec(name);
+  return m ? { head: m[1], tail: m[2] } : { head: name, tail: "" };
+}

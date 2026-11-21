@@ -62,7 +62,7 @@ A log only contains what the sensors in your model sent. Missing hardware means 
 
 ### Exporting the session list
 
-“Export as CSV” above the session list saves the sessions shown there (respecting the flights/all switch and the model choice) as a spreadsheet file (`tlmscope-sessions-<date>.csv`), oldest first. The file is made in the browser and is not sent anywhere. German settings give a semicolon and a decimal comma, all others a comma and a decimal point; text starts with a byte order mark so Excel reads it as UTF-8.
+The “⤓ CSV” button next to the flights/all switch saves the sessions shown there (respecting the flights/all switch and the model choice) as a spreadsheet file (`tlmscope-sessions-<date>.csv`), oldest first. The file is made in the browser and is not sent anywhere. German settings give a semicolon and a decimal comma, all others a comma and a decimal point; text starts with a byte order mark so Excel reads it as UTF-8.
 
 | Column | Meaning |
 |---|---|

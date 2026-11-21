@@ -337,7 +337,7 @@ export const en: Content = {
               "Drop one or more `.TLM` files onto the start page, or click to choose them. You can add more files any time.",
               "Pick a session in the list on the left. On a phone the list is a picker at the top. Each power-up of the receiver is one session.",
               "“Flights” shows real flights only, “All” also ground tests and short power-ups. With several models loaded, you can limit the list to one model.",
-              "Above the list you see the total flight time of the loaded flights, for the chosen model. “Export as CSV” saves the sessions of the list as a spreadsheet file, made in your browser. To add up over every file you ever open, switch on “My logbook” in the settings.",
+              "Above the list you see the total flight time of the loaded flights, for the chosen model. The **⤓ CSV** button next to “Flights / All” saves the sessions of the list as a spreadsheet file, made in your browser. With many files, the loaded files fold into one line at the top; click it to see or close single files. To add up over every file you ever open, switch on “My logbook” in the settings.",
             ] },
             { t: "img", name: "overview", alt: "TLMscope overview of a demo flight: summary sentence, key numbers and the height profile with motor climbs, lift and gliding", caption: "The overview of a flight: summary, key numbers and height profile." },
           ],
@@ -455,7 +455,7 @@ export const en: Content = {
           { t: "p", text: "Time in a flight simulator flown through a Spektrum WS3000 dongle is recognised from the log and counted apart: only the time with the sticks moved, never as time in the air." },
         ] },
         { q: "Can I convert a .TLM file to CSV or Excel?", a: [
-          { t: "p", text: "Partly. **Export as CSV** above the session list saves one line per session: model, date, start time, type, session and air time, frame losses, holds, lowest receiver voltage, battery ID, charge used, the source file and, for simulator sessions, the simulator time. The CSV of **My logbook** uses the same column names for the same values, over every file you opened. With German settings it uses a semicolon and a decimal comma, so Excel opens it directly." },
+          { t: "p", text: "Partly. The **⤓ CSV** button above the session list saves one line per session: model, date, start time, type, session and air time, frame losses, holds, lowest receiver voltage, battery ID, charge used, the source file and, for simulator sessions, the simulator time. The CSV of **My logbook** uses the same column names for the same values, over every file you opened. With German settings it uses a semicolon and a decimal comma, so Excel opens it directly." },
           { t: "p", text: "There is no export of the raw sensor values. For that, TLM Viewer on Windows exports CSV; see [Spektrum TLM viewers compared](page:compare)." },
         ] },
         { q: "How can I see whether AS3X or SAFE was on during a flight?", a: "With a receiver with AS3X or SAFE, the log contains the flight mode and which functions were on. The **Aircraft** tab shows the time in the air per function (AS3X, SAFE, heading hold or no stabilization) and per flight mode, the AS3X gain for roll, pitch and yaw, and the flight modes over time. A gain of 0 means AS3X did not correct at all, for example with the gain knob turned down. More in [Understand your Spektrum telemetry](page:understand)." },

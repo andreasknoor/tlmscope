@@ -136,7 +136,7 @@ export function Start({ notices }: { notices: ReactNode }) {
                 <Image src={`/img/overview-${lang}.jpg`} alt={h.demo.alt} width={1200} height={539} sizes="(max-width: 900px) 100vw, 470px" />
                 <span><Icon name="play" />{h.demo.label}</span>
               </button>
-              <LogbookBox line />
+              <LogbookBox />
               <p className="fbnote st-fb">{t("feedbackStart")} <FeedbackLink entry="start">{t("feedbackStartLink")}</FeedbackLink></p>
             </div>
           </div>

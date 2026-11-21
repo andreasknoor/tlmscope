@@ -100,17 +100,39 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .side { border-right: 1px solid var(--line); background: var(--surface); padding: 14px 12px 24px max(12px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 14px; }
 .main { padding: 18px max(24px, env(safe-area-inset-right, 0px)) 40px 24px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
-.drop { border: 1.5px dashed var(--line); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 6px; background: var(--sunken); cursor: pointer; }
-.drop.over { border-color: var(--accent); background: var(--accent-soft); }
-.drop .file { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; min-width: 0; }
-.drop .file span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.drop small { color: var(--ink-3); }
-.drop .file .size { margin-left: auto; color: var(--ink-3); font-weight: 400; white-space: nowrap; }
-.drop .x { border: 0; background: none; color: var(--ink-3); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; border-radius: 6px; }
-.drop .x:hover { color: var(--crit); background: var(--surface); }
-.drop .dropacts { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.side.over { box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-soft); }
+.sidetop { display: flex; flex-direction: column; gap: 12px; }
+/* Loaded files: one line, opened to close single files (open up to two files, see Sidebar). */
+.sfiles { border: 1px solid var(--line); border-radius: var(--radius); background: var(--sunken); }
+.sfiles summary { list-style: none; display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 10px; cursor: pointer; font-weight: 600; }
+.sfiles summary::-webkit-details-marker { display: none; }
+.sfiles summary .chev { color: var(--ink-3); font-size: 11px; transition: transform .15s; }
+.sfiles[open] summary .chev { transform: rotate(90deg); }
+.sfiles summary .sz { color: var(--ink-3); font-weight: 400; }
+.sfiles summary .btn { margin-left: auto; }
+.btn.sm { padding: 3px 9px; font-size: 12.5px; }
+.sfiles-body { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 5px; }
+.sfiles-model { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
+.sfiles .file { display: flex; align-items: center; gap: 6px; font-size: 13px; min-width: 0; }
+.sfiles .file .name { display: flex; flex: 1; min-width: 0; }
+.sfiles .file .head { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 2em; }
+.sfiles .file .tail { white-space: nowrap; flex-shrink: 0; }
+.sfiles .file .size { color: var(--ink-3); white-space: nowrap; }
+.sfiles .x { border: 0; background: none; color: var(--ink-3); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; border-radius: 6px; }
+.sfiles .x:hover { color: var(--crit); background: var(--surface); }
+.sfiles small { color: var(--ink-3); font-size: 12px; }
+.sidehead-acts { display: flex; align-items: center; gap: 6px; }
+.sidehead-acts .seg button { white-space: nowrap; padding: 4px 8px; font-size: 12.5px; }
+.iconbtn { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 8px; padding: 4px 7px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.iconbtn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.iconbtn:disabled { opacity: .5; cursor: default; }
+/* Totals of the loaded files, the simulator and the logbook in one box. */
+.stotals { display: grid; gap: 3px; padding: 7px 10px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--line); font-size: 13px; }
+.stotals .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.stotals b { font-size: 14.5px; }
+.stotals .row > span:last-child { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
 .sidehead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.sidehead h2 { font-size: 16px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+.sidehead h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
 .slist { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
 .sday { font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); padding: 10px 8px 4px; }
 .sitem { display: grid; grid-template-columns: 44px 1fr auto; gap: 2px 10px; align-items: center; text-align: left; border: 0; background: none; padding: 7px 8px; border-radius: 8px; cursor: pointer; }
@@ -139,8 +161,6 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .alsoin { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0 0 10px; }
 .alsoin-m { display: inline-flex; align-items: center; gap: 6px; }
 .mbadge.lg { width: 18px; height: 18px; border-radius: 5px; }
-.drop .fmodels { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12.5px; color: var(--ink-2); margin-top: -4px; }
-.drop .fmodels span { display: inline-flex; align-items: center; gap: 5px; }
 .mfilter { display: flex; flex-direction: column; gap: 5px; }
 .mfilter label { font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); font-weight: 600; }
 .mfilter select, .mpicker select { width: 100%; min-width: 0; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--sunken); color: var(--ink); font-weight: 600; }
@@ -184,8 +204,8 @@ kbd { font: 500 11px var(--code); border: 1px solid var(--line); border-bottom-w
 /* Desktop: the sidebar stays below the header at window height; only the session list scrolls. */
 @media (min-width: 761px) {
   .side { position: sticky; top: var(--top-h, 57px); align-self: start; height: calc(100dvh - var(--top-h, 57px)); padding-bottom: 12px; }
-  .side .slist { flex: 1; min-height: 0; overscroll-behavior: contain; scroll-padding-top: 34px; }
-  .side .drop .files { max-height: 26vh; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .side .sidetop { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .side .slist { flex: 1 0 40%; min-height: 0; overscroll-behavior: contain; scroll-padding-top: 34px; }
   .side .sday { position: sticky; top: 0; z-index: 1; background: var(--surface); box-shadow: 0 1px 0 var(--grid); }
 }
 
@@ -596,9 +616,6 @@ dialog.st-dialog::backdrop { background: rgb(8 20 26 / .55); }
 .total { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 8px 10px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--line); }
 .total b { font-size: 15px; }
 .total span { font-size: 12px; color: var(--ink-3); }
-.total.sim { background: transparent; }
-.bookbox { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; background: transparent; }
-.bookbox:hover { border-color: var(--accent); }
 .bookhint { margin: 0; font-size: 12px; }
 .bookask { display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: space-between; align-items: center; }
 .bookacts { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -607,5 +624,4 @@ dialog.st-dialog::backdrop { background: rgb(8 20 26 / .55); }
 .bookdlg .bookacts { margin-top: 16px; }
 .bookdlg tr.dim td { color: var(--ink-3); }
 .st-book { display: block; margin: 10px 0 0; padding: 0; border: 0; background: none; font: inherit; font-weight: 600; color: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-.exportbtn { align-self: flex-start; }
 .infobox.moved { margin: 10px 16px; }

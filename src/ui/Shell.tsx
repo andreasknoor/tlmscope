@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { LoadMessage } from "./App";
-import { cssVar, clock, dayLabel, longDuration, num, timeLabel } from "./format";
+import { cssVar, clock, dayLabel, longDuration, num, splitFileName, timeLabel } from "./format";
 import { flightTotal, simulatorTotal } from "./flight-total";
 import { downloadText, sessionCsv, sessionCsvFileName } from "./session-csv";
 import { Guides } from "./views/Guides";
@@ -171,76 +171,90 @@ function Sidebar() {
   const loc = settings.locale;
   const U = useUnits();
   const dayOf = (e: Entry) => (e.startMs !== null ? dayLabel(loc, e.startMs) : "?");
+  const [filesChoice, setFilesChoice] = useState<boolean | null>(null);
+  // Up to two files the list is open; from three on it is one line, so the sessions keep their room.
+  const filesOpen = filesChoice ?? files.length <= 2;
+  const mb = files.reduce((sum, f) => sum + f.sizeBytes, 0) / 1e6;
+  const fileModels = (f: (typeof files)[number]) => models.filter((m) => entries.some((e) => e.file === f && e.model === m));
+  const oneModel = models.length === 1 ? models[0] : null;
+  const showTotals = total.flights > 0 || sim.sessions > 0 || settings.logbook;
   return (
-    <aside className="side">
-      {/* The whole zone accepts drops and clicks; keyboard users get the explicit buttons inside. */}
-      <div
-        className={`drop ${over ? "over" : ""}`}
-        onClick={(e) => { if (!(e.target as HTMLElement).closest("button")) input.current?.click(); }}
-        onDragOver={(e) => { e.preventDefault(); setOver(true); }}
-        onDragLeave={() => setOver(false)}
-        onDrop={(e) => { e.preventDefault(); setOver(false); addFiles([...e.dataTransfer.files]); }}
-      >
-        <div className="files">
-        {files.map((f) => {
-          const fm = models.filter((m) => entries.some((e) => e.file === f && e.model === m));
-          return (
-            <div key={f.fileName} style={{ display: "contents" }}>
-              <div className="file">
-                <span title={f.fileName}>{f.fileName}</span>
-                <span className="num size">{num(loc, f.sizeBytes / 1e6, 1)} MB</span>
-                <button className="x" aria-label={t("app.closeFile", { name: f.fileName })} title={t("app.closeFile", { name: f.fileName })} onClick={() => closeFile(f.fileName)}>×</button>
-              </div>
-              {fm.length > 0 && <div className="fmodels">{fm.map((m) => <span key={m.key}><ModelBadge model={m} />{modelName(m)}</span>)}</div>}
-            </div>
-          );
-        })}
-        </div>
-        <small>{t("app.dropMore")}</small>
-        <div className="dropacts">
-          <button className="btn" onClick={() => input.current?.click()}>{t("app.addFiles")}</button>
-          <button className="btn" onClick={closeAll}>{t("app.closeAll")}</button>
-        </div>
+    <aside
+      className={`side${over ? " over" : ""}`}
+      onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(false); }}
+      onDrop={(e) => { e.preventDefault(); setOver(false); addFiles([...e.dataTransfer.files]); }}
+    >
+      {/* Everything above the list scrolls on its own when space runs out; the list keeps at least 40 % of the height. */}
+      <div className="sidetop">
+        <details className="sfiles" open={filesOpen}>
+          <summary onClick={(e) => { e.preventDefault(); setFilesChoice(!filesOpen); }}>
+            <span className="chev" aria-hidden="true">▸</span>
+            <span>{t("app.filesLoaded", { n: files.length })} <span className="sz num">· {num(loc, mb, 1)} MB</span></span>
+            <button className="btn sm" onClick={(e) => { e.preventDefault(); e.stopPropagation(); input.current?.click(); }}>+ {t("app.addShort")}</button>
+          </summary>
+          <div className="sfiles-body">
+            {oneModel && <div className="sfiles-model"><ModelBadge model={oneModel} />{t("app.allOfModel", { name: modelName(oneModel) })}</div>}
+            {files.map((f) => {
+              const { head, tail } = splitFileName(f.fileName);
+              return (
+                <div key={f.fileName} className="file">
+                  {!oneModel && fileModels(f).map((m) => <span key={m.key} title={modelName(m)}><ModelBadge model={m} /></span>)}
+                  <span className="name" title={f.fileName}><span className="head">{head}</span><span className="tail">{tail}</span></span>
+                  <span className="num size">{num(loc, f.sizeBytes / 1e6, 1)} MB</span>
+                  <button className="x" aria-label={t("app.closeFile", { name: f.fileName })} title={t("app.closeFile", { name: f.fileName })} onClick={() => closeFile(f.fileName)}>×</button>
+                </div>
+              );
+            })}
+            <small>{t("app.dropSide")}</small>
+            <div><button className="linkbtn" onClick={closeAll}>{t("app.closeAll")}</button></div>
+          </div>
+        </details>
         <input ref={input} type="file" accept=".tlm,.TLM" multiple hidden onChange={(e) => { addFiles([...(e.target.files ?? [])]); e.target.value = ""; }} />
+        <div className="sidehead">
+          <h2>{t("app.sessions")}</h2>
+          <div className="sidehead-acts">
+            <div className="seg" role="group" aria-label={t("app.sessions")}>
+              <button aria-pressed={filter === "flights"} onClick={() => setFilter("flights")}>{t("app.flights", { n: kindEntries.filter((e) => e.a.kind === "flight").length })}</button>
+              <button aria-pressed={filter === "all"} onClick={() => setFilter("all")}>{t("app.all", { n: kindEntries.length })}</button>
+            </div>
+            <button className="iconbtn" title={t("app.exportCsvHint")} aria-label={t("app.exportCsv")} disabled={visible.length === 0}
+              onClick={() => downloadText(sessionCsv(visible, loc), sessionCsvFileName())}>⤓ CSV</button>
+          </div>
+        </div>
+        {multi && (
+          <div className="mfilter">
+            <ModelSelect id="model-filter" count={count} />
+          </div>
+        )}
+        {showTotals && (
+          <div className="stotals">
+            {total.flights > 0 && (
+              <div className="row" title={`${t("app.totalHint")}${total.estimatedSeconds > 0 ? ` ${t("app.totalHintApprox")}` : ""}`}>
+                <b>{total.estimatedSeconds > 0 ? "≈ " : ""}{t("app.total", { time: longDuration(total.seconds), n: total.flights })}</b>
+                <span>{t(total.estimatedSeconds > 0 ? "app.totalLoadedApprox" : "app.totalLoaded")}</span>
+              </div>
+            )}
+            {sim.sessions > 0 && (
+              <div className="row" title={`${t("app.simTotalHint")} ${t("app.simTotalSub", { time: longDuration(sim.connectedSeconds) })}`}>
+                <span>{t("app.simRow", { time: longDuration(sim.activeSeconds) })}</span>
+                <span>{t("app.simSessions", { n: sim.sessions })}</span>
+              </div>
+            )}
+            <LogbookRow />
+          </div>
+        )}
+        {!settings.logbook && !settings.logbookHintSeen && total.flights + sim.sessions > 0 && (
+          <p className="bookhint hint">
+            {t("logbook.hint")}{" "}
+            <button className="linkbtn" onClick={() => {
+              setSettings({ logbookHintSeen: true });
+              openSettings();
+              requestAnimationFrame(() => document.getElementById("set-logbook")?.scrollIntoView({ block: "start" }));
+            }}>{t("logbook.hintLink")}</button>
+          </p>
+        )}
       </div>
-      <div className="sidehead">
-        <h2>{t("app.sessions")}</h2>
-        <div className="seg" role="group" aria-label={t("app.sessions")}>
-          <button aria-pressed={filter === "flights"} onClick={() => setFilter("flights")}>{t("app.flights", { n: kindEntries.filter((e) => e.a.kind === "flight").length })}</button>
-          <button aria-pressed={filter === "all"} onClick={() => setFilter("all")}>{t("app.all", { n: kindEntries.length })}</button>
-        </div>
-      </div>
-      {multi && (
-        <div className="mfilter">
-          <label htmlFor="model-filter">{t("app.model")}</label>
-          <ModelSelect id="model-filter" count={count} />
-        </div>
-      )}
-      {total.flights > 0 && (
-        <div className="total" title={`${t("app.totalHint")}${total.estimatedSeconds > 0 ? ` ${t("app.totalHintApprox")}` : ""}`}>
-          <b>{total.estimatedSeconds > 0 ? "≈ " : ""}{t("app.total", { time: longDuration(total.seconds), n: total.flights })}</b>
-          <span>{t(total.estimatedSeconds > 0 ? "app.totalSubApprox" : "app.totalSub")}</span>
-        </div>
-      )}
-      {sim.sessions > 0 && (
-        <div className="total sim" title={t("app.simTotalHint")}>
-          <b>{t("app.simTotal", { time: longDuration(sim.activeSeconds), n: sim.sessions })}</b>
-          <span>{t("app.simTotalSub", { time: longDuration(sim.connectedSeconds) })}</span>
-        </div>
-      )}
-      <LogbookBox />
-      {!settings.logbook && !settings.logbookHintSeen && total.flights + sim.sessions > 0 && (
-        <p className="bookhint hint">
-          {t("logbook.hint")}{" "}
-          <button className="linkbtn" onClick={() => {
-            setSettings({ logbookHintSeen: true });
-            openSettings();
-            requestAnimationFrame(() => document.getElementById("set-logbook")?.scrollIntoView({ block: "start" }));
-          }}>{t("logbook.hintLink")}</button>
-        </p>
-      )}
-      <button className="btn exportbtn" title={t("app.exportCsvHint")} disabled={visible.length === 0}
-        onClick={() => downloadText(sessionCsv(visible, loc), sessionCsvFileName())}>{t("app.exportCsv")}</button>
       <div className="slist" ref={list} onKeyDown={onListKey}>
         {newestFirst.map((e, k) => {
           const d = dayOf(e);
@@ -270,21 +284,30 @@ function Sidebar() {
   );
 }
 
-/** The logbook's totals over all files, when it is on; opens the logbook. */
-export function LogbookBox({ line = false }: { line?: boolean }) {
+/** The logbook's totals over all files, when it is on, as a line that opens the logbook (start page). */
+export function LogbookBox() {
+  const t = useTranslations("logbook");
+  const { settings, book, openLogbook } = useStore();
+  const all = useMemo(() => totals(counted(book)), [book]);
+  if (!settings.logbook || all.flights + all.simSessions === 0) return null;
+  return <button type="button" className="st-book" onClick={openLogbook}>{t("startLine", { air: longDuration(all.airS), sim: longDuration(all.simActiveS) })} ›</button>;
+}
+
+/** The logbook's line in the sidebar totals, when it is on. */
+function LogbookRow() {
   const t = useTranslations("logbook");
   const { settings, book, openLogbook } = useStore();
   const all = useMemo(() => totals(counted(book)), [book]);
   if (!settings.logbook) return null;
   const values = { air: longDuration(all.airS), sim: longDuration(all.simActiveS) };
-  if (line) return all.flights + all.simSessions > 0 ? <button type="button" className="st-book" onClick={openLogbook}>{t("startLine", values)} ›</button> : null;
   return (
-    <button type="button" className="total bookbox" onClick={openLogbook}>
-      <b>{t("title")}</b>
-      <span>{t("sidebar", values)}</span>
-    </button>
+    <div className="row" title={t("sidebar", values)}>
+      <button className="linkbtn" onClick={openLogbook}>{t("row", values)} ›</button>
+      <span>{t("allFiles")}</span>
+    </div>
   );
 }
+
 
 /** One question per new model while the logbook asks: count its sessions, or leave them out as another pilot's log. */
 function LogbookAsk() {

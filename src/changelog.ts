@@ -20,6 +20,10 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.11", date: "2026-11-21", changes: [
+    ["new", "The sidebar keeps room for the sessions: many files fold into one line, totals share one box."],
+    ["new", "Long file names are shortened in the middle, so the date at the end stays visible."],
+  ] },
   { version: "2.10", date: "2026-11-21", changes: [
     ["new", "The CSV of the session list adds the simulator time and is now named tlmscope-sessions-….csv."],
     ["new", "The logbook CSV uses the same column names as the session list CSV."],
