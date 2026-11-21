@@ -4,7 +4,9 @@ import { useTranslations } from "next-intl";
 import { createContext, useContext, useMemo } from "react";
 import type { LogsAnalysis, SessionAnalysis } from "@/core/analysis";
 import type { LogFile } from "@/core/model/types";
+import type { PageId } from "@/seo/pages";
 import type { FeedbackEntry, FeedbackFrom } from "./feedback";
+import type { GuideTarget } from "./views/Guides";
 import type { Locale } from "./format";
 import type { MapPrefs } from "./map-prefs";
 import type { Theme } from "./theme";
@@ -103,7 +105,11 @@ export interface Store {
   closeFile(fileName: string): void;
   /** Closes all files and returns to the start screen. */
   closeAll(): void;
-  openHelp(): void;
+  /** Opens the guides in the app, on the given guide (default: help) and optionally a question on it. */
+  openHelp(page?: PageId, anchor?: string): void;
+  /** The guide the help shows; null until the help is first opened. */
+  helpTarget: GuideTarget | null;
+  setHelpTarget(t: GuideTarget): void;
   openSettings(): void;
   /** Opens the feedback dialog; `detail` is a fixed word such as the kind of file error. */
   openFeedback(entry: FeedbackEntry, detail?: string): void;

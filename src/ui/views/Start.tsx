@@ -12,6 +12,7 @@ import { Logo, Wordmark } from "../brand";
 import { Icon } from "../icons";
 import { useLogoClicks } from "../StorkRace";
 import { FeedbackButton, FeedbackLink, OfflineBadge, SettingsButton } from "../bits";
+import { useOnline } from "../offline";
 import { useStore } from "../store";
 
 /** The flight of the demo: motor climbs, glides and a thermal, in the colours of the app. Drawn once when the page opens. */
@@ -73,6 +74,7 @@ function TileLink({ tile, lang, dialog }: { tile: Tile; lang: "en" | "de"; dialo
 export function Start({ notices }: { notices: ReactNode }) {
   const t = useTranslations("app");
   const { addFiles, loadDemo, settings, setSettings, openHelp, openSettings } = useStore();
+  const online = useOnline();
   const lang = settings.locale;
   const c = CONTENT[lang];
   const h = c.home;
@@ -96,7 +98,10 @@ export function Start({ notices }: { notices: ReactNode }) {
             </div>
             <SettingsButton onClick={openSettings} label={t("settings")} />
             <FeedbackButton />
-            <button className="helpbtn" aria-label={t("help")} onClick={openHelp}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>
+            {/* Nothing is loaded yet, so help can be the guide page itself; offline the guides open in the app instead. */}
+            {online
+              ? <Link className="helpbtn" aria-label={t("help")} href={pagePath(lang, "help")}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></Link>
+              : <button className="helpbtn" aria-label={t("help")} onClick={() => openHelp()}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>}
           </div>
           <div className="st-grid">
             <header className="st-head">

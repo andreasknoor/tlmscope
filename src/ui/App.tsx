@@ -9,6 +9,7 @@ import de from "@/i18n/de.json";
 import en from "@/i18n/en.json";
 import { sizeBucket, track } from "./analytics";
 import type { FeedbackFrom } from "./feedback";
+import type { GuideTarget } from "./views/Guides";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { batteryLetter, type Locale } from "./format";
 import { loadBuffer } from "./loader";
@@ -94,6 +95,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   }, []);
   const [messages, setMessages] = useState<LoadMessage[]>([]);
   const helpRef = useRef<HTMLDialogElement>(null);
+  const [helpTarget, setHelpTarget] = useState<GuideTarget | null>(null);
   const settingsRef = useRef<HTMLDialogElement>(null);
   const feedbackRef = useRef<HTMLDialogElement>(null);
   const [feedbackFrom, setFeedbackFrom] = useState<FeedbackFrom | null>(null);
@@ -316,7 +318,11 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
     files, analysis, entries, selected, view, tab, settings, filter, setFilter, visible, models, modelFilter, setModelFilter,
     demo: files.some((f) => f.fileName === DEMO_FILE),
     setTab, openDetail, detail, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll,
-    openHelp: () => helpRef.current?.showModal(),
+    openHelp: (page = "help", anchor) => {
+      setHelpTarget({ page, anchor });
+      if (!helpRef.current?.open) helpRef.current?.showModal();
+    },
+    helpTarget, setHelpTarget,
     openSettings: () => settingsRef.current?.showModal(),
     openFeedback: (entry, detail) => {
       setFeedbackFrom({ entry, detail });

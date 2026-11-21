@@ -7,7 +7,7 @@ import type { LoadMessage } from "./App";
 import { cssVar, clock, dayLabel, longDuration, num, timeLabel } from "./format";
 import { flightTotal } from "./flight-total";
 import { downloadText, logbookCsv, logbookFileName } from "./logbook";
-import { Help } from "./views/Help";
+import { Guides } from "./views/Guides";
 import { FeedbackDialog } from "./views/FeedbackDialog";
 import { SettingsDialog } from "./views/Settings";
 import { Batteries } from "./views/Batteries";
@@ -100,7 +100,7 @@ function Header() {
         </div>
         <SettingsButton onClick={openSettings} label={t("settings")} />
         <FeedbackButton />
-        <button className="helpbtn" aria-label={t("help")} onClick={openHelp}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>
+        <button className="helpbtn" aria-label={t("help")} onClick={() => openHelp()}><i aria-hidden="true">?</i><span className="long">{t("help")}</span></button>
       </div>
     </header>
   );
@@ -342,7 +342,7 @@ function LoadCard({ m }: { m: LoadMessage }) {
 
 export function Shell({ helpRef, settingsRef, feedbackRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; settingsRef: RefObject<HTMLDialogElement | null>; feedbackRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
   const t = useTranslations();
-  const { files, view, selected, tab } = useStore();
+  const { files, view, selected, tab, helpTarget, setHelpTarget } = useStore();
   const sw = useServiceWorker();
   const notices = messages.length > 0 && (
     <div className="stack" role="status">
@@ -380,7 +380,7 @@ export function Shell({ helpRef, settingsRef, feedbackRef, messages, dismiss }: 
       )}
       <Footer offline={sw.ready} />
       <UpdateBar sw={sw} />
-      <Help dialogRef={helpRef} />
+      <Guides dialogRef={helpRef} target={helpTarget} setTarget={setHelpTarget} />
       <SettingsDialog dialogRef={settingsRef} />
       <FeedbackDialog dialogRef={feedbackRef} />
     </>

@@ -86,7 +86,7 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .toggle[aria-pressed="true"] { color: var(--accent); }
 .toggle[aria-pressed="true"] .sw { background: var(--accent); }
 .toggle[aria-pressed="true"] .sw::after { left: 14px; }
-.helpbtn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--sunken); border-radius: 8px; padding: 4px 10px 4px 5px; cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--ink-2); }
+.helpbtn { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--sunken); border-radius: 8px; padding: 4px 10px 4px 5px; cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--ink-2); }
 .setbtn { padding: 4px 10px 4px 6px; }
 .setbtn svg { color: var(--accent); flex: none; }
 .st-bar .setbtn svg { color: #dcebf0; }
@@ -350,6 +350,21 @@ dialog.helpdlg::backdrop { background: var(--scrim); }
 .helpdlg h3 { font-size: 18px; margin-top: 12px; }
 .helpdlg p { max-width: 68ch; }
 .helpdlg ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+/* The guides in the app: the site's guide navigation in the dialog head, the guide text below. */
+dialog.guides { width: min(860px, calc(100% - 32px)); }
+.guides .hd { align-items: flex-start; padding: 10px 12px 10px 14px; }
+.guides .doc { margin: 0 auto; padding: 18px 22px 28px; }
+.guides .doc h1 { font-size: 32px; }
+/* A question opened from a link lands below the sticky head, not under it. */
+.guides .qa, .guides section { scroll-margin-top: 72px; }
+@media (max-width: 700px) {
+  /* Phones: the guides in one row that scrolls sideways, the close button stays on the right. */
+  .guides .hd { align-items: center; padding: 8px 10px; }
+  .guides .guidenav { order: 0; flex: 1 1 0; flex-basis: auto; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .guides .guidenav a { white-space: nowrap; }
+  .guides .doc { padding: 14px 16px 24px; }
+  .guides .doc h1 { font-size: 26px; }
+}
 .st { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; font-weight: 600; }
 
 /* start screen */

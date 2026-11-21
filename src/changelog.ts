@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.7", date: "2026-11-21", changes: [["new", "Help in the app shows all guides (FAQ, telemetry, radios …) without closing your logs.", "highlight"], ["new", "Help on the start page opens the help page of the website."]] },
   { version: "2.6", date: "2026-11-21", changes: [["new", "“Show details” is now “More charts & values”; each tab names what it adds until it is used once."]] },
   { version: "2.5", date: "2026-11-21", changes: [["new", "The demo 3D flight now has a remote receiver and one hold, to try out fades and holds."]] },
   { version: "2.4", date: "2026-11-21", changes: [["new", "Link tab with details: fades per receiver, holds marked, and signal against distance.", "highlight"], ["new", "With details on, the map colours the path by signal in dBm, and the replay shows the value."], ["new", "The Link tab points to the exact dBm values behind “Show details”."]] },
