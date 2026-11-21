@@ -20,7 +20,10 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
-  { version: "2.14", date: "2026-11-21", changes: [["fix", "At the end of a long page, the header and the loaded files in the sidebar stay in view."]] },
+  { version: "2.14", date: "2026-11-21", changes: [
+    ["fix", "At the end of a long page, the header and the loaded files in the sidebar stay in view."],
+    ["fix", "Simulator sessions are also recognised when the dongle's link quality dips now and then."],
+  ] },
   { version: "2.13", date: "2026-11-21", changes: [
     ["new", "Flight path: frame losses and holds as dots on the map, to find weak spots in your airspace.", "highlight"],
     ["new", "A radio link chart (signal and frame losses) right below the map, moving with the model."],

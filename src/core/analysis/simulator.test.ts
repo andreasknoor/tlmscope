@@ -36,6 +36,10 @@ describe("simulator sessions", () => {
     expect(isSimulator(simulatorLog({ name: "Aerofly" }))).toBe(true);
   });
 
+  it("allow the small dips a dongle shows over a long evening", () => {
+    expect(isSimulator(simulatorLog({ quality: (s) => (s > 50 && s < 52 ? 95 : 100), dbm: -41 }))).toBe(true);
+  });
+
   it("are not a real receiver: voltage, weaker signal or a dropping link quality", () => {
     expect(isSimulator(simulatorLog({ rxV: 5.1 }))).toBe(false);
     expect(isSimulator(simulatorLog({ dbm: -60 }))).toBe(false);

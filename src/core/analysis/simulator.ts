@@ -4,11 +4,14 @@ import type { Channel, Session } from "../model/types.ts";
  * A flight simulator flown with the transmitter through a wireless dongle (Spektrum WS3000).
  * The dongle binds like a receiver and sends a link report, but nothing from a model: no
  * receiver voltage (0, read as no reading), no fades, frame losses or holds, a link quality
- * of 100 % throughout and no signal strength, or a very strong one (it sits next to the transmitter).
+ * of (nearly) 100 % and no signal strength, or a strong one (it sits next to the transmitter).
+ * Seen on the WS3000 over several evenings: quality dips to 95 % now and then, dBm between −22 and −41.
  */
 export const SIMULATOR = {
-  /** A real receiver in the air or on the field reads weaker than this (dBm); a dongle centimetres away reads stronger. */
-  minDbm: -35,
+  /** A dongle next to the transmitter reads stronger than this (dBm); a receiver in the air reads weaker. */
+  minDbm: -50,
+  /** Link quality a dongle stays at or above (%); a receiver in the air drops far lower. */
+  minQuality: 90,
   /** Stick activity is judged in windows of this length (s). */
   windowS: 10,
   /** A window counts as flown when a stick moves over at least this share of its range in it. */
@@ -29,7 +32,7 @@ export function isSimulator(session: Session): boolean {
   if (ch("rx_voltage").length) return false;
   if (["fades.a", "fades.b", "fades.l", "fades.r", "frame_losses", "holds"].some((id) => ch(id).some((v) => v > 0))) return false;
   const quality = ch("signal_quality");
-  if (quality.some((v) => v < 100)) return false;
+  if (quality.some((v) => v < SIMULATOR.minQuality)) return false;
   if (ch("signal_dbm").some((v) => v < SIMULATOR.minDbm)) return false;
   return quality.length > 0 || DONGLE_NAME.test(session.modelName ?? "");
 }
