@@ -376,6 +376,7 @@
     "hudSpeed": "Tempo",
     "hudClimb": "Steigen",
     "hudCourse": "Kurs",
+    "hudSignal": "Signal",
     "mapFailed": "Die Karte konnte nicht geladen werden. Sie braucht eine Internetverbindung und einen Browser mit WebGL.",
     "noFlight": "In dieser Sitzung wurde nicht geflogen.",
     "pathMode": "Flugweg bei der Wiedergabe",
@@ -443,7 +444,14 @@
     "heightCompare": "Höhe, zum Vergleich",
     "sigVsHeight": "Signal über Höhe",
     "dot": "jeder Punkt = 1\u00a0s",
-    "note": "Ohne GPS ist die Höhe der einzige Hinweis auf die Entfernung: höher heißt meist weiter weg."
+    "note": "Ohne GPS ist die Höhe der einzige Hinweis auf die Entfernung: höher heißt meist weiter weg.",
+    "moreHint": "Genaue Signalwerte in dBm, Frame Losses, Fades pro Empfänger und Signal über Entfernung:",
+    "fades": "Fades pro Sekunde, je Empfänger",
+    "fadesHint": "A ist der Hauptempfänger, B, L und R sind Satelliten. Fadet ein Empfänger deutlich öfter als die anderen, liegt es meist an seiner Antenne oder seinem Einbauort.",
+    "holdMark": "{n, plural, one {# Hold (Failsafe)} other {# Holds (Failsafe)}}",
+    "sigVsDistance": "Signal über Entfernung",
+    "distanceAxis": "Entfernung vom Startpunkt",
+    "distanceHint": "Normalerweise wird das Signal mit der Entfernung schwächer. Auffällig sind schwache Punkte auf kurze Entfernung: Fluglage, Abschattung oder Störung. Wo das war, zeigt die Karte (Farbe nach Signal)."
   },
   "detail": {
     "back": "Zurück zur Übersicht",

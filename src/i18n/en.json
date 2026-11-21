@@ -376,6 +376,7 @@
     "hudSpeed": "Speed",
     "hudClimb": "Climb",
     "hudCourse": "Course",
+    "hudSignal": "Signal",
     "mapFailed": "The map could not be loaded. It needs an internet connection and a browser with WebGL.",
     "noFlight": "No flight in this session.",
     "pathMode": "Path during replay",
@@ -443,7 +444,14 @@
     "heightCompare": "Height, for comparison",
     "sigVsHeight": "Signal vs. height",
     "dot": "each dot = 1\u00a0s",
-    "note": "Without GPS, height is the only distance hint: higher usually means farther away."
+    "note": "Without GPS, height is the only distance hint: higher usually means farther away.",
+    "moreHint": "Exact signal values in dBm, frame losses, fades per receiver and signal against distance:",
+    "fades": "Fades per second, per receiver",
+    "fadesHint": "A is the main receiver, B, L and R are remote receivers. One receiver fading much more than the others points to its antenna or where it sits in the model.",
+    "holdMark": "{n, plural, one {# hold (failsafe)} other {# holds (failsafe)}}",
+    "sigVsDistance": "Signal vs. distance",
+    "distanceAxis": "Distance from the launch point",
+    "distanceHint": "The signal normally gets weaker with distance. Weak dots at short range are the ones to look at: the model's attitude, shadowing or interference. Where they were shows on the map (colour by signal)."
   },
   "detail": {
     "back": "Back to the overview",

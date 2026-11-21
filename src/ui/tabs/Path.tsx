@@ -17,6 +17,20 @@ import { useStore, useUnits } from "../store";
 import { levelColor } from "./Link";
 import { PhaseLegend } from "./Overview";
 
+/** Ends of the dBm colour scale on the map: red at or below the low end, green at or above the high end. */
+const DBM_LOW = -90;
+const DBM_HIGH = -65;
+/** Yellow point of the scale, where frame losses start to rise (see THRESHOLDS.signalDbm). */
+const DBM_MID = -80;
+
+/** Map colour for a dBm value: red below −90, yellow around −80 (where frame losses start), green from −65. */
+export function dbmColor(v: number | null): string | null {
+  if (v === null) return null;
+  const mid = DBM_MID;
+  if (v <= mid) return mix(cssVar("--crit"), cssVar("--warn"), Math.max(0, (v - DBM_LOW) / (mid - DBM_LOW)));
+  return mix(cssVar("--warn"), cssVar("--good"), Math.min(1, (v - mid) / (DBM_HIGH - mid)));
+}
+
 /** Glide colour on the map. */
 const MAP_GLIDE = "--s-alt";
 
@@ -90,14 +104,17 @@ function GpsView() {
     return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = overflow; };
   }, [full]);
   const alt = g.get("altitude");
+  // With details on, the signal colour is a smooth dBm scale instead of the four levels.
+  const dbm = g.get("signal_dbm");
+  const dbmScale = settings.details && sig !== null;
   const top = Math.max(1, maxOf(alt) ?? 0);
   // On the map, glides are blue: the chart grey would vanish next to the grey ground shadow.
   const colorAt = useCallback((i: number) => {
     if (colourBy === "height") return mix(cssVar("--h-low"), cssVar("--h-high"), Math.max(0, alt[i] ?? 0) / top);
-    if (colourBy === "signal") return levelColor(sig?.levels[i] ?? null) ?? cssVar("--ink-3");
+    if (colourBy === "signal") return (dbmScale ? dbmColor(dbm[i]) : levelColor(sig?.levels[i] ?? null)) ?? cssVar("--ink-3");
     const k = p?.phaseAt[i];
     return cssVar(k === "glide" || k === "unpowered" || !k ? MAP_GLIDE : PHASE_COLOR[k]);
-  }, [colourBy, alt, top, sig, p]);
+  }, [colourBy, alt, top, sig, p, dbmScale, dbm]);
   const hasHeight = p?.maxAltitudeM != null;
   // The stork flaps its wings in motor climbs and glides otherwise.
   const flapping = useMemo(() => p?.phaseAt.map((k) => k === "motor") ?? [], [p]);
@@ -182,6 +199,7 @@ function GpsView() {
                 {agl !== null && <div><span>{t("path.hudAgl")}</span><b>{U.fmt("height", agl)}</b></div>}
                 <div><span>{t("path.hudSpeed")}</span><b>{tr.speed[marker] != null ? U.fmt("speed", tr.speed[marker]!) : "–"}</b></div>
                 <div><span>{t("path.hudClimb")}</span><b>{climbSeries[marker] != null ? U.fmt("vspeed", climbSeries[marker]!, 1) : "–"}</b></div>
+                {colourBy === "signal" && sig && <div><span>{t("path.hudSignal")}</span><b>{dbm[marker] != null ? `${num(loc, dbm[marker], 0)} dBm` : "–"}</b></div>}
                 <div><span>{t("path.hudCourse")}</span><b>{Number.isFinite(course[marker]) ? `${Math.round((course[marker] + 360) % 360)}°` : "–"}</b></div>
               </div>
             )}
@@ -189,6 +207,7 @@ function GpsView() {
         </div>
         {!online ? null : colourBy === "phase" && p ? <PhaseLegend glide={MAP_GLIDE} kinds={[...new Set(p.phases.map((x) => x.kind))].filter((k) => k !== "ground")} />
           : colourBy === "height" ? <Legend items={[[`linear-gradient(90deg, var(--h-low), var(--h-high))`, `0 – ${U.fmt("height", top)}`]]} />
+          : dbmScale ? <Legend items={[[`linear-gradient(90deg, var(--crit), var(--warn), var(--good))`, `${num(loc, DBM_LOW, 0)} … ${num(loc, DBM_HIGH, 0)} dBm`]]} />
           : <Legend items={[[cssVar("--good"), word("signal", 4)], [withAlpha(cssVar("--good"), 0.45), word("signal", 3)], [cssVar("--warn"), word("signal", 2)], [cssVar("--crit"), word("signal", 1)]]} />}
       </div>
       {online && spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
@@ -196,7 +215,7 @@ function GpsView() {
       </div>
       <LineChart syncKey={e!.key} title={t(hasHeight ? "path.follow" : "path.followThrottle")} series={followSeries} phases={p?.phases} height={150}
         yMax={hasHeight ? undefined : 100} yFormat={(x) => `${axisNum(loc, x)} ${hasHeight ? U.u("height") : "%"}`}
-        readout={(i) => `${num(loc, followSeries[0].data[i], 0)} ${hasHeight ? U.u("height") : "%"} · ${t("path.away", { d: U.fmt("distance", tr.distance[i]) })}`} onCursor={setMarker} />
+        readout={(i) => `${num(loc, followSeries[0].data[i], 0)} ${hasHeight ? U.u("height") : "%"} · ${t("path.away", { d: U.fmt("distance", tr.distance[i]) })}${colourBy === "signal" && sig && dbm[i] != null ? ` · ${num(loc, dbm[i], 0)} dBm` : ""}`} onCursor={setMarker} />
       {speedSeries[0].data.some((x) => x !== null) && (
         <LineChart syncKey={e!.key} title={t("path.groundSpeed")} series={speedSeries} phases={p?.phases} height={150}
           extra={<div className="sub">{t("path.groundSpeedHint")}</div>}

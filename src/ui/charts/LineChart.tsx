@@ -24,6 +24,9 @@ export interface ChartSeries {
 
 export interface Band { from: number; to: number; color: string; alpha?: number }
 
+/** Vertical lines at single seconds, e.g. holds; drawn over the series. */
+export interface Marks { at: number[]; color: string }
+
 interface Props {
   syncKey: string;
   title: string;
@@ -32,6 +35,7 @@ interface Props {
   height?: number;
   phases?: Phase[] | null;
   bands?: Band[];
+  marks?: Marks;
   yMin?: number;
   yMax?: number;
   yFormat?: (v: number) => string;
@@ -134,6 +138,23 @@ export function LineChart(props: Props) {
                 ctx.fillStyle = withAlpha(cssVar(b.color), b.alpha ?? 0.08);
                 ctx.fillRect(left, y0, width, y1 - y0);
               }
+            },
+          ],
+          draw: [
+            (uu) => {
+              const m = propsRef.current.marks;
+              if (!m?.at.length) return;
+              const ctx = uu.ctx;
+              const { top, height } = uu.bbox;
+              ctx.save();
+              ctx.strokeStyle = cssVar(m.color);
+              ctx.lineWidth = 2 * devicePixelRatio;
+              ctx.setLineDash([4 * devicePixelRatio, 3 * devicePixelRatio]);
+              for (const i of m.at) {
+                const x = Math.round(uu.valToPos(i, "x", true));
+                ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + height); ctx.stroke();
+              }
+              ctx.restore();
             },
           ],
           setCursor: [

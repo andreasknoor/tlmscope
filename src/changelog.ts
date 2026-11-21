@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.4", date: "2026-11-21", changes: [["new", "Link tab with details: fades per receiver, holds marked, and signal against distance.", "highlight"], ["new", "With details on, the map colours the path by signal in dBm, and the replay shows the value."], ["new", "The Link tab points to the exact dBm values behind “Show details”."]] },
   { version: "2.3", date: "2026-11-20", changes: [["new", "Questions in the FAQ are folded, with “Open all” above them; a link to a question opens it."], ["new", "“Understand telemetry” adds five questions for after the flight, with screenshots."]] },
   { version: "2.2", date: "2026-11-20", changes: [["new", "GPS positions from Spektrum SkyID Remote ID modules are now read, so their flights show on the map.", "highlight"]] },
   { version: "2.1", date: "2026-11-19", changes: [["fix", "The follow view stays on when scrolling; Ctrl + wheel or two fingers zoom its camera out."]] },
