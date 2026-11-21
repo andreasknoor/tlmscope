@@ -383,7 +383,12 @@ details.sessionlist[open] summary { margin-bottom: 8px; }
 .hex { font: 12px/1.6 var(--code); color: var(--ink-2); white-space: pre; }
 
 /* dialog */
-dialog.helpdlg { border: 1px solid var(--line); border-radius: 14px; padding: 0; width: min(760px, calc(100% - 32px)); max-height: calc(100% - 48px); background: var(--surface); color: var(--ink); }
+/* While a dialog is open the page behind it stays put: a swipe on a phone (iOS Safari) or the mouse wheel
+   scrolls the dialog, never the page; at the dialog's end the scroll stops instead of moving on to the page.
+   The height follows the visible viewport (dvh), so Safari's toolbars do not hide the dialog's end. */
+html:has(dialog:modal) { overflow: hidden; }
+dialog:modal { overscroll-behavior: contain; overflow-y: auto; -webkit-overflow-scrolling: touch; max-height: calc(100dvh - 32px); }
+dialog.helpdlg { border: 1px solid var(--line); border-radius: 14px; padding: 0; width: min(760px, calc(100% - 32px)); max-height: calc(100dvh - 48px); background: var(--surface); color: var(--ink); }
 dialog.helpdlg::backdrop { background: var(--scrim); }
 .helpdlg .hd { position: sticky; top: 0; background: var(--surface); display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid var(--line); }
 .helpdlg .hd h2 { font-size: 24px; }
