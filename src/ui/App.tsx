@@ -76,7 +76,12 @@ export interface LoadMessage {
   /** Loading only: share done (0…1), file position in the batch and file size. */
   progress?: number;
   file?: { n: number; total: number; bytes?: number };
+  /** The notice after "close all files": it offers to open them again. */
+  undo?: boolean;
 }
+
+/** How long "close all files" can be undone (ms); the closed files stay in memory until then. */
+const UNDO_CLOSE_MS = 10_000;
 
 export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const [files, setFiles] = useState<LogFile[]>([]);
@@ -259,11 +264,22 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   }, [settings.logbook, settings.logbookAsk, entries, book, updateBook]);
   const bookPending = useMemo(() => (settings.logbook && settings.logbookAsk ? pendingModels(book, entries, DEMO_FILE) : []), [settings.logbook, settings.logbookAsk, book, entries]);
 
+  // "Close all files" can be undone for a few seconds: the closed files and the view they had.
+  const closed = useRef<{ files: LogFile[]; selectedKey: string | null; view: View; modelChoice: string | null; showAll: boolean } | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const dropUndo = useCallback(() => {
+    clearTimeout(undoTimer.current);
+    closed.current = null;
+    setMessages((m) => (m.some((x) => x.undo) ? m.filter((x) => !x.undo) : m));
+  }, []);
+
   // Names of the loaded files, for the "replaced" notice; read inside the async loader.
   const loadedNames = useRef<Set<string>>(new Set());
   useEffect(() => { loadedNames.current = new Set(files.map((f) => f.fileName)); }, [files]);
 
   const addLogs = useCallback(async (items: { name: string; size?: number; demo?: boolean; buffer: () => Promise<ArrayBuffer> }[]) => {
+    // New files end the chance to undo "close all": the undo would replace them.
+    dropUndo();
     const error = (text: string, values: Record<string, string>) => {
       setMessages((m) => [...m.filter((x) => x.kind !== "loading"), { kind: "error", text, values }]);
       track({ name: "file-error", kind: text === "app.tooLarge" ? "too-large" : text === "app.unsupported" ? "unsupported" : "read-error" });
@@ -299,7 +315,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
         error("app.readError", { name: item.name, message: err instanceof Error ? err.message : String(err) });
       }
     }
-  }, [applyHash]);
+  }, [applyHash, dropUndo]);
 
   const addFiles = useCallback((list: File[]) => {
     void addLogs(list.map((f) => ({ name: f.name, size: f.size, buffer: () => f.arrayBuffer() })));
@@ -327,13 +343,32 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   }, [files, view]);
 
   const closeAll = useCallback(() => {
+    // Kept for a few seconds, so a click by mistake can be undone without choosing the files again.
+    if (files.length) {
+      closed.current = { files, selectedKey, view, modelChoice, showAll };
+      clearTimeout(undoTimer.current);
+      undoTimer.current = setTimeout(dropUndo, UNDO_CLOSE_MS);
+    }
     setFiles([]);
     setSelectedKey(null);
     setView("sessions");
-    setMessages([]);
+    setMessages(files.length ? [{ kind: "info", text: "app.closedAll", values: { n: String(files.length) }, undo: true }] : []);
     setShowAll(false);
     history.replaceState(null, "", location.pathname);
-  }, []);
+  }, [files, selectedKey, view, modelChoice, showAll, dropUndo]);
+
+  /** Opens the files closed by "close all files" again, as they were. */
+  const undoClose = useCallback(() => {
+    const c = closed.current;
+    dropUndo();
+    if (!c) return;
+    setFiles(c.files);
+    setSelectedKey(c.selectedKey);
+    setView(c.view);
+    setModelChoice(c.modelChoice);
+    setShowAll(c.showAll);
+    history.replaceState(null, "", c.selectedKey && c.view === "sessions" ? `#s-${c.selectedKey}` : c.view !== "sessions" ? `#${c.view}` : location.pathname);
+  }, [dropUndo]);
 
   // keyboard: arrows step through sessions
   useEffect(() => {
@@ -350,7 +385,7 @@ export function App({ initialLocale = "en" }: { initialLocale?: Locale }) {
   const store: Store = {
     files, analysis, entries, selected, view, tab, settings, filter, setFilter, visible, models, modelFilter, setModelFilter,
     demo: files.some((f) => f.fileName === DEMO_FILE),
-    setTab, openDetail, detail, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll,
+    setTab, openDetail, detail, select, step, go, setSettings, addFiles, loadDemo, closeFile, closeAll, undoClose,
     openHelp: (page = "help", anchor) => {
       setHelpTarget({ page, anchor });
       if (!helpRef.current?.open) helpRef.current?.showModal();

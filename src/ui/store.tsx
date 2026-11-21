@@ -112,6 +112,8 @@ export interface Store {
   closeFile(fileName: string): void;
   /** Closes all files and returns to the start screen. */
   closeAll(): void;
+  /** Opens the files of the last "close all files" again, within a few seconds of closing. */
+  undoClose(): void;
   /** Opens the guides in the app, on the given guide (default: help) and optionally a question on it. */
   openHelp(page?: PageId, anchor?: string): void;
   /** The guide the help shows; null until the help is first opened. */

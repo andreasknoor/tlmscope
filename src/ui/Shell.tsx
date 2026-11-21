@@ -191,7 +191,10 @@ function Sidebar() {
           <summary onClick={(e) => { e.preventDefault(); setFilesChoice(!filesOpen); }}>
             <span className="chev" aria-hidden="true">▸</span>
             <span>{t("app.filesLoaded", { n: files.length })} <span className="sz num">· {num(loc, mb, 1)} MB</span></span>
-            <button className="btn sm" onClick={(e) => { e.preventDefault(); e.stopPropagation(); input.current?.click(); }}>+ {t("app.addShort")}</button>
+            <span className="sfiles-acts">
+              <button className="iconbtn sq" title={t("app.addFiles")} aria-label={t("app.addFiles")} onClick={(e) => { e.preventDefault(); e.stopPropagation(); input.current?.click(); }}>+</button>
+              <button className="iconbtn sq" title={t("app.closeAll")} aria-label={t("app.closeAll")} onClick={(e) => { e.preventDefault(); e.stopPropagation(); closeAll(); }}>✕</button>
+            </span>
           </summary>
           <div className="sfiles-body">
             {oneModel && <div className="sfiles-model"><ModelBadge model={oneModel} />{t("app.allOfModel", { name: modelName(oneModel) })}</div>}
@@ -207,7 +210,6 @@ function Sidebar() {
               );
             })}
             <small>{t("app.dropSide")}</small>
-            <div><button className="linkbtn" onClick={closeAll}>{t("app.closeAll")}</button></div>
           </div>
         </details>
         <input ref={input} type="file" accept=".tlm,.TLM" multiple hidden onChange={(e) => { addFiles([...(e.target.files ?? [])]); e.target.value = ""; }} />
@@ -367,12 +369,12 @@ function PhoneFiles() {
             </div>
           ))}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button className="btn" onClick={closeAll}>{t("closeAll")}</button>
             <button className="btn" title={t("exportCsvHint")} disabled={visible.length === 0} onClick={() => downloadText(sessionCsv(visible, settings.locale), sessionCsvFileName())}>{t("exportCsv")}</button>
           </div>
         </div>
       </details>
       <button className="btn" onClick={() => input.current?.click()}>+ {t("addShort")}</button>
+      <button className="btn" title={t("closeAll")} aria-label={t("closeAll")} onClick={closeAll}>✕</button>
       <input ref={input} type="file" accept=".tlm,.TLM" multiple hidden onChange={(e) => { addFiles([...(e.target.files ?? [])]); e.target.value = ""; }} />
     </div>
   );
@@ -422,14 +424,17 @@ function LoadCard({ m }: { m: LoadMessage }) {
 
 export function Shell({ helpRef, settingsRef, feedbackRef, logbookRef, messages, dismiss }: { helpRef: RefObject<HTMLDialogElement | null>; settingsRef: RefObject<HTMLDialogElement | null>; feedbackRef: RefObject<HTMLDialogElement | null>; logbookRef: RefObject<HTMLDialogElement | null>; messages: LoadMessage[]; dismiss: (i: number) => void }) {
   const t = useTranslations();
-  const { files, view, selected, tab, helpTarget, setHelpTarget } = useStore();
+  const { files, view, selected, tab, helpTarget, setHelpTarget, undoClose } = useStore();
   const sw = useServiceWorker();
   const notices = messages.length > 0 && (
     <div className="stack" role="status">
       {messages.map((m, i) => m.kind === "loading" ? <LoadCard key={i} m={m} /> : (
         <div key={i} className={m.kind === "error" ? "errorbox" : "infobox"} style={{ display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
           <span>{t(m.text, m.values)}{m.kind === "error" && <> <FeedbackLink entry="error" detail={ERROR_KIND[m.text]}>{t("feedback.errorLink")}</FeedbackLink></>}</span>
-          <button className="btn" onClick={() => dismiss(i)}>{t("app.close")}</button>
+          <span style={{ display: "flex", gap: 8 }}>
+            {m.undo && <button className="btn primary" onClick={undoClose}>{t("app.undo")}</button>}
+            <button className="btn" onClick={() => dismiss(i)}>{t("app.close")}</button>
+          </span>
         </div>
       ))}
     </div>
