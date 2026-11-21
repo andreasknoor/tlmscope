@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.12", date: "2026-11-21", changes: [["fix", "Switches show the chosen option filled in colour, so it is clear at a glance."]] },
   { version: "2.11", date: "2026-11-21", changes: [
     ["new", "The sidebar keeps room for the sessions: many files fold into one line, totals share one box."],
     ["new", "Long file names are shortened in the middle, so the date at the end stays visible."],

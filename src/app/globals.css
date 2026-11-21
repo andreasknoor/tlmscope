@@ -10,6 +10,8 @@
   --grid: #e7edf0;
   --accent: #0d6a83;
   --accent-soft: #dcedf2;
+  /* Text on a full accent background (the chosen option of a switch). */
+  --on-accent: #ffffff;
   --good: #0ca30c;
   --warn: #fab219;
   --crit: #d03b3b;
@@ -35,7 +37,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0e1418; --surface: #151f25; --sunken: #111a1f; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e;
-    --line: #25333b; --grid: #1e2a31; --accent: #52b6d2; --accent-soft: #17323b;
+    --line: #25333b; --grid: #1e2a31; --accent: #52b6d2; --accent-soft: #17323b; --on-accent: #0b1a20;
     --s-alt: #3987e5; --s-motor: #d95926; --s-powered: #a8804f; --s-lift: #199e70; --s-glide: #5b6a72; --s-ground: #2b383f; --s-4: #d55181; --s-5: #9085e9;
     --h-low: #184f95; --h-high: #cde2fb; --scrim: rgba(0, 0, 0, .6);
     --m1: #3fa9c7; --m2: #9085e9; --m3: #e0709d; --m4: #d9a43a; --m5: #4cc28a; --m6: #93a4b0;
@@ -44,7 +46,7 @@
 }
 :root[data-theme="dark"] {
   --bg: #0e1418; --surface: #151f25; --sunken: #111a1f; --ink: #e4ecef; --ink-2: #a3b3bb; --ink-3: #74858e;
-  --line: #25333b; --grid: #1e2a31; --accent: #52b6d2; --accent-soft: #17323b;
+  --line: #25333b; --grid: #1e2a31; --accent: #52b6d2; --accent-soft: #17323b; --on-accent: #0b1a20;
   --s-alt: #3987e5; --s-motor: #d95926; --s-powered: #a8804f; --s-lift: #199e70; --s-glide: #5b6a72; --s-ground: #2b383f; --s-4: #d55181; --s-5: #9085e9;
   --h-low: #184f95; --h-high: #cde2fb; --scrim: rgba(0, 0, 0, .6);
   --m1: #3fa9c7; --m2: #9085e9; --m3: #e0709d; --m4: #d9a43a; --m5: #4cc28a; --m6: #93a4b0;
@@ -76,9 +78,12 @@ code { font-family: var(--code); font-size: .9em; background: var(--sunken); pad
 .spacer { flex: 1; }
 .hbreak, .top .short { display: none; }
 .controls { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--sunken); }
+/* Switches: the chosen option is filled with the accent colour, so it is clear at a glance (also in sunlight). */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
 .seg button { border: 0; background: none; padding: 5px 12px; cursor: pointer; color: var(--ink-2); font-weight: 600; font-size: 13.5px; }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: inset 0 0 0 1px var(--line); }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button:hover:not([aria-pressed="true"]) { background: var(--sunken); color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 .ctl { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; }
 .toggle { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--sunken); border-radius: 8px; padding: 4px 10px 4px 6px; cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--ink-2); }
 .toggle .sw { width: 28px; height: 16px; border-radius: 8px; background: var(--line); position: relative; flex: none; }
@@ -560,7 +565,9 @@ body > .start, body > .app, body > .legal, body > .doc { flex: 1 0 auto; width: 
 @media (max-width: 760px) { .st-bar .long { display: none; } }
 .st-bar .seg { background: rgb(255 255 255 / .08); border-color: rgb(255 255 255 / .2); }
 .st-bar .seg button { color: #bcd3db; }
-.st-bar .seg button[aria-pressed="true"] { background: rgb(255 255 255 / .16); color: #fff; box-shadow: none; }
+.st-bar .seg button + button { border-left-color: rgb(255 255 255 / .2); }
+.st-bar .seg button:hover:not([aria-pressed="true"]) { background: rgb(255 255 255 / .12); color: #fff; }
+.st-bar .seg button[aria-pressed="true"] { background: #fff; color: #0d6a83; }
 .st-bar .helpbtn { background: rgb(255 255 255 / .08); border-color: rgb(255 255 255 / .2); color: #dcebf0; }
 .st-grid { display: grid; gap: 26px 56px; grid-template-columns: minmax(0, 1fr) minmax(0, 470px); grid-template-areas: "head drop" "facts drop"; align-items: start; padding-top: 26px; }
 .st-head { grid-area: head; display: flex; flex-direction: column; gap: 18px; }
