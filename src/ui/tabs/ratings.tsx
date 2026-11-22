@@ -22,7 +22,9 @@ export function LinkCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNo
   const hint = !o ? "" : hold
     ? t("linkHoldHint") + (estimated ? " " + t("linkHoldEstimated") : "")
     : t(a.kind === "flight" ? "linkHintAir" : "linkHint") + (o.worst < o.level ? " " + t("linkBriefly", { level: word("link", o.worst).toLowerCase() }) : "");
-  const fades = Object.entries(l?.fades ?? {}).filter(([, n]) => n !== undefined);
+  // Fades compare receivers; with a single one they equal the frame losses and are not shown.
+  const reported = Object.entries(l?.fades ?? {}).filter(([, n]) => n !== undefined);
+  const fades = reported.length > 1 ? reported : [];
   // Losses above the "high" level in the seconds with a strong signal: the cause is not the distance.
   const strongButLosing = !hold && !!l?.strongSignal && l.strongSignal.perMinute > THRESHOLDS.frameLossesPerMinute.steps[0];
   return (

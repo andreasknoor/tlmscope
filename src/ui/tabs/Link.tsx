@@ -44,9 +44,13 @@ export function LinkTab() {
     return { at, color: "--crit" };
   }, [g]);
   // Fades per receiver, each on its own line: a remote receiver or antenna that fades much more than the others stands out.
-  const fades = useMemo(() => FADES
-    .filter(([id]) => g.has(id) && g.get(id).some((v) => v !== null))
-    .map(([id, color, label]) => ({ data: g.get(id, "increase"), color, label, unit: "/s", digits: 0, width: 1.5 })), [g]);
+  // With a single receiver its fades are the frame losses again, so they are left out.
+  const fades = useMemo(() => {
+    const list = FADES
+      .filter(([id]) => g.has(id) && g.get(id).some((v) => v !== null))
+      .map(([id, color, label]) => ({ data: g.get(id, "increase"), color, label, unit: "/s", digits: 0, width: 1.5 }));
+    return list.length > 1 ? list : [];
+  }, [g]);
   const alt = useMemo(() => [{ data: U.series("height", g.get("altitude")), color: "--s-alt", unit: U.u("height"), fill: 0.1 }], [g, U]);
   // Clicking a level in the legend shows only that level in both strips; the arrows step through its stretches.
   const [only, setOnly] = useState<Level | null>(null);

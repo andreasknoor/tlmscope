@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.21", date: "2026-11-22", changes: [["fix", "With a single receiver the fades are hidden: they only repeat the frame losses."]] },
   { version: "2.20", date: "2026-11-22", changes: [
     ["fix", "Signal strength shows the margin (plenty, enough, little, almost none), not high to critical."],
     ["new", "The link card says when frame losses come despite a strong signal: installation, not distance."],
