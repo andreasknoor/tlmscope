@@ -93,7 +93,8 @@ export function MoreHint({ items }: { items: (string | false | null | undefined)
   );
 }
 
-export function DetailRows({ rows }: { rows: [ReactNode, ReactNode][] | null }) {
+/** The values behind a card, folded; `note` is a short explanation under them, across the full width. */
+export function DetailRows({ rows, note }: { rows: [ReactNode, ReactNode][] | null; note?: ReactNode }) {
   const { settings } = useStore();
   const t = useTranslations("app");
   if (!rows?.length) return null;
@@ -108,6 +109,7 @@ export function DetailRows({ rows }: { rows: [ReactNode, ReactNode][] | null }) 
           </div>
         ))}
       </dl>
+      {note && <p className="kvnote">{note}</p>}
     </details>
   );
 }
@@ -118,6 +120,8 @@ export function RatingCard(props: {
   word?: string;
   hint: ReactNode;
   rows?: [ReactNode, ReactNode][] | null;
+  /** Where the levels come from, under the values: kept out of the value column, which is narrow. */
+  note?: ReactNode;
   neutral?: boolean;
   /** A link to the detail, under the values. */
   more?: ReactNode;
@@ -141,7 +145,7 @@ export function RatingCard(props: {
       </div>
       <div className="word">{props.word}</div>
       <div className="hint">{props.hint}</div>
-      <DetailRows rows={props.rows ?? null} />
+      <DetailRows rows={props.rows ?? null} note={props.note} />
       {props.more}
     </div>
   );

@@ -10,6 +10,12 @@ import { useStore, useUnits } from "../store";
 
 const v = <T,>(r: { available: true; value: T } | { available: false }): T | null => (r.available ? r.value : null);
 
+/** The levels of a card and where they come from, under its values across the full card width (the value column is narrow). */
+function LevelsNote({ levels, source }: { levels: string; source?: string }) {
+  const t = useTranslations("rating");
+  return <><b>{t("levels")}:</b> {levels}{source && <><br />{source}</>}</>;
+}
+
 export function LinkCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNode }) {
   const t = useTranslations("rating");
   const word = useLevelWord();
@@ -35,8 +41,7 @@ export function LinkCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNo
         [t(estimated ? "holdsFlight" : "holds"), l.holdsAirborne ?? "–"],
         ...fades.map(([k, n]): [string, string] => [k === "a" ? t("fadesMain") : t("fadesRemote", { antenna: k.toUpperCase() }), `${n}${l.moveRemote.includes(k as "b" | "l" | "r") ? " · " + t("moveAntenna") : ""}`]),
         [t("weakTime"), `${num(loc, (o?.weakShare ?? 0) * 100, 0)}\u00a0%`],
-        [t("levels"), t("levelsLink")],
-      ] : null} />
+      ] : null} note={l ? <LevelsNote levels={t("levelsLink")} /> : undefined} />
   );
 }
 
@@ -49,7 +54,7 @@ export function SignalCard({ a, more }: { a: SessionAnalysis; more?: React.React
   const hint = t(a.kind === "flight" ? "signalHintAir" : "signalHint") + (o && o.weakShare > 0.05 ? " " + t("signalWeakShare", { pct: num(loc, o.weakShare * 100, 0) }) : "");
   return (
     <RatingCard more={more} name={t("signal")} level={o?.level ?? null} word={word("signal", o?.level ?? null)} hint={s ? hint : ""}
-      rows={s ? [[t("typical"), `${num(loc, s.medianDbm, 0)}\u00a0dBm`], [t("weakest"), `${num(loc, s.minDbm, 0)}\u00a0dBm`], [t("levels"), t("levelsSignal")]] : null} />
+      rows={s ? [[t("typical"), `${num(loc, s.medianDbm, 0)}\u00a0dBm`], [t("weakest"), `${num(loc, s.minDbm, 0)}\u00a0dBm`]] : null} note={s ? <LevelsNote levels={t("levelsSignal")} source={t("levelsSignalNote")} /> : undefined} />
   );
 }
 
@@ -83,8 +88,8 @@ export function ConditionCard({ a, more }: { a: SessionAnalysis; more?: React.Re
         [t("dropAt20"), `${num(loc, b.dropAt20A, 2)}\u00a0V`],
         [t("resistance"), `${num(loc, b.resistancePerCellMilliOhm, 1)}\u00a0mΩ`],
         [t("lowestLoaded"), `${num(loc, b.lowestLoadedV, 2)}\u00a0V`],
-        [t("levels"), t("levelsCondition", { good: num(loc, b.steps[0], 1), ok: num(loc, b.steps[1], 1), tired: num(loc, b.steps[2], 1), size: b.capacityMah ? t("sizeKnown", { mah: num(loc, b.capacityMah, 0) }) : t("sizeUnknown") })],
-      ] : null} />
+      ] : null} note={b ? <LevelsNote source={t("levelsConditionNote")}
+        levels={t("levelsCondition", { good: num(loc, b.steps[0], 1), ok: num(loc, b.steps[1], 1), tired: num(loc, b.steps[2], 1), size: b.capacityMah ? t("sizeKnown", { mah: num(loc, b.capacityMah, 0) }) : t("sizeUnknown") })} /> : undefined} />
   );
 }
 
@@ -108,7 +113,7 @@ export function RxCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNode
   const x = v(a.receiverPower);
   return (
     <RatingCard more={more} name={t("rx")} level={x?.level ?? null} word={word("rx", x?.level ?? null)} hint={x ? t("rxHint") : ""}
-      rows={x ? [[t("rxMin"), `${num(loc, x.rxMinV, 2)}\u00a0V`], [t("becMin"), `${num(loc, x.becMinV, 2)}\u00a0V`], [t("levels"), t("levelsRx")]] : null} />
+      rows={x ? [[t("rxMin"), `${num(loc, x.rxMinV, 2)}\u00a0V`], [t("becMin"), `${num(loc, x.becMinV, 2)}\u00a0V`]] : null} note={x ? <LevelsNote levels={t("levelsRx")} source={t("levelsRxNote")} /> : undefined} />
   );
 }
 
