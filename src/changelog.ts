@@ -20,11 +20,12 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.23", date: "2026-11-22", changes: [["fix", "The battery card says plainly that the 80 % rule means at most 80 % of the capacity used."]] },
   { version: "2.22", date: "2026-11-22", changes: [["fix", "Receiver voltage: the card says which limits come from Spektrum and which TLMscope sets."]] },
   { version: "2.21", date: "2026-11-22", changes: [["fix", "With a single receiver the fades are hidden: they only repeat the frame losses."]] },
   { version: "2.20", date: "2026-11-22", changes: [
     ["fix", "Signal strength shows the margin (plenty, enough, little, almost none), not high to critical."],
-    ["new", "The link card says when frame losses come despite a strong signal: installation, not distance."],
+    ["new", "The link card says when frame losses come despite a strong signal: installation, not distance.", "highlight"],
     ["fix", "A hold is described as 45 frames in a row, half a second to a second depending on the system."],
   ] },
   { version: "2.19", date: "2026-11-22", changes: [["fix", "On phones, swiping in an open window (settings, help) scrolls the window, not the page."]] },

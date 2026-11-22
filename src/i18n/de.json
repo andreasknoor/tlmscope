@@ -241,7 +241,7 @@
     "levels": "Stufen",
     "levelsSignal": "≥ −70 viel · ≥ −80 ausreichend · ≥ −85 wenig Reserve. In gemessenen Flügen steigen darunter die Frame Losses stark an. Spektrum nennt keine Grenzen, andere Empfänger können abweichen. Ob Steuerbefehle verloren gehen, zeigen die Frame Losses.",
     "used": "Akku verbraucht",
-    "usedHint": "{used} von {capacity}\u00a0mAh{source}, vom Motor gezogen. Faustregel: unter 80\u00a0% bleiben.",
+    "usedHint": "{used} von {capacity}\u00a0mAh{source}, vom Motor gezogen. Faustregel: höchstens 80\u00a0% der Kapazität verbrauchen.",
     "usedNoCapacity": "{used}\u00a0mAh. Der Akku hat seine Kapazität nicht gemeldet. Trag sie unter <capacityLink>Motor & Energie</capacityLink> ein, um den Anteil zu sehen.",
     "usedByMotor": "Vom Motor verbraucht",
     "cellStart": "Pro Zelle am Start (Ruhe)",

@@ -236,7 +236,7 @@ export const en: Content = {
             { t: "p", text: "You do not need to read every value. These five questions cover what matters most:" },
             { t: "ol", items: [
               "**Were there holds?** If so, check the antenna routing and the installation before the next flight.",
-              "**How much charge was used?** Over 80 % means landing earlier next time or setting a shorter timer.",
+              "**How much charge was used?** More than 80 % of the capacity used means landing earlier next time or setting a shorter timer.",
               "**Did the receiver voltage stay steady?** Dips under load point to the power supply: BEC, cables or connectors.",
               "**Are the cells balanced?** A difference between cells that grows from flight to flight is an early warning.",
               "**Is the battery ageing?** The Batteries page follows its internal resistance across flights; a value that keeps rising shows a pack wearing out long before it fails in flight.",

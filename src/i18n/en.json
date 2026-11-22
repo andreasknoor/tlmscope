@@ -241,7 +241,7 @@
     "levels": "Levels",
     "levelsSignal": "≥ −70 plenty · ≥ −80 enough · ≥ −85 little margin. In measured flights, frame losses rise sharply below that. Spektrum publishes no limits, other receivers may differ. Whether commands are lost shows in the frame losses.",
     "used": "Battery used",
-    "usedHint": "{used} of {capacity}\u00a0mAh{source}, drawn by the motor. Rule of thumb: stay below 80\u00a0%.",
+    "usedHint": "{used} of {capacity}\u00a0mAh{source}, drawn by the motor. Rule of thumb: use at most 80\u00a0% of the capacity.",
     "usedNoCapacity": "{used}\u00a0mAh. The battery did not report its capacity. Enter it under <capacityLink>Motor & energy</capacityLink> to see the share.",
     "usedByMotor": "Charge used by motor",
     "cellStart": "Per cell at start (rest)",

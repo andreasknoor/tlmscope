@@ -236,7 +236,7 @@ export const de: Content = {
             { t: "p", text: "Du musst nicht jeden Wert lesen. Diese fünf Fragen decken das Wichtigste ab:" },
             { t: "ol", items: [
               "**Gab es Holds?** Wenn ja, prüfe Antennenverlegung und Einbau vor dem nächsten Flug.",
-              "**Wie viel Ladung ist verbraucht?** Über 80 % heißt: beim nächsten Mal früher landen oder den Timer kürzer stellen.",
+              "**Wie viel Ladung ist verbraucht?** Mehr als 80 % der Kapazität verbraucht heißt: beim nächsten Mal früher landen oder den Timer kürzer stellen.",
               "**Blieb die Empfängerspannung stabil?** Einbrüche unter Last deuten auf die Stromversorgung hin: BEC, Kabel oder Stecker.",
               "**Sind die Zellen ausgeglichen?** Ein Unterschied zwischen den Zellen, der von Flug zu Flug wächst, ist ein frühes Warnzeichen.",
               "**Altert der Akku?** Die Seite Akkus verfolgt seinen Innenwiderstand über die Flüge; steigt er stetig, lässt der Akku nach, lange bevor er im Flug schlappmacht.",
