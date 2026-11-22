@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { THRESHOLDS, type Ageing } from "@/core/analysis";
+import { type Ageing } from "@/core/analysis";
 import { cssVar, dateShort, withAlpha } from "../format";
 import { useStore } from "../store";
 import { useThemeVersion } from "./useTheme";
@@ -28,7 +28,7 @@ export function AgeingChart({ ageing, title, note }: { ageing: Ageing; title: st
       ctx.clearRect(0, 0, W, H);
       const ts = ageing.points.map((p) => p.timeMs);
       const rs = ageing.points.map((p) => p.resistance);
-      const [s1, s2, s3] = THRESHOLDS.resistancePerCellMilliOhm.steps;
+      const [s1, s2, s3] = ageing.steps;
       const t0 = Math.min(...ts), t1 = Math.max(...ts);
       const y0 = Math.max(0, Math.floor(Math.min(...rs, s1) - 2)), y1 = Math.ceil(Math.max(...rs, s3) + 1);
       const L = 52, R = 12, T = 8, B = 26;

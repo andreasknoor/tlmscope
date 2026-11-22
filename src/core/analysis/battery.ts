@@ -2,7 +2,7 @@ import { Q, type Session } from "../model/types.ts";
 import { FLIGHT, type FlightProfile } from "./flight.ts";
 import { Grid, maxOf, medianOf, minOf, valid } from "./grid.ts";
 import { withNeeds, type Result } from "./requirements.ts";
-import { rate, THRESHOLDS, type Level } from "./thresholds.ts";
+import { rate, resistanceScale, THRESHOLDS, type Level } from "./thresholds.ts";
 
 /** Resting LiPo cell voltage → state of charge (%), from published charts. An estimate. */
 const LIPO_REST: [number, number][] = [
@@ -36,6 +36,10 @@ export interface BatteryCondition {
   cells: number;
   /** Estimated from voltage sag under load, includes wiring and connectors. */
   resistancePerCellMilliOhm: number;
+  /** Capacity the level is scaled for (from the battery or entered by the user); null: the unscaled rule. */
+  capacityMah: number | null;
+  /** The steps used for `level` (see `resistanceScale`). */
+  steps: [number, number, number];
   level: Level | null;
   /** Voltage drop at 20 A. */
   dropAt20A: number;
@@ -94,7 +98,7 @@ export function batteryUse(session: Session, userCapacityMah?: number | null): R
 }
 
 /** Internal resistance from the slope of pack voltage over motor current (least squares). */
-export function batteryCondition(session: Session, g = new Grid(session)): Result<BatteryCondition> {
+export function batteryCondition(session: Session, g = new Grid(session), capacityMah: number | null = session.battery?.capacityMah ?? null): Result<BatteryCondition> {
   return withNeeds(session, ["pack_voltage", "motor_current"], () => {
     if (hasFrozen(session, "pack_voltage")) return null;
     const amps = g.get("motor_current");
@@ -112,7 +116,8 @@ export function batteryCondition(session: Session, g = new Grid(session)): Resul
     if (!Number.isFinite(packOhm) || packOhm <= 0) return null;
     const cells = cellCount(session, g) ?? 1;
     const perCell = (packOhm * 1000) / cells;
-    return { cells, resistancePerCellMilliOhm: perCell, level: rate(perCell, THRESHOLDS.resistancePerCellMilliOhm), dropAt20A: packOhm * 20, lowestLoadedV: minOf(volts) };
+    const scale = resistanceScale(capacityMah);
+    return { cells, resistancePerCellMilliOhm: perCell, capacityMah, steps: scale.steps, level: rate(perCell, scale), dropAt20A: packOhm * 20, lowestLoadedV: minOf(volts) };
   });
 }
 

@@ -10,7 +10,7 @@ import { Grid, medianOf } from "./grid.ts";
 import { dataIssues, loads, moments, receiverPower, temperatures, type DataIssue, type Loads, type Moment, type ReceiverPower, type Temperatures } from "./health.ts";
 import { linkQuality, signalStrength, type LinkAnalysis, type SignalAnalysis } from "./link.ts";
 import type { Result } from "./requirements.ts";
-import { rate, THRESHOLDS, type Level } from "./thresholds.ts";
+import { rate, resistanceScale, THRESHOLDS, type Level } from "./thresholds.ts";
 
 export interface SessionAnalysis {
   session: Session;
@@ -72,7 +72,7 @@ export function analyseSession(session: Session, opts: AnalysisOptions = {}): Se
     thermals: p && kind === "flight" ? thermals(p, grid, val(circ), val(tr)) : null,
     link, signal,
     batteryUse: batteryUse(session, opts.capacityFor?.(session)),
-    batteryCondition: batteryCondition(session, grid),
+    batteryCondition: batteryCondition(session, grid, session.battery?.capacityMah ?? opts.capacityFor?.(session) ?? null),
     charge: chargeEstimate(session, p, grid),
     cellBalance: cellBalance(session, grid),
     temperatures: temperatures(session, grid),
@@ -96,7 +96,14 @@ export type CapacityFor = (session: Session) => number | null | undefined;
  * charge share changes, so the UI can apply new capacities without analysing the files again.
  */
 export function withCapacities(logs: LogsAnalysis, capacityFor: CapacityFor): LogsAnalysis {
-  return { ...logs, sessions: logs.sessions.map((a) => ({ ...a, batteryUse: batteryUse(a.session, capacityFor(a.session)) })) };
+  return { ...logs, sessions: logs.sessions.map((a) => ({ ...a, batteryUse: batteryUse(a.session, capacityFor(a.session)), batteryCondition: rescaleCondition(a.batteryCondition, a.session.battery?.capacityMah ?? capacityFor(a.session) ?? null) })) };
+}
+
+/** The condition rated again for another capacity; the estimate itself does not change. */
+function rescaleCondition(r: Result<BatteryCondition>, capacityMah: number | null): Result<BatteryCondition> {
+  if (!r.available || r.value.capacityMah === capacityMah) return r;
+  const scale = resistanceScale(capacityMah);
+  return { available: true, value: { ...r.value, capacityMah, steps: scale.steps, level: rate(r.value.resistancePerCellMilliOhm, scale) } };
 }
 
 /** Usual values of one model: medians over its other flights in the loaded files. */

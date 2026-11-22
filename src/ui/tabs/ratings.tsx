@@ -83,7 +83,7 @@ export function ConditionCard({ a, more }: { a: SessionAnalysis; more?: React.Re
         [t("dropAt20"), `${num(loc, b.dropAt20A, 2)}\u00a0V`],
         [t("resistance"), `${num(loc, b.resistancePerCellMilliOhm, 1)}\u00a0mΩ`],
         [t("lowestLoaded"), `${num(loc, b.lowestLoadedV, 2)}\u00a0V`],
-        [t("levels"), t("levelsCondition")],
+        [t("levels"), t("levelsCondition", { good: num(loc, b.steps[0], 1), ok: num(loc, b.steps[1], 1), tired: num(loc, b.steps[2], 1), size: b.capacityMah ? t("sizeKnown", { mah: num(loc, b.capacityMah, 0) }) : t("sizeUnknown") })],
       ] : null} />
   );
 }

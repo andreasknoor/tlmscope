@@ -1,4 +1,4 @@
-import { rate, THRESHOLDS, type Level } from "./thresholds.ts";
+import { rate, THRESHOLDS, type Level, type Scale } from "./thresholds.ts";
 
 /** One flight of one pack: the resistance estimate and the conditions it was measured in. */
 export interface AgeingPoint {
@@ -27,6 +27,8 @@ export interface Ageing {
   /** Charge cycles until the retire level at the current rate; null when not rising or too far away. */
   cyclesToRetire: number | null;
   level: Level | null;
+  /** The resistance steps used (scaled for the pack's capacity); the last one is the retire level. */
+  steps: [number, number, number];
 }
 
 export const AGEING = {
@@ -48,12 +50,12 @@ const DAY = 86_400_000;
  * Resistance trend of one battery pack over its flights.
  * The x axis is the pack's charge-cycle count when every point has one, otherwise the flight order.
  */
-export function batteryAgeing(input: AgeingPoint[]): Ageing {
+export function batteryAgeing(input: AgeingPoint[], scale: Scale = THRESHOLDS.resistancePerCellMilliOhm): Ageing {
   const points = [...input].sort((a, b) => a.timeMs - b.timeMs).map((p) => ({ ...p, used: p.tempC === null || p.tempC >= AGEING.minTempC }));
   const usable = points.filter((p) => p.used);
   const recent = usable.slice(-AGEING.window);
   const days = recent.length ? (recent[recent.length - 1].timeMs - recent[0].timeMs) / DAY : 0;
-  const empty = { points, current: null, fit: null, perTenCycles: null, cyclesToRetire: null, level: null };
+  const empty = { points, current: null, fit: null, perTenCycles: null, cyclesToRetire: null, level: null, steps: scale.steps };
   if (recent.length < AGEING.minPoints || days < AGEING.minDays) {
     return { ...empty, enough: false, missing: { points: usable.length, days: Math.floor(days) } };
   }
@@ -66,7 +68,7 @@ export function batteryAgeing(input: AgeingPoint[]): Ageing {
   xs.forEach((x, i) => { num += (x - mx) * (ys[i] - my); den += (x - mx) ** 2; });
   const slope = den ? num / den : 0;
   const current = my + slope * (xs[xs.length - 1] - mx);
-  const retire = THRESHOLDS.resistancePerCellMilliOhm.steps[2];
+  const retire = scale.steps[2];
   let cyclesToRetire: number | null = null;
   if (byCycles && current >= retire) cyclesToRetire = 0;
   else if (byCycles && slope > 0) {
@@ -78,6 +80,7 @@ export function batteryAgeing(input: AgeingPoint[]): Ageing {
     fit: { fromMs: recent[0].timeMs, from: my + slope * (xs[0] - mx), toMs: recent[recent.length - 1].timeMs, to: current },
     perTenCycles: byCycles ? slope * 10 : null,
     cyclesToRetire,
-    level: rate(current, THRESHOLDS.resistancePerCellMilliOhm),
+    level: rate(current, scale),
+    steps: scale.steps,
   };
 }

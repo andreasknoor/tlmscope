@@ -24,7 +24,14 @@ export const THRESHOLDS = {
   /** Percent of capacity used. */
   batteryUsedPct: { steps: [50, 70, 80], basis: "Common 80 % rule (hobby practice)." },
   /** Internal resistance per cell in mΩ, estimated from voltage sag in flight (includes wiring). */
-  resistancePerCellMilliOhm: { steps: [10, 12, 15], basis: "LiPo primers: < 10 excellent, 10–12 acceptable, > 15 retire." },
+  /**
+   * mΩ per cell, for a pack of `RESISTANCE_REF_MAH`; use `resistanceScale()` for a given pack. No manufacturer limit
+   * exists (Spektrum included). Hobby rules of thumb for packs of about 1300–1500 mAh: < 10 excellent, 10–15 fine,
+   * 15–20 aged, > 20 retire (e.g. Oscar Liang; Roger's Hobby Center: 12–20 ageing, > 20 retire). Resistance falls with
+   * capacity, so the steps are scaled by it. TLMscope's value is estimated from the voltage sag in flight and includes
+   * wires and connectors, unlike a charger's reading.
+   */
+  resistancePerCellMilliOhm: { steps: [10, 15, 20], basis: "Hobby rules of thumb for packs of about 1500 mAh: < 10 excellent, 10–15 fine, 15–20 aged, > 20 retire; scaled by capacity. No manufacturer limit." },
   /** °C. The battery's own max temperature replaces the last step when it reports one. */
   batteryTempC: { steps: [45, 55, 60], basis: "35–45 °C after a flight is normal, 60 °C is the common ceiling." },
   /** °C. No limit published for Avian ESCs. */
@@ -36,6 +43,22 @@ export const THRESHOLDS = {
   /** Usual charge per minute in the air divided by this flight's (above 1 = used less than usual). */
   consumptionRatio: { steps: [1.1, 0.9, 0.7], basis: "Comparison with the other flights of the same model in the loaded files." },
 } satisfies Record<string, Scale>;
+
+/** The pack size (mAh) the resistance rule of thumb is written for. */
+export const RESISTANCE_REF_MAH = 1500;
+
+/**
+ * The resistance steps for a pack of the given capacity: resistance falls with capacity (a cell of twice the
+ * capacity has about half the resistance), so the steps of `RESISTANCE_REF_MAH` are scaled by REF / capacity,
+ * limited to a factor of 0.25…4. Without a capacity the unscaled rule applies. Own logs agree: new 2200 mAh packs
+ * read 5–6 mΩ per cell, a worn one 15–16 mΩ, against scaled steps of 6.8 / 10.2 / 13.6.
+ */
+export function resistanceScale(capacityMah: number | null | undefined): Scale {
+  const base = THRESHOLDS.resistancePerCellMilliOhm;
+  if (!capacityMah || !(capacityMah > 0)) return base;
+  const f = Math.min(4, Math.max(0.25, RESISTANCE_REF_MAH / capacityMah));
+  return { steps: base.steps.map((s) => Math.round(s * f * 10) / 10) as [number, number, number], basis: base.basis };
+}
 
 /**
  * A signal at or above this (dBm) counts as strong. Frame losses above the "high" level in the seconds with such a

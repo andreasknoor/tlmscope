@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { medianOf } from "@/core/analysis/grid";
-import { AGEING, batteryAgeing, rate, THRESHOLDS, type AgeingPoint } from "@/core/analysis";
+import { AGEING, batteryAgeing, rate, resistanceScale, type AgeingPoint } from "@/core/analysis";
 import { AgeingChart } from "../charts/AgeingChart";
 import { Meter, RatingCard, Tile, useLevelWord, MoreHint } from "../bits";
 import { dateShort, num, timeLabel } from "../format";
@@ -51,7 +51,7 @@ export function Batteries() {
   const when = (e: Entry) => (e.startMs !== null ? `${dateShort(loc, e.startMs)} ${timeLabel(loc, e.startMs)}` : "–");
   const condCell = (e: Entry) => {
     const r = resPerCell(e);
-    const l = rate(r, THRESHOLDS.resistancePerCellMilliOhm);
+    const l = rate(r, resistanceScale(e.a.session.battery?.capacityMah));
     return l ? <><Meter level={l} /> {word("condition", l)}</> : "–";
   };
   /** One trend point per flight with a resistance estimate; the battery temperature decides whether it counts. */
@@ -67,14 +67,15 @@ export function Batteries() {
   const card = (list: Entry[], others: Model[]) => {
         const b = list[0].a.session.battery!;
         const flights = list.filter((e) => e.a.kind === "flight");
-        const cond = rate(medianOf(flights.map((e) => resPerCell(e))), THRESHOLDS.resistancePerCellMilliOhm);
+        const scale = resistanceScale(b.capacityMah);
+        const cond = rate(medianOf(flights.map((e) => resPerCell(e))), scale);
         const stuck = list.some((e) => e.a.issues.some((i) => i.kind === "frozen"));
         const noCells = list.every((e) => !e.a.session.channels.has("cell_voltage.1"));
-        const ageing = batteryAgeing(flights.map(ageingPoint).filter((p): p is AgeingPoint => p !== null));
+        const ageing = batteryAgeing(flights.map(ageingPoint).filter((p): p is AgeingPoint => p !== null), scale);
         const ageingText = !ageing.enough
           ? t("batteries.ageingNotEnough", { points: ageing.missing!.points, days: ageing.missing!.days })
-          : ageing.cyclesToRetire === 0 ? t("batteries.ageingRetire")
-          : ageing.cyclesToRetire !== null ? t("batteries.ageingForecast", { n: ageing.cyclesToRetire })
+          : ageing.cyclesToRetire === 0 ? t("batteries.ageingRetire", { limit: num(loc, scale.steps[2], 1) })
+          : ageing.cyclesToRetire !== null ? t("batteries.ageingForecast", { n: ageing.cyclesToRetire, limit: num(loc, scale.steps[2], 1) })
           : t("batteries.ageingStable");
         const dq = stuck ? { l: 1 as const, w: t("batteries.stuck"), h: t("batteries.stuckHint") } : noCells ? { l: 2 as const, w: t("batteries.partial"), h: t("batteries.partialHint") } : { l: 4 as const, w: t("batteries.reliable"), h: t("batteries.reliableHint") };
         return (

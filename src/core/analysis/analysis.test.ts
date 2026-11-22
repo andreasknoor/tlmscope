@@ -5,7 +5,7 @@ import { cellCount, lipoChargePct } from "./battery.ts";
 import type { Circling, FlightProfile } from "./flight.ts";
 import type { Grid } from "./grid.ts";
 import { thermals } from "./thermals.ts";
-import { analyseLogs, analyseSession, overall, rate, THRESHOLDS, type Result, type SessionAnalysis } from "./index.ts";
+import { analyseLogs, analyseSession, overall, rate, resistanceScale, THRESHOLDS, withCapacities, type Result, type SessionAnalysis } from "./index.ts";
 
 const value = <T>(r: Result<T>): T => {
   if (!r.available) throw new Error(`not available, missing ${JSON.stringify(r.missing)}`);
@@ -98,7 +98,13 @@ describe.skipIf(!hasSamples)("battery", () => {
   it("estimates internal resistance per cell and spots the worn pack of 7 Nov", () => {
     const r = FLIGHTS.map((i) => value(flight(i).batteryCondition));
     expect(r.map((x) => +x.resistancePerCellMilliOhm.toFixed(1))).toEqual([5.0, 6.3, 15.3, 14.6, 16.4]);
-    expect(r.map((x) => x.level)).toEqual([4, 4, 1, 2, 1]);
+    // Smart packs of 2200 mAh: steps 6.8 / 10.2 / 13.6. Two flights of the worn pack have no battery identity,
+    // so no capacity: they get the unscaled rule for 1500 mAh until a capacity is entered.
+    expect(r.map((x) => x.capacityMah)).toEqual([2200, 2200, 2200, null, null]);
+    expect(r.map((x) => x.level)).toEqual([4, 4, 1, 3, 2]);
+    const withCapacity = withCapacities(logs(), () => 2200).sessions.filter((a) => FLIGHTS.includes(a.session.index)).map((a) => value(a.batteryCondition));
+    expect(withCapacity.map((x) => x.capacityMah)).toEqual([2200, 2200, 2200, 2200, 2200]);
+    expect(withCapacity.map((x) => x.level)).toEqual([4, 4, 1, 1, 1]);
   });
 
   it("uses the reported capacity, and does not guess one", () => {
@@ -174,6 +180,16 @@ describe("missing channels", () => {
   it("uses link quality when there are no frame-loss counters", () => {
     const a = analyseSession(empty([["link_quality", [100, 95, 60, 40]]]));
     expect(value(a.link).levels.slice(0, 4)).toEqual([4, 4, 2, 1]);
+  });
+});
+
+describe("internal resistance steps by pack size", () => {
+  it("use the rule of thumb for 1500 mAh and scale it by capacity", () => {
+    expect(resistanceScale(null).steps).toEqual([10, 15, 20]);
+    expect(resistanceScale(1500).steps).toEqual([10, 15, 20]);
+    expect(resistanceScale(2200).steps).toEqual([6.8, 10.2, 13.6]);
+    expect(resistanceScale(5000).steps).toEqual([3, 4.5, 6]);
+    expect(resistanceScale(300).steps).toEqual([40, 60, 80]); // limited to four times the rule
   });
 });
 

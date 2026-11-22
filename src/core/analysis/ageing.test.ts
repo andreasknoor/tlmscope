@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { batteryAgeing, type AgeingPoint } from "./ageing.ts";
+import { resistanceScale } from "./thresholds.ts";
 
 const DAY = 86_400_000;
 const series = (n: number, r: (i: number) => number, opts: { stepDays?: number; temp?: (i: number) => number | null; cycles?: boolean } = {}): AgeingPoint[] =>
@@ -13,13 +14,20 @@ describe("battery ageing", () => {
     expect(batteryAgeing(series(5, () => 6, { stepDays: 1 })).enough).toBe(false);
   });
 
-  it("forecasts the cycles left until 15 mΩ for a pack that wears", () => {
+  it("forecasts the cycles left until the retire level for a pack that wears", () => {
     const a = batteryAgeing(series(12, (i) => 9 + 0.2 * i));
     expect(a.enough).toBe(true);
     expect(a.current).toBeCloseTo(11.2, 5);
     expect(a.perTenCycles).toBeCloseTo(2, 5);
-    expect(a.cyclesToRetire).toBe(19);
+    expect(a.cyclesToRetire).toBe(44); // 20 mΩ, the rule for 1500 mAh
     expect(a.level).toBe(3);
+  });
+
+  it("scales the retire level with the pack's capacity", () => {
+    const a = batteryAgeing(series(12, (i) => 9 + 0.2 * i), resistanceScale(2200));
+    expect(a.steps).toEqual([6.8, 10.2, 13.6]);
+    expect(a.cyclesToRetire).toBe(12);
+    expect(a.level).toBe(2);
   });
 
   it("gives no forecast for a stable pack or one far from the limit", () => {

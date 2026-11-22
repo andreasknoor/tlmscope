@@ -20,6 +20,10 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.24", date: "2026-11-22", changes: [
+    ["fix", "Battery condition: internal-resistance limits scale with the pack's capacity, sources named."],
+    ["fix", "The battery card points to the trend over many flights, which says more than one value."],
+  ] },
   { version: "2.23", date: "2026-11-22", changes: [["fix", "The battery card says plainly that the 80 % rule means at most 80 % of the capacity used."]] },
   { version: "2.22", date: "2026-11-22", changes: [["fix", "Receiver voltage: the card says which limits come from Spektrum and which TLMscope sets."]] },
   { version: "2.21", date: "2026-11-22", changes: [["fix", "With a single receiver the fades are hidden: they only repeat the frame losses."]] },
