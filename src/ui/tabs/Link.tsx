@@ -90,7 +90,9 @@ export function LinkTab() {
     for (let i = p.airStart; i <= p.airEnd!; i++) if (tr.distance[i] != null && s[i] !== null) out.push([U.v("distance", tr.distance[i])!, s[i]!]);
     return out;
   }, [g, p, tr, U]);
-  const lw = (l: Level) => word("signal", l);
+  // The filter below the two strips stands for both: the link level and the signal margin of the same colour.
+  const lower = (w: string) => w.charAt(0).toLowerCase() + w.slice(1);
+  const lw = (l: Level) => (link && sig ? `${word("link", l)} / ${lower(word("signal", l))}` : link ? word("link", l) : word("signal", l));
 
   return (
     <>

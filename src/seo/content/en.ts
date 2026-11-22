@@ -167,7 +167,7 @@ export const en: Content = {
             { t: "ul", items: [
               "**Frame losses** are frames that no receiver got. A few are normal. The transmitter sends about 91 frames per second, so 100 per minute is under 2 % of them. TLMscope rates up to about 20 per minute as high quality and up to about 100 per minute in the air as normal, in line with Spektrum receiver manuals. What counts is how fast the counter rises in the air, not its total; on the ground it rises much faster anyway.",
               "**Fades** count the frames a single receiver missed. A is the main receiver (with two antennas, both count as one); B, L and R are remote receivers. A is usually the highest, because the main receiver sits deep in the fuselage between cables, battery and controller. Compare the remote receivers with each other: one far above the others is badly placed. With only one receiver, look at the frame losses instead.",
-              "**Holds** are half a second or longer without any signal (45 frames in a row missed by every receiver). The receiver then goes to its hold or failsafe setting. A hold in flight always rates the radio link as critical and is marked on its timeline.",
+              "**Holds** are 45 frames in a row missed by every receiver, about half a second to a second without any signal, depending on the system. The receiver then goes to its hold or failsafe setting. A hold in flight always rates the radio link as critical and is marked on its timeline.",
             ] },
             { t: "note", text: "These counters start at zero when the receiver powers up. TLMscope shows what happened during the session." },
             { t: "img", name: "link", alt: "Radio link tab of a demo flight: radio link rated high, signal strength normal, and both over time in green, light green and yellow", caption: "The Radio link tab: green is good, yellow shows where the signal got weak." },
@@ -176,7 +176,7 @@ export const en: Content = {
         {
           h2: "Signal strength",
           blocks: [
-            { t: "p", text: "The signal strength at the receiver is given in dBm: the closer to zero, the stronger. In TLMscope's own sample flights, frame losses rose sharply below about −80 dBm. It therefore rates −70 dBm or better as high, down to −80 dBm as normal, down to −85 dBm as weak and anything lower as critical." },
+            { t: "p", text: "The signal strength at the receiver is given in dBm: the closer to zero, the stronger. Spektrum publishes no limits for it. In measured flights, frame losses rose sharply below about −80 dBm, and below −85 dBm to more than 100 per minute on average. TLMscope therefore shows the signal strength as margin: −70 dBm or better is plenty of margin, down to −80 dBm enough, down to −85 dBm little and below that almost none. Whether commands are actually lost shows in the frame losses." },
             { t: "p", text: "The Radio link tab plots the signal against height, because height and distance often go together. Under “Over time”, click a level to show only those seconds and step from one to the next." },
           ],
         },
@@ -253,11 +253,11 @@ export const en: Content = {
       faq: [
         {
           q: "How many frame losses are normal on a Spektrum receiver?",
-          a: "Spektrum receiver manuals describe up to about 100 per minute in the air as normal. TLMscope rates up to about 20 per minute as high quality. Holds, half a second or longer without signal, should not happen.",
+          a: "Spektrum receiver manuals describe up to about 100 per minute in the air as normal. TLMscope rates up to about 20 per minute as high quality. Holds, 45 frames in a row without signal, should not happen.",
         },
         {
           q: "What is a hold in Spektrum telemetry?",
-          a: "A hold is half a second or longer without any signal at the receiver: 45 frames in a row that no receiver got. The receiver then applies its hold or failsafe setting. TLMscope always rates a hold during flight as critical.",
+          a: "A hold is 45 frames in a row that no receiver got, about half a second to a second without any signal, depending on the system. The receiver then applies its hold or failsafe setting. TLMscope always rates a hold during flight as critical.",
         },
         {
           q: "When should I retire a LiPo battery?",
@@ -447,7 +447,7 @@ export const en: Content = {
           { t: "ul", items: ["**Normal:** Spektrum receiver manuals describe up to about 100 per minute in the air as normal.", "**High quality:** TLMscope rates up to about 20 per minute as high quality.", "**Holds**, half a second or longer without signal, should not happen."] },
           { t: "p", text: "More in [Understand your Spektrum telemetry](page:understand)." },
         ] },
-        { q: "What is a hold in Spektrum telemetry?", a: "A hold is half a second or longer without any signal at the receiver: 45 frames in a row that no receiver got. The receiver then applies its hold or failsafe setting. TLMscope always rates a hold during flight as critical." },
+        { q: "What is a hold in Spektrum telemetry?", a: "A hold is 45 frames in a row that no receiver got, about half a second to a second without any signal, depending on the system. The receiver then applies its hold or failsafe setting. TLMscope always rates a hold during flight as critical." },
         { q: "When should I retire a LiPo battery?", a: "A common rule of thumb is to retire a pack when its internal resistance reaches about 15 mΩ per cell. TLMscope estimates this value from the voltage sag in flight and follows it across flights for Spektrum Smart batteries." },
         { q: "Can TLMscope count my flight hours per model?", a: [
           { t: "p", text: "Yes, for the logs you load. Above the session list, TLMscope adds up the time in the air of the loaded flights, for all models or the one you choose. Only time in the air counts: pauses of two minutes or more on the ground between two flights of one session are left out. When some flights have neither a height sensor nor GPS, their time is estimated from the motor and the model's movement, and the total is marked “≈”." },
@@ -461,7 +461,7 @@ export const en: Content = {
         { q: "How can I see whether AS3X or SAFE was on during a flight?", a: "With a receiver with AS3X or SAFE, the log contains the flight mode and which functions were on. The **Aircraft** tab shows the time in the air per function (AS3X, SAFE, heading hold or no stabilization) and per flight mode, the AS3X gain for roll, pitch and yaw, and the flight modes over time. A gain of 0 means AS3X did not correct at all, for example with the gain knob turned down. More in [Understand your Spektrum telemetry](page:understand)." },
         { q: "What is the difference between a hold and a brown-out?", a: [
           { t: "ul", items: [
-            "**Hold:** the radio link was lost for half a second or longer, so the receiver went to its hold or failsafe setting. The receiver voltage stays normal. TLMscope rates it in the radio link.",
+            "**Hold:** the radio link was lost for 45 frames (about half a second to a second), so the receiver went to its hold or failsafe setting. The receiver voltage stays normal. TLMscope rates it in the radio link.",
             "**Brown-out:** the voltage at the receiver dropped so far that the receiver restarted. That is a power problem, not a radio problem. In the log it shows as a voltage drop and usually a gap or a new session, not as a hold.",
           ] },
           { t: "p", text: "Unplugging the battery after landing also makes the voltage fall. TLMscope leaves those moments out, so they do not count as a brown-out." },

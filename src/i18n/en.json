@@ -109,10 +109,10 @@
       "High"
     ],
     "signal": [
-      "Critical",
-      "Weak",
-      "Normal",
-      "High"
+      "Almost no margin",
+      "Little margin",
+      "Enough margin",
+      "Plenty of margin"
     ],
     "condition": [
       "Check",
@@ -223,7 +223,8 @@
     "holds": "Holds in the air (failsafe)",
     "linkHold": "Hold in the air",
     "linkHoldFlight": "Hold during the flight",
-    "linkHoldHint": "The receiver lost the link for half a second or longer (45 frames in a row) and went to failsafe.",
+    "linkHoldHint": "The receiver missed 45 frames in a row (about half a second to a second, depending on the system) and went to failsafe.",
+    "linkStrongSignal": "Losses despite a strong signal: more likely the installation, antenna position or interference than the distance.",
     "linkHoldEstimated": "Without height or GPS data, the flight time is estimated from the motor and the model's movement.",
     "holdsFlight": "Holds during the flight (failsafe)",
     "fadesMain": "Fades main receiver (A)",
@@ -232,13 +233,13 @@
     "weakTime": "Time weak or worse",
     "levelsLink": "≤ 20/min high · ≤ 100/min normal · any hold critical",
     "signal": "Signal strength",
-    "signalHint": "Strength of the transmitter signal at the receiver.",
-    "signalHintAir": "Strength of the transmitter signal at the receiver, in the air.",
-    "signalWeakShare": "Weak or worse {pct}\u00a0% of the time.",
+    "signalHint": "How much margin the transmitter signal has at the receiver.",
+    "signalHintAir": "How much margin the transmitter signal has at the receiver in the air.",
+    "signalWeakShare": "Little or almost no margin {pct}\u00a0% of the time.",
     "typical": "Typical",
     "weakest": "Weakest",
     "levels": "Levels",
-    "levelsSignal": "≥ −70 high · ≥ −80 normal · ≥ −85 weak (from the sample flights; other receivers may read differently)",
+    "levelsSignal": "≥ −70 plenty · ≥ −80 enough · ≥ −85 little margin. In measured flights, frame losses rise sharply below that. Spektrum publishes no limits, other receivers may differ. Whether commands are lost shows in the frame losses.",
     "used": "Battery used",
     "usedHint": "{used} of {capacity}\u00a0mAh{source}, drawn by the motor. Rule of thumb: stay below 80\u00a0%.",
     "usedNoCapacity": "{used}\u00a0mAh. The battery did not report its capacity. Enter it under <capacityLink>Motor & energy</capacityLink> to see the share.",

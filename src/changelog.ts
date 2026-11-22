@@ -20,6 +20,11 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.20", date: "2026-11-22", changes: [
+    ["fix", "Signal strength shows the margin (plenty, enough, little, almost none), not high to critical."],
+    ["new", "The link card says when frame losses come despite a strong signal: installation, not distance."],
+    ["fix", "A hold is described as 45 frames in a row, half a second to a second depending on the system."],
+  ] },
   { version: "2.19", date: "2026-11-22", changes: [["fix", "On phones, swiping in an open window (settings, help) scrolls the window, not the page."]] },
   { version: "2.18", date: "2026-11-21", changes: [["fix", "Logbook settings: “Add new models” says what it does, with a short explanation."]] },
   { version: "2.17", date: "2026-11-21", changes: [["new", "Settings in three tabs (display, batteries, logbook), each showing its current state."]] },

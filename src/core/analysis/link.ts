@@ -2,7 +2,7 @@ import type { Session } from "../model/types.ts";
 import type { FlightBasis, FlightProfile } from "./flight.ts";
 import { Grid, medianOf, minOf } from "./grid.ts";
 import { withNeeds, type Result } from "./requirements.ts";
-import { overall, rate, THRESHOLDS, type Level, type Overall } from "./thresholds.ts";
+import { overall, rate, STRONG_SIGNAL_DBM, THRESHOLDS, type Level, type Overall } from "./thresholds.ts";
 
 export interface LinkAnalysis {
   /** Which channel the rating is based on. */
@@ -22,7 +22,16 @@ export interface LinkAnalysis {
   moveRemote: ("b" | "l" | "r")[];
   /** Second with the most frame losses, in the rating window. */
   worstSecond: { at: number; frameLosses: number } | null;
+  /**
+   * Frame losses per minute counted only in the seconds with a strong signal (`STRONG_SIGNAL_DBM` or better), in
+   * the rating window; null without signal strength or with less than `STRONG_SIGNAL_MIN_S` such seconds.
+   * Losses there do not come from distance.
+   */
+  strongSignal: { secs: number; perMinute: number } | null;
 }
+
+/** Seconds with a strong signal needed before their loss rate means anything. */
+export const STRONG_SIGNAL_MIN_S = 60;
 
 export interface SignalAnalysis {
   levels: (Level | null)[];
@@ -50,6 +59,19 @@ export function remoteToMove(fades: LinkAnalysis["fades"]): ("b" | "l" | "r")[] 
     const n = fades[k]!;
     return ref !== undefined && n >= REMOTE_FADES.minFades && n >= REMOTE_FADES.factor * Math.max(ref, 1);
   });
+}
+
+/** Frame losses per minute in the seconds with a strong signal (see `LinkAnalysis.strongSignal`). */
+function strongSignalLosses(g: Grid, w0: number, w1: number): LinkAnalysis["strongSignal"] {
+  if (!g.has("signal_dbm") || !g.has("frame_losses")) return null;
+  const dbm = g.get("signal_dbm"), fl = g.get("frame_losses", "increase");
+  let secs = 0, losses = 0;
+  for (let i = w0; i <= w1; i++) {
+    if (dbm[i] === null || dbm[i]! < STRONG_SIGNAL_DBM || fl[i] === null) continue;
+    secs++;
+    losses += Math.max(0, fl[i]!);
+  }
+  return secs >= STRONG_SIGNAL_MIN_S ? { secs, perMinute: (losses / secs) * 60 } : null;
 }
 
 /** Window the rating looks at: the airborne part of a flight, else the whole session. */
@@ -110,7 +132,7 @@ export function linkQuality(session: Session, profile: FlightProfile | null, g =
     return {
       basis,
       levels,
-      // A hold is half a second or more without control: it rates the whole link critical, however short.
+      // A hold is 45 frames in a row without control (about half a second to a second): it rates the whole link critical, however short.
       overall: o && (holdsAirborne ?? 0) > 0 ? { ...o, level: 1 } : o,
       frameLosses,
       frameLossesPerMinute: frameLosses !== null && minutes > 0 ? frameLosses / minutes : null,
@@ -119,6 +141,7 @@ export function linkQuality(session: Session, profile: FlightProfile | null, g =
       holdsTotal: last(session, "holds"),
       fades,
       moveRemote: remoteToMove(fades),
+      strongSignal: strongSignalLosses(g, w0, w1),
       worstSecond,
     };
   });

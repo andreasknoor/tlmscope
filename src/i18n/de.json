@@ -109,10 +109,10 @@
       "Hoch"
     ],
     "signal": [
-      "Kritisch",
-      "Schwach",
-      "Normal",
-      "Hoch"
+      "Kaum Reserve",
+      "Wenig Reserve",
+      "Ausreichend",
+      "Viel Reserve"
     ],
     "condition": [
       "Prüfen",
@@ -223,7 +223,8 @@
     "holds": "Holds in der Luft (Failsafe)",
     "linkHold": "Hold in der Luft",
     "linkHoldFlight": "Hold während des Flugs",
-    "linkHoldHint": "Der Empfänger hatte eine halbe Sekunde oder länger keine Verbindung (45 Pakete in Folge) und ging in Failsafe.",
+    "linkHoldHint": "Der Empfänger hat 45 Pakete in Folge nicht bekommen (je nach System etwa eine halbe bis eine Sekunde) und ging in Failsafe.",
+    "linkStrongSignal": "Verluste trotz starkem Signal: Das liegt eher an Einbau, Antennenlage oder Störungen als an der Entfernung.",
     "linkHoldEstimated": "Ohne Höhen- oder GPS-Daten ist die Flugzeit aus Motor und Bewegung des Modells geschätzt.",
     "holdsFlight": "Holds während des Flugs (Failsafe)",
     "fadesMain": "Fades Hauptempfänger (A)",
@@ -232,13 +233,13 @@
     "weakTime": "Zeit schwach oder schlechter",
     "levelsLink": "≤ 20/min hoch · ≤ 100/min normal · jeder Hold kritisch",
     "signal": "Signalstärke",
-    "signalHint": "Stärke des Sendersignals am Empfänger.",
-    "signalHintAir": "Stärke des Sendersignals am Empfänger, in der Luft.",
-    "signalWeakShare": "{pct}\u00a0% der Zeit schwach oder schlechter.",
+    "signalHint": "Wie viel Reserve das Sendersignal am Empfänger hat.",
+    "signalHintAir": "Wie viel Reserve das Sendersignal am Empfänger in der Luft hat.",
+    "signalWeakShare": "{pct}\u00a0% der Zeit mit wenig oder kaum Reserve.",
     "typical": "Typisch",
     "weakest": "Schwächstes",
     "levels": "Stufen",
-    "levelsSignal": "≥ −70 hoch · ≥ −80 normal · ≥ −85 schwach (aus den Beispielflügen; bei anderen Empfängern können die Werte abweichen)",
+    "levelsSignal": "≥ −70 viel · ≥ −80 ausreichend · ≥ −85 wenig Reserve. In gemessenen Flügen steigen darunter die Frame Losses stark an. Spektrum nennt keine Grenzen, andere Empfänger können abweichen. Ob Steuerbefehle verloren gehen, zeigen die Frame Losses.",
     "used": "Akku verbraucht",
     "usedHint": "{used} von {capacity}\u00a0mAh{source}, vom Motor gezogen. Faustregel: unter 80\u00a0% bleiben.",
     "usedNoCapacity": "{used}\u00a0mAh. Der Akku hat seine Kapazität nicht gemeldet. Trag sie unter <capacityLink>Motor & Energie</capacityLink> ein, um den Anteil zu sehen.",

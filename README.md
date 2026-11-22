@@ -221,7 +221,7 @@ Ids may also be `stick.*`, `switch.*` (control inputs) or `raw:*` (decoded but u
 | `signal_quality` | % | numeric | link | Signal quality in percent as reported by the receiver (meaning differs per system). |
 | `link_quality` | % | numeric | link | Share of packets received (e.g. CRSF/ELRS LQ). |
 | `frame_losses` | count | counter | link | Frames that no receiver got, counted since the session start. |
-| `holds` | count | counter | link | Failsafe events (45 frames in a row lost on every receiver, half a second or longer), counted since the session start. |
+| `holds` | count | counter | link | Failsafe events (45 frames in a row lost on every receiver, about half a second to a second depending on the system), counted since the session start. |
 | `fades.a` | count | counter | link | Frames the main receiver missed (both its antennas count as one) since the session start. Usually the highest of the fade counters. |
 | `fades.b` | count | counter | link | Frames remote receiver B missed since the session start. |
 | `fades.l` | count | counter | link | Frames the left remote receiver missed since the session start. |

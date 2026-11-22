@@ -2,7 +2,7 @@
 
 import { maxOf } from "@/core/analysis/grid";
 import { useTranslations } from "next-intl";
-import type { SessionAnalysis } from "@/core/analysis";
+import { THRESHOLDS, type SessionAnalysis } from "@/core/analysis";
 import { catalogue } from "@/core/model/catalogue";
 import { RatingCard, useLevelWord, useRich } from "../bits";
 import { num, volts } from "../format";
@@ -23,8 +23,10 @@ export function LinkCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNo
     ? t("linkHoldHint") + (estimated ? " " + t("linkHoldEstimated") : "")
     : t(a.kind === "flight" ? "linkHintAir" : "linkHint") + (o.worst < o.level ? " " + t("linkBriefly", { level: word("link", o.worst).toLowerCase() }) : "");
   const fades = Object.entries(l?.fades ?? {}).filter(([, n]) => n !== undefined);
+  // Losses above the "high" level in the seconds with a strong signal: the cause is not the distance.
+  const strongButLosing = !hold && !!l?.strongSignal && l.strongSignal.perMinute > THRESHOLDS.frameLossesPerMinute.steps[0];
   return (
-    <RatingCard more={more} name={t("link")} level={o?.level ?? null} word={hold ? t(estimated ? "linkHoldFlight" : "linkHold") : word("link", o?.level ?? null)} hint={hint}
+    <RatingCard more={more} name={t("link")} level={o?.level ?? null} word={hold ? t(estimated ? "linkHoldFlight" : "linkHold") : word("link", o?.level ?? null)} hint={strongButLosing ? `${hint} ${t("linkStrongSignal")}` : hint}
       rows={l ? [
         [t("frameLosses"), l.frameLosses ?? "–"],
         [t("frameLossesPerMin"), num(loc, l.frameLossesPerMinute, 0)],

@@ -13,9 +13,10 @@ export interface Scale {
 
 export const THRESHOLDS = {
   /** dBm. Derived from the sample flights: frame losses rise sharply below −80 dBm. */
-  signalDbm: { steps: [-70, -80, -85], basis: "Own flights: ≈0.2 frame losses/s at −75…−80 dBm, ≈1/s at −80…−85, ≈4/s below." },
+  /** dBm: the margin of the signal, not the link itself (frame losses decide that). Spektrum publishes no dBm limits. */
+  signalDbm: { steps: [-70, -80, -85], basis: "Own flights: ≈19 frame losses/min at −75…−80 dBm, ≈68 at −80…−85, ≈200 at −85…−90. Forum rule of thumb: below −85 dBm is poor reception." },
   /** Frame losses in the last 60 s. Any hold while airborne is level 1. */
-  frameLossesPerMinute: { steps: [20, 100, Infinity], basis: "Spektrum receiver manuals: up to ~100 per minute in the air is normal." },
+  frameLossesPerMinute: { steps: [20, 100, Infinity], basis: "Spektrum receiver manuals (e.g. AR8020T, AR10410T): \"In the air it's normal to experience as many as 100 frame losses per minute of flight.\"" },
   /** Link quality in % (e.g. CRSF/ELRS). Not researched yet; used only by future adapters. */
   linkQualityPct: { steps: [90, 70, 50], basis: "Placeholder until an EdgeTX adapter exists." },
   /** Volts at the receiver. */
@@ -35,6 +36,12 @@ export const THRESHOLDS = {
   /** Usual charge per minute in the air divided by this flight's (above 1 = used less than usual). */
   consumptionRatio: { steps: [1.1, 0.9, 0.7], basis: "Comparison with the other flights of the same model in the loaded files." },
 } satisfies Record<string, Scale>;
+
+/**
+ * A signal at or above this (dBm) counts as strong. Frame losses above the "high" level in the seconds with such a
+ * signal cannot come from distance: they point to the installation, antenna position or interference.
+ */
+export const STRONG_SIGNAL_DBM = -75;
 
 /** Level of a value on a scale. */
 export function rate(value: number | null, scale: Scale): Level | null {

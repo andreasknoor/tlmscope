@@ -63,7 +63,7 @@ export const CATALOGUE: CatalogueEntry[] = [
   e("signal_quality", "%", "link", "Signal quality", "Signalqualität", "Signal quality in percent as reported by the receiver (meaning differs per system)."),
   e("link_quality", "%", "link", "Link quality", "Verbindungsqualität", "Share of packets received (e.g. CRSF/ELRS LQ)."),
   e("frame_losses", "count", "link", "Frame losses", "Frame Losses", "Frames that no receiver got, counted since the session start.", { kind: "counter" }),
-  e("holds", "count", "link", "Holds", "Holds", "Failsafe events (45 frames in a row lost on every receiver, half a second or longer), counted since the session start.", { kind: "counter" }),
+  e("holds", "count", "link", "Holds", "Holds", "Failsafe events (45 frames in a row lost on every receiver, about half a second to a second depending on the system), counted since the session start.", { kind: "counter" }),
   e("fades.a", "count", "link", "Fades main receiver (A)", "Fades Hauptempfänger (A)", "Frames the main receiver missed (both its antennas count as one) since the session start. Usually the highest of the fade counters.", { kind: "counter" }),
   e("fades.b", "count", "link", "Fades remote receiver B", "Fades Satellit B", "Frames remote receiver B missed since the session start.", { kind: "counter" }),
   e("fades.l", "count", "link", "Fades remote receiver L", "Fades Satellit L", "Frames the left remote receiver missed since the session start.", { kind: "counter" }),

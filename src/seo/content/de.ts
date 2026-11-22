@@ -167,7 +167,7 @@ export const de: Content = {
             { t: "ul", items: [
               "**Frame Losses** sind Datenpakete, die kein Empfänger bekommen hat. Ein paar sind normal. Der Sender schickt etwa 91 Pakete pro Sekunde, 100 pro Minute sind also weniger als 2 % davon. TLMscope bewertet bis etwa 20 pro Minute als hohe Qualität und bis etwa 100 pro Minute in der Luft als normal, in Übereinstimmung mit den Spektrum-Empfängerhandbüchern. Entscheidend ist, wie schnell der Zähler in der Luft steigt, nicht seine Summe; am Boden steigt er ohnehin viel schneller.",
               "**Fades** zählen die Pakete, die ein einzelner Empfänger verpasst hat. A ist der Hauptempfänger (mit zwei Antennen zählen beide zusammen), B, L und R sind Satelliten. A ist meist am höchsten, weil der Hauptempfänger tief im Rumpf zwischen Kabeln, Akku und Regler sitzt. Vergleiche die Satelliten miteinander: Liegt einer weit über den anderen, ist er schlecht platziert. Bei nur einem Empfänger schau stattdessen auf die Frame Losses.",
-              "**Holds** sind eine halbe Sekunde oder länger ganz ohne Signal (45 Pakete in Folge, die kein Empfänger bekommen hat). Der Empfänger geht dann in seine Hold- oder Failsafe-Einstellung. Ein Hold im Flug bewertet die Funkverbindung immer als kritisch und ist in ihrem Zeitverlauf markiert.",
+              "**Holds** sind 45 Pakete in Folge, die kein Empfänger bekommen hat, je nach System etwa eine halbe bis eine Sekunde ganz ohne Signal. Der Empfänger geht dann in seine Hold- oder Failsafe-Einstellung. Ein Hold im Flug bewertet die Funkverbindung immer als kritisch und ist in ihrem Zeitverlauf markiert.",
             ] },
             { t: "note", text: "Diese Zähler beginnen bei null, wenn der Empfänger startet. TLMscope zeigt, was während der Sitzung passiert ist." },
             { t: "img", name: "link", alt: "Tab Funkverbindung eines Demo-Flugs: Funkverbindung hoch, Signalstärke normal, beide im Verlauf in Grün, Hellgrün und Gelb", caption: "Der Tab Funkverbindung: Grün ist gut, Gelb zeigt, wo das Signal schwach wurde." },
@@ -176,7 +176,7 @@ export const de: Content = {
         {
           h2: "Signalstärke",
           blocks: [
-            { t: "p", text: "Die Signalstärke am Empfänger wird in dBm angegeben: je näher an null, desto stärker. In den Beispielflügen von TLMscope stiegen die Frame Losses unterhalb von etwa −80 dBm stark an. Deshalb gelten −70 dBm oder besser als hoch, bis −80 dBm als normal, bis −85 dBm als schwach und alles darunter als kritisch." },
+            { t: "p", text: "Die Signalstärke am Empfänger wird in dBm angegeben: je näher an null, desto stärker. Spektrum nennt dafür keine Grenzwerte. In gemessenen Flügen stiegen die Frame Losses unterhalb von etwa −80 dBm stark an, unterhalb von −85 dBm im Schnitt auf über 100 pro Minute. TLMscope zeigt die Signalstärke deshalb als Reserve: −70 dBm oder besser ist viel Reserve, bis −80 dBm ausreichend, bis −85 dBm wenig und darunter kaum noch Reserve. Ob Steuerbefehle tatsächlich verloren gehen, zeigen die Frame Losses." },
             { t: "p", text: "Der Tab Funkverbindung zeigt das Signal über der Höhe, weil Höhe und Entfernung oft zusammenhängen. Unter „Im Verlauf“ zeigt ein Klick auf eine Stufe nur diese Sekunden, und du kannst von einer Stelle zur nächsten springen." },
           ],
         },
@@ -253,11 +253,11 @@ export const de: Content = {
       faq: [
         {
           q: "Wie viele Frame Losses sind bei einem Spektrum-Empfänger normal?",
-          a: "Die Spektrum-Empfängerhandbücher beschreiben bis etwa 100 pro Minute in der Luft als normal. TLMscope bewertet bis etwa 20 pro Minute als hohe Qualität. Holds, also eine halbe Sekunde oder länger ohne Signal, sollten nicht vorkommen.",
+          a: "Die Spektrum-Empfängerhandbücher beschreiben bis etwa 100 pro Minute in der Luft als normal. TLMscope bewertet bis etwa 20 pro Minute als hohe Qualität. Holds, also 45 Pakete in Folge ohne Signal, sollten nicht vorkommen.",
         },
         {
           q: "Was ist ein Hold in der Spektrum-Telemetrie?",
-          a: "Ein Hold ist eine halbe Sekunde oder länger ganz ohne Signal am Empfänger: 45 Pakete in Folge, die kein Empfänger bekommen hat. Der Empfänger geht dann in seine Hold- oder Failsafe-Einstellung. TLMscope bewertet einen Hold im Flug immer als kritisch.",
+          a: "Ein Hold sind 45 Pakete in Folge, die kein Empfänger bekommen hat, je nach System etwa eine halbe bis eine Sekunde ganz ohne Signal. Der Empfänger geht dann in seine Hold- oder Failsafe-Einstellung. TLMscope bewertet einen Hold im Flug immer als kritisch.",
         },
         {
           q: "Wann sollte ich einen LiPo-Akku ausmustern?",
@@ -447,7 +447,7 @@ export const de: Content = {
           { t: "ul", items: ["**Normal:** Die Spektrum-Empfängerhandbücher beschreiben bis etwa 100 pro Minute in der Luft als normal.", "**Hohe Qualität:** TLMscope bewertet bis etwa 20 pro Minute als hohe Qualität.", "**Holds**, also eine halbe Sekunde oder länger ohne Signal, sollten nicht vorkommen."] },
           { t: "p", text: "Mehr in [Deine Spektrum-Telemetrie verstehen](page:understand)." },
         ] },
-        { q: "Was ist ein Hold in der Spektrum-Telemetrie?", a: "Ein Hold ist eine halbe Sekunde oder länger ganz ohne Signal am Empfänger: 45 Pakete in Folge, die kein Empfänger bekommen hat. Der Empfänger geht dann in seine Hold- oder Failsafe-Einstellung. TLMscope bewertet einen Hold im Flug immer als kritisch." },
+        { q: "Was ist ein Hold in der Spektrum-Telemetrie?", a: "Ein Hold sind 45 Pakete in Folge, die kein Empfänger bekommen hat, je nach System etwa eine halbe bis eine Sekunde ganz ohne Signal. Der Empfänger geht dann in seine Hold- oder Failsafe-Einstellung. TLMscope bewertet einen Hold im Flug immer als kritisch." },
         { q: "Wann sollte ich einen LiPo-Akku ausmustern?", a: "Eine gängige Faustregel lautet, einen Akku auszumustern, wenn sein Innenwiderstand etwa 15 mΩ je Zelle erreicht. TLMscope schätzt diesen Wert aus dem Spannungseinbruch im Flug und verfolgt ihn bei Spektrum Smart-Akkus über mehrere Flüge." },
         { q: "Kann TLMscope meine Flugstunden je Modell zählen?", a: [
           { t: "p", text: "Ja, für die Logs, die du lädst. Über der Sitzungsliste addiert TLMscope die Zeit in der Luft der geladenen Flüge, für alle Modelle oder das gewählte. Es zählt nur die Zeit in der Luft: Pausen von zwei Minuten oder mehr am Boden zwischen zwei Flügen einer Sitzung bleiben außen vor. Haben Flüge weder Höhensensor noch GPS, wird ihre Zeit aus Motor und Bewegung des Modells geschätzt, und die Summe ist mit „≈“ markiert." },
@@ -461,7 +461,7 @@ export const de: Content = {
         { q: "Wie sehe ich, ob AS3X oder SAFE im Flug an war?", a: "Mit einem Empfänger mit AS3X oder SAFE enthält das Log den Flugmodus und welche Funktionen an waren. Der Tab **Modell** zeigt die Zeit in der Luft je Funktion (AS3X, SAFE, Heading Hold oder keine Stabilisierung) und je Flugmodus, den AS3X-Gain für Rollen, Nicken und Gieren sowie die Flugmodi im Zeitverlauf. Ein Gain von 0 heißt, dass AS3X gar nicht korrigiert hat, etwa wenn der Gain-Drehknopf ganz zurückgedreht war. Mehr in [Deine Spektrum-Telemetrie verstehen](page:understand)." },
         { q: "Was ist der Unterschied zwischen Hold und Brown-out?", a: [
           { t: "ul", items: [
-            "**Hold:** Die Funkverbindung war eine halbe Sekunde oder länger weg, der Empfänger ging in seine Hold- oder Failsafe-Einstellung. Die Empfängerspannung bleibt normal. TLMscope bewertet das bei der Funkverbindung.",
+            "**Hold:** Die Funkverbindung war 45 Pakete lang weg (etwa eine halbe bis eine Sekunde), der Empfänger ging in seine Hold- oder Failsafe-Einstellung. Die Empfängerspannung bleibt normal. TLMscope bewertet das bei der Funkverbindung.",
             "**Brown-out:** Die Spannung am Empfänger ist so weit gefallen, dass der Empfänger neu gestartet ist. Das ist ein Stromproblem, kein Funkproblem. Im Log zeigt es sich als Spannungseinbruch und meist als Lücke oder neue Sitzung, nicht als Hold.",
           ] },
           { t: "p", text: "Auch beim Abstecken des Akkus nach der Landung fällt die Spannung. TLMscope lässt diese Momente außen vor, damit sie nicht als Brown-out zählen." },
