@@ -261,6 +261,7 @@
     "battMax": "Battery max",
     "rx": "Receiver power",
     "rxHint": "Voltage for receiver and servos, without the moments of switching on and off.",
+    "levelsRx": "≥ 5.2 V steady · ≥ 4.8 V OK · ≥ 4.0 V dips. The Spektrum manuals ask to stay above 4.8 V under load; below 3.5 V the receiver browns out. 5.2 V and 4.0 V are steps set by TLMscope.",
     "rxMin": "Receiver min",
     "becMin": "BEC min",
     "style": "Flying style",

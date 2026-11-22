@@ -108,7 +108,7 @@ export function RxCard({ a, more }: { a: SessionAnalysis; more?: React.ReactNode
   const x = v(a.receiverPower);
   return (
     <RatingCard more={more} name={t("rx")} level={x?.level ?? null} word={word("rx", x?.level ?? null)} hint={x ? t("rxHint") : ""}
-      rows={x ? [[t("rxMin"), `${num(loc, x.rxMinV, 2)}\u00a0V`], [t("becMin"), `${num(loc, x.becMinV, 2)}\u00a0V`]] : null} />
+      rows={x ? [[t("rxMin"), `${num(loc, x.rxMinV, 2)}\u00a0V`], [t("becMin"), `${num(loc, x.becMinV, 2)}\u00a0V`], [t("levels"), t("levelsRx")]] : null} />
   );
 }
 

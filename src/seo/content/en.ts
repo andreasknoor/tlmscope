@@ -183,7 +183,7 @@ export const en: Content = {
         {
           h2: "Receiver voltage",
           blocks: [
-            { t: "p", text: "The voltage at the receiver should stay steady under load. TLMscope rates 5.2 V or more as steady, 4.8 V or more as OK, anything above 4.0 V as dips and below that as brown-out risk. Look for dips when several servos move at once. The moments of switching on and off, such as unplugging the battery after landing, are left out, so they do not look like a brown-out. The AR8360T manual asks to stay above 4.8 V under load, and receivers of this family drop out below about 3.5 V." },
+            { t: "p", text: "The voltage at the receiver should stay steady under load. TLMscope rates 5.2 V or more as steady, 4.8 V or more as OK, anything above 4.0 V as dips and below that as brown-out risk. Look for dips when several servos move at once. The moments of switching on and off, such as unplugging the battery after landing, are left out, so they do not look like a brown-out. The Spektrum manuals (for example AR8360T, AR9020, AR8020T) ask to stay above 4.8 V under load; below 3.5 V the receiver browns out. The steps at 5.2 V and 4.0 V are set by TLMscope in between, they do not come from Spektrum." },
           ],
         },
         {

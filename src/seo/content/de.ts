@@ -183,7 +183,7 @@ export const de: Content = {
         {
           h2: "Empfängerspannung",
           blocks: [
-            { t: "p", text: "Die Spannung am Empfänger sollte unter Last stabil bleiben. TLMscope bewertet 5,2 V oder mehr als stabil, 4,8 V oder mehr als OK, alles ab 4,0 V als Einbrüche und darunter als Ausfallgefahr. Achte auf Einbrüche, wenn sich mehrere Servos gleichzeitig bewegen. Die Momente beim Ein- und Ausschalten, etwa wenn der Akku nach der Landung abgesteckt wird, bleiben außen vor, damit sie nicht wie ein Brown-out aussehen. Das Handbuch des AR8360T verlangt, unter Last über 4,8 V zu bleiben, und Empfänger dieser Familie fallen unterhalb von etwa 3,5 V aus." },
+            { t: "p", text: "Die Spannung am Empfänger sollte unter Last stabil bleiben. TLMscope bewertet 5,2 V oder mehr als stabil, 4,8 V oder mehr als OK, alles ab 4,0 V als Einbrüche und darunter als Ausfallgefahr. Achte auf Einbrüche, wenn sich mehrere Servos gleichzeitig bewegen. Die Momente beim Ein- und Ausschalten, etwa wenn der Akku nach der Landung abgesteckt wird, bleiben außen vor, damit sie nicht wie ein Brown-out aussehen. Die Spektrum-Handbücher (etwa AR8360T, AR9020, AR8020T) verlangen, unter Last über 4,8 V zu bleiben; unterhalb von 3,5 V fällt der Empfänger aus. Die Stufen 5,2 V und 4,0 V hat TLMscope dazwischen gesetzt, sie stammen nicht von Spektrum." },
           ],
         },
         {

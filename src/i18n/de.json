@@ -261,6 +261,7 @@
     "battMax": "Akku max.",
     "rx": "Empfängerstrom",
     "rxHint": "Spannung für Empfänger und Servos, ohne die Momente beim Ein- und Ausschalten.",
+    "levelsRx": "≥ 5,2 V stabil · ≥ 4,8 V OK · ≥ 4,0 V Einbrüche. Laut den Spektrum-Handbüchern soll die Spannung unter Last über 4,8 V bleiben, unter 3,5 V fällt der Empfänger aus. 5,2 V und 4,0 V sind Zwischenstufen von TLMscope.",
     "rxMin": "Empfänger min.",
     "becMin": "BEC min.",
     "style": "Flugstil",

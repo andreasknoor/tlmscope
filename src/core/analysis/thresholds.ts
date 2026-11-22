@@ -20,7 +20,7 @@ export const THRESHOLDS = {
   /** Link quality in % (e.g. CRSF/ELRS). Not researched yet; used only by future adapters. */
   linkQualityPct: { steps: [90, 70, 50], basis: "Placeholder until an EdgeTX adapter exists." },
   /** Volts at the receiver. */
-  rxVoltage: { steps: [5.2, 4.8, 4.0], basis: "AR8360T manual: stay above 4.8 V under load; DSM receivers drop out below ~3.5 V." },
+  rxVoltage: { steps: [5.2, 4.8, 4.0], basis: "Spektrum receiver manuals (AR8360T, AR9020, AR8020T …): stay above 4.8 V with all servos loaded; below 3.5 V the receiver browns out. 5.2 V and 4.0 V are TLMscope's own steps in between, no source." },
   /** Percent of capacity used. */
   batteryUsedPct: { steps: [50, 70, 80], basis: "Common 80 % rule (hobby practice)." },
   /** Internal resistance per cell in mΩ, estimated from voltage sag in flight (includes wiring). */
