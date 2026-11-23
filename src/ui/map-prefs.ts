@@ -24,9 +24,11 @@ export interface MapPrefs {
   marker: MarkerStyle;
   shadow: boolean;
   relief: boolean;
+  /** The green thermal dots of the loaded flights. */
+  thermals: boolean;
 }
 
-export const MAP_DEFAULTS: MapPrefs = { colourBy: "phase", view: "3d", line: "thin", path: "full", marker: "plane", shadow: true, relief: false };
+export const MAP_DEFAULTS: MapPrefs = { colourBy: "phase", view: "3d", line: "thin", path: "full", marker: "plane", shadow: true, relief: false, thermals: true };
 
 const oneOf = <T,>(list: readonly T[], v: unknown, fallback: T): T => (list.includes(v as T) ? (v as T) : fallback);
 
@@ -43,5 +45,6 @@ export function readMapPrefs(saved: unknown): MapPrefs {
     marker: oneOf(MARKER_STYLES, s.marker, d.marker),
     shadow: typeof s.shadow === "boolean" ? s.shadow : d.shadow,
     relief: typeof s.relief === "boolean" ? s.relief : d.relief,
+    thermals: typeof s.thermals === "boolean" ? s.thermals : d.thermals,
   };
 }

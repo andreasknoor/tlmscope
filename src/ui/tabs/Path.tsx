@@ -33,6 +33,8 @@ export function dbmColor(v: number | null): string | null {
 
 /** Glide colour on the map. */
 const MAP_GLIDE = "--s-alt";
+/** Passed to the map when the thermal dots are off; one array, so the map layers are not rebuilt on every render. */
+const NO_SPOTS: { lat: number; lon: number; climb: number; own: boolean }[] = [];
 
 function GpsView() {
   const t = useTranslations();
@@ -57,12 +59,13 @@ function GpsView() {
   // The map options are saved settings, so they stay the same from flight to flight.
   const m = settings.map;
   const setMap = (patch: Partial<MapPrefs>) => setSettings({ map: { ...m, ...patch } });
-  const { colourBy, line: lineStyle, path: pathMode, marker: markerStyle, shadow } = m;
+  const { colourBy, line: lineStyle, path: pathMode, marker: markerStyle, shadow, thermals: showThermals } = m;
   const setColourBy = (colourBy: MapPrefs["colourBy"]) => setMap({ colourBy });
   const setLineStyle = (line: LineStyle) => setMap({ line });
   const setPathMode = (path: PathMode) => setMap({ path });
   const setMarkerStyle = (marker: MarkerStyle) => setMap({ marker });
   const setShadow = (shadow: boolean) => setMap({ shadow });
+  const setThermals = (thermals: boolean) => setMap({ thermals });
   /** How the map is viewed: from a tilted angle, from above, or with the camera following the model (always tilted). Following is not saved. */
   const [following, setFollowing] = useState(false);
   const view = following ? "follow" : m.view;
@@ -209,11 +212,16 @@ function GpsView() {
                   <label className="optrow" title={t("path.reliefHint")}><span>{t("path.relief")}</span>
                     <input type="checkbox" checked={relief} onChange={toggleRelief} /></label>
                 </details>
+                {spots.length > 0 && <details>
+                  <summary>{t("path.secThermals")}<small>{showThermals ? t("path.thermalsOn") : t("path.thermalsOff")}</small></summary>
+                  <label className="optrow" title={t("path.thermalDotsHint")}><span>{t("path.thermalDots")}</span>
+                    <input type="checkbox" checked={showThermals} onChange={() => setThermals(!showThermals)} /></label>
+                </details>}
               </div>}
             </div>
           </div>}
           <div className="mapwrap">
-            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={spots} events={colourBy === "signal" ? linkEvents : undefined} onEvent={showEvent} relief={relief} chase={chase} onChaseEnd={() => chooseView("3d")} onGround={setAgl} failedText={t("path.mapFailed")}
+            {!online ? <div className="card empty" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>{t("path.mapOffline")}</div> : <FlightMap track={tr} height={alt} colorAt={colorAt} marker={marker} pitch={pitch} lineStyle={lineStyle} pathMode={pathMode} markerStyle={markerStyle} shadow={shadow} flapping={flapping} air={air} spots={showThermals ? spots : NO_SPOTS} events={colourBy === "signal" ? linkEvents : undefined} onEvent={showEvent} relief={relief} chase={chase} onChaseEnd={() => chooseView("3d")} onGround={setAgl} failedText={t("path.mapFailed")}
               cooperative={{ on: !full, windows: t("path.zoomCtrl"), mac: t("path.zoomCmd"), mobile: t("path.twoFingers") }} />}
             {online && (relief || chase) && marker !== null && (
               <div className="hud" aria-label={t("path.hud")}>
@@ -241,7 +249,7 @@ function GpsView() {
           </>
         )}
       </div>
-      {online && spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
+      {online && showThermals && spots.length > 0 && <p className="hint">{t("thermals.mapLegend")}</p>}
       <Replay a={a} syncKey={e!.key} clatter={markerStyle === "stork"} />
       </div>
       {hasLink && (

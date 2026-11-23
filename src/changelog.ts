@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.26", date: "2026-11-23", changes: [["new", "The green thermal dots on the map can be switched off in the map tools."]] },
   { version: "2.25", date: "2026-11-22", changes: [["fix", "Rating cards show their levels and sources below the values, so narrow cards no longer break."]] },
   { version: "2.24", date: "2026-11-22", changes: [
     ["fix", "Battery condition: internal-resistance limits scale with the pack's capacity, sources named."],
