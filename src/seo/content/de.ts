@@ -470,6 +470,17 @@ export const de: Content = {
         { q: "Warum hat mein Log Lücken, wenn das Modell weit weg ist?", a: "Die Telemetrie reicht oft weniger weit als die Steuerung. Manche Spektrum-Empfänger senden Telemetrie nur über kurze Entfernung, etwa 100 bis 150 m. Darüber hinaus hat das Log Lücken oder ändert sich nicht mehr, während das Modell weiter steuerbar ist. Eine Lücke allein ist also kein Verlust der Kontrolle. Der Empfänger zählt Frame Losses und Holds weiter, schau sie dir an, sobald die Telemetrie wieder da ist." },
         { q: "Kann TLMscope die Höhe ohne Vario zeigen?", a: "Ja, mit einem Spektrum-GPS-Sensor. TLMscope nimmt dann die Höhe über dem Startplatz aus der GPS-Höhe und zeigt den höchsten Punkt und das Höhenprofil. Die GPS-Höhe ist ungenauer, etwa ±5 bis 10 m, deshalb brauchen Steigflüge, Aufwind und Gleitflug weiterhin ein Vario. Ohne Vario und ohne GPS bleibt die Höhe leer, und die Zeit in der Luft wird aus Motor und Bewegung des Modells geschätzt." },
         { q: "Ist TLMscope kostenlos, und stammt es von Spektrum?", a: "TLMscope ist kostenlos, braucht kein Konto und ist ein unabhängiges Hobbyprojekt eines Modellfliegers. Es wird nicht von Spektrum oder Horizon Hobby hergestellt oder unterstützt. Wie es sich zu anderen Viewern verhält, steht in [Spektrum-TLM-Viewer im Vergleich](page:compare)." },
+        { q: "Wie lerne ich neue Flugmanöver, zum Beispiel Messerflug oder Hover?", a: [
+          { t: "p", text: "Langsam und in kleinen Schritten. Lerne zuerst die Knüppelbewegungen und fliege sie dann hoch oben und mit viel Platz um dich herum." },
+          { t: "ul", items: [
+            "**Erst die Bewegungen kennen.** Wisse bei jeder Figur, welcher Knüppel wann und in welcher Reihenfolge was tut, bevor du sie fliegst.",
+            "**Im Simulator üben.** Fehler kosten dort nichts, und du kannst eine Figur beliebig oft wiederholen.",
+            "**Real mit Höhe und Platz fliegen.** Fange hoch an, mit Abstand um das Modell und weg von Menschen, und füge immer nur eine neue Sache hinzu.",
+            "**Einen erfahrenen Piloten fragen**, ob er zuschaut oder dein Modell einmal durch die Figur fliegt.",
+            "**Den Flug hinterher ansehen.** Das Log zeigt, wie stark das Modell belastet wurde und wie Funkstrecke und Akku durchgehalten haben.",
+          ] },
+          { t: "p", text: "Wie sich Modell und beide Knüppel gemeinsam in Zeitlupe bewegen, zeigt als ein Beispiel [StickScope](https://stickscope.andreasknoor.com): ein unabhängiger Trainer vom selben Autor für 3D-Figuren wie Messerflug und Hover. Die Werte sind Richtwerte und ersetzen weder Simulator noch Fluglehrer." },
+        ] },
         { q: "Gibt es eine Alternative zu TLM Viewer?", a: [
           { t: "p", text: "Ja. Die wichtigsten Möglichkeiten:" },
           { t: "ul", items: ["**TLM Viewer:** ein bewährtes, quelloffenes Windows-Programm mit Export nach CSV und KML.", "**TLMscope:** kostenlos, läuft im Browser auf jedem Gerät, erklärt jeden Flug in einfachen Worten und exportiert die Sitzungsliste als CSV.", "**Log Explorer:** ein kostenpflichtiges Desktop-Programm, das auch andere Fernsteuersysteme liest."] },

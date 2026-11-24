@@ -470,6 +470,17 @@ export const en: Content = {
         { q: "Why does my log have gaps when the model is far away?", a: "Telemetry often reaches less far than the control link. Some Spektrum receivers send telemetry only over a short range, about 100 to 150 m. Beyond that the log has gaps or stops changing while the model is still under control. A gap alone is therefore no loss of control. The receiver keeps counting frame losses and holds, so look at them once the telemetry is back." },
         { q: "Can TLMscope show the height without a vario?", a: "Yes, with a Spektrum GPS sensor. TLMscope then takes the height above the take-off spot from the GPS altitude and shows the highest point and the height profile. GPS height is less exact, about ±5 to 10 m, so climbs, lift and glide still need a vario. Without a vario and without GPS the height stays empty, and the time in the air is estimated from the motor and the model's movement." },
         { q: "Is TLMscope free, and is it made by Spektrum?", a: "TLMscope is free, needs no account and is an independent hobby project by a model flyer. It is not made or endorsed by Spektrum or Horizon Hobby. How it compares with other viewers is in [Spektrum TLM viewers compared](page:compare)." },
+        { q: "How do I learn new flight manoeuvres, such as knife edge or hover?", a: [
+          { t: "p", text: "Slowly and in small steps. Learn the stick movements first, then fly them high up and with room around you." },
+          { t: "ul", items: [
+            "**Know the movements first.** For each figure, know which stick does what, at which moment and in which order, before you fly it.",
+            "**Practise in a simulator.** Mistakes cost nothing there and you can repeat a figure as often as you like.",
+            "**Fly it for real with height and room.** Start high, with space around the model and away from people, and add only one new thing at a time.",
+            "**Ask an experienced pilot** to watch, or to fly your model through the figure once.",
+            "**Look at the flight afterwards.** The log shows how hard the model was loaded and how the radio link and the battery held up.",
+          ] },
+          { t: "p", text: "To see how the model and both sticks move together in slow motion, [StickScope](https://stickscope.andreasknoor.com) is one example: an independent trainer from the same author for 3D figures such as knife edge and hover. Its values are rules of thumb and no replacement for a simulator or an instructor." },
+        ] },
         { q: "Is there an alternative to TLM Viewer?", a: [
           { t: "p", text: "Yes. The main options:" },
           { t: "ul", items: ["**TLM Viewer:** a long-standing, open-source Windows program with export to CSV and KML.", "**TLMscope:** free, runs in the browser on any device, explains each flight in plain words and exports the session list as CSV.", "**Log Explorer:** a paid desktop program that also reads other radio systems."] },
