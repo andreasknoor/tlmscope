@@ -10,7 +10,7 @@ export const de: Content = {
       text: "Öffne TLMscope und lege deine .TLM-Datei auf der Seite ab oder lade den Demo-Flug. Alles läuft in deinem Browser, deine Dateien werden nie hochgeladen.",
       button: "TLMscope öffnen",
     },
-    footer: { by: "TLMscope von Andreas Knoor", source: "Quellcode", notAffiliated: "Nicht mit Spektrum verbunden", legal: "Impressum & Datenschutz" },
+    footer: { by: "TLMscope von Andreas Knoor", source: "Quellcode", notAffiliated: "Nicht mit Spektrum verbunden", legal: "Impressum & Datenschutz", stickscope: { label: "StickScope", title: "StickScope: 3D-Figuren in Zeitlupe, vom selben Autor" } },
     nav: { open: "TLM-Dateien öffnen", understand: "Telemetrie verstehen", radios: "Unterstützte Sender", help: "Hilfe", faq: "Häufige Fragen", compare: "Vergleich" },
     faq: "Häufige Fragen",
     linkToQuestion: "Link zu dieser Frage",
@@ -228,6 +228,7 @@ export const de: Content = {
           h2: "Stabilisierung und Flugmodi",
           blocks: [
             { t: "p", text: "Empfänger mit AS3X oder SAFE melden auch den Flugmodus und welche Funktionen an sind: AS3X, SAFE und Heading Hold. Der Tab Modell zeigt die Zeit in der Luft je Funktion und je Flugmodus sowie den AS3X-Gain für Rollen, Nicken und Gieren. Ein Gain von 0 heißt, dass AS3X gar nicht korrigiert." },
+            { t: "p", text: "Wie sich Knüppel und Ruder bei 3D-Figuren wie Messerflug oder Hover bewegen, zeigt [StickScope](https://stickscope.andreasknoor.com), ein Zeitlupen-Trainer vom selben Autor." },
           ],
         },
         {

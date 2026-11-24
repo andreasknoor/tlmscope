@@ -42,7 +42,7 @@ export interface Chrome {
   guides: string;
   switchTo: { label: string; title: string };
   cta: { title: string; text: string; button: string };
-  footer: { by: string; source: string; notAffiliated: string; legal: string };
+  footer: { by: string; source: string; notAffiliated: string; legal: string; stickscope: { label: string; title: string } };
   skip: string;
   /** Short names of the guides for the navigation. */
   nav: Record<PageId, string>;

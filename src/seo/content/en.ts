@@ -10,7 +10,7 @@ export const en: Content = {
       text: "Open TLMscope and drop your .TLM file onto the page, or load the demo flight. Everything runs in your browser; your files are never uploaded.",
       button: "Open TLMscope",
     },
-    footer: { by: "TLMscope by Andreas Knoor", source: "Source code", notAffiliated: "Not affiliated with Spektrum", legal: "Imprint & privacy" },
+    footer: { by: "TLMscope by Andreas Knoor", source: "Source code", notAffiliated: "Not affiliated with Spektrum", legal: "Imprint & privacy", stickscope: { label: "StickScope", title: "StickScope: 3D figures in slow motion, from the same author" } },
     nav: { open: "Open TLM files", understand: "Understand telemetry", radios: "Supported radios", help: "Help", faq: "FAQ", compare: "Compare" },
     faq: "Frequently asked questions",
     linkToQuestion: "Link to this question",
@@ -228,6 +228,7 @@ export const en: Content = {
           h2: "Stabilization and flight modes",
           blocks: [
             { t: "p", text: "Receivers with AS3X or SAFE also report the flight mode and which functions are on: AS3X, SAFE and heading hold. The Aircraft tab shows the time in the air per function and per flight mode, and the AS3X gain for roll, pitch and yaw. A gain of 0 means AS3X does not correct at all." },
+            { t: "p", text: "To see how the sticks and control surfaces move in 3D figures such as knife edge or hover, try [StickScope](https://stickscope.andreasknoor.com), a slow-motion trainer from the same author." },
           ],
         },
         {

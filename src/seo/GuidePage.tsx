@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { REPO_URL } from "../legal/contact.ts";
+import { REPO_URL, STICKSCOPE_URL } from "../legal/contact.ts";
 import { Logo, Wordmark } from "../ui/brand";
 import { CONTENT } from "./content/index.ts";
 import { Inline } from "./Inline";
@@ -65,6 +65,7 @@ export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
         <span>{c.chrome.footer.by}</span>
         <a href={REPO_URL} target="_blank" rel="noopener noreferrer">{c.chrome.footer.source}</a>
         <span>{c.chrome.footer.notAffiliated}</span>
+        <a href={STICKSCOPE_URL} target="_blank" rel="noopener noreferrer" title={c.chrome.footer.stickscope.title}>{c.chrome.footer.stickscope.label}</a>
         <Link href={legalPath(lang)}>{c.chrome.footer.legal}</Link>
       </footer>
     </>

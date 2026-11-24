@@ -96,7 +96,8 @@ describe("the move to www.tlmscope.com", () => {
     for (const d of ["src", "cli", "public", "prototype"]) walk(d);
     const hits = [...files, "vercel.json", "README.md", "CLAUDE.md"]
       .filter((f) => /\.(ts|tsx|js|json|html|md|txt|css)$/.test(f) && !f.startsWith("public/maplibre") && f !== "public/debug.html")
-      .filter((f) => readFileSync(f, "utf8").includes("andreasknoor.com"))
+      // Only the old TLMscope host: other addresses of the same owner (StickScope) may be linked.
+      .filter((f) => readFileSync(f, "utf8").includes("tlmscope.andreasknoor.com"))
       .filter((f) => !allowed.has(f) && !(f === "CLAUDE.md"));
     expect(hits).toEqual([]);
   });

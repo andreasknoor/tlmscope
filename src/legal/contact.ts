@@ -13,5 +13,8 @@ export const OPERATOR = {
 
 export const REPO_URL = "https://github.com/andreasknoor/tlmscope";
 
+/** StickScope, the slow-motion trainer for 3D figures by the same author; linked from the footer and one guide. */
+export const STICKSCOPE_URL = "https://stickscope.andreasknoor.com";
+
 /** Date the privacy policy was last checked. */
 export const PRIVACY_DATE = { de: "November 2026", en: "November 2026" } as const;

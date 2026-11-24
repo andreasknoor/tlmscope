@@ -20,7 +20,7 @@ import { useStore, useUnits, type Entry, type Model } from "./store";
 import { FeedbackButton, FeedbackLink, OfflineBadge, SettingsButton, useAirtime } from "./bits";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { track } from "./analytics";
-import { OPERATOR, REPO_URL } from "@/legal/contact";
+import { OPERATOR, REPO_URL, STICKSCOPE_URL } from "@/legal/contact";
 import { WhatsNew } from "./WhatsNew";
 import { MovedNotice } from "./MovedNotice";
 import { PHASE_COLOR } from "./charts/LineChart";
@@ -340,6 +340,7 @@ function Footer({ offline }: { offline: boolean }) {
       {offline && <span title={t("offlineHint")}>{t("offline")}</span>}
       <a href={REPO_URL} target="_blank" rel="noopener noreferrer">{t("source")}</a>
       <span>{t("notAffiliated")}</span>
+      <a href={STICKSCOPE_URL} target="_blank" rel="noopener noreferrer" title={t("stickscopeHint")}>StickScope</a>
       <Link href="/changelog">{t("changelog")}</Link>
       <a href={`/legal#${settings.locale}`}>{t("legal")}</a>
     </footer>
