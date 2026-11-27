@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { LINK, resolveTarget, TOKEN } from "./markup.ts";
 import type { Lang } from "./pages.ts";
+import { SUPPORT_URL } from "../legal/contact.ts";
+import { eventAttrs } from "../ui/analytics.ts";
 
 /**
  * Handles a link to another guide or the home page itself instead of loading that page; the app uses it to
@@ -18,7 +20,10 @@ export function Inline({ text, lang, go }: { text: string; lang: Lang; go?: Guid
         if (link) {
           const to = resolveTarget(lang, link[2]);
           if (!to) return <Fragment key={i}>{link[1]}</Fragment>;
-          if (to.external) return <a key={i} href={to.href} target="_blank" rel="noopener noreferrer">{link[1]}</a>;
+          if (to.external) {
+            const counted = to.href.startsWith(SUPPORT_URL) ? eventAttrs({ name: "support-opened", from: "faq" }) : {};
+            return <a key={i} href={to.href} target="_blank" rel="noopener noreferrer" {...counted}>{link[1]}</a>;
+          }
           if (go) {
             // A plain click stays in the app; a click with a modifier key opens the page in a new tab as usual.
             return <a key={i} href={to.href} target="_blank" rel="noopener" onClick={(e) => {

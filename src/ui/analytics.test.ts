@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseLog } from "../core/adapters/registry.ts";
 import { demoFlightTlm } from "../core/demo/demo-flight.ts";
-import { eventData, sizeBucket } from "./analytics.ts";
+import { eventAttrs, eventData, sizeBucket } from "./analytics.ts";
 
 describe("usage events", () => {
   it("put files into coarse size classes", () => {
@@ -14,6 +14,11 @@ describe("usage events", () => {
     expect(sent).toBe(JSON.stringify({ format: "spektrum-tlm", size: "<1 MB" }));
     expect(sent).not.toContain("Secret");
     expect(sent).not.toContain(log.sessions[0].modelName!);
+  });
+
+  it("become data attributes for links", () => {
+    expect(eventAttrs({ name: "support-opened", from: "faq" })).toEqual({ "data-umami-event": "support-opened", "data-umami-event-from": "faq" });
+    expect(eventAttrs({ name: "demo-loaded" })).toEqual({ "data-umami-event": "demo-loaded" });
   });
 
   it("send no data for events without details", () => {

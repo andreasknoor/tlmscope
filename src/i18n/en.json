@@ -621,6 +621,8 @@
   "feedback": {
     "title": "Feedback",
     "intro": "Tell me what is wrong, missing or unclear, or what you like. I read every message.",
+    "coffee": "Like TLMscope?",
+    "coffeeLink": "Buy me a coffee ☕",
     "contextTitle": "Details that help me",
     "contextCheck": "Send these details with my message",
     "ctxVersion": "App version",
@@ -655,6 +657,8 @@
     "source": "Source code",
     "notAffiliated": "Not affiliated with Spektrum",
     "stickscopeHint": "StickScope: 3D figures in slow motion, from the same author",
+    "support": "☕ Support",
+    "supportHint": "Like TLMscope? Buy me a coffee",
     "changelog": "Changelog",
     "legal": "Imprint & privacy",
     "offline": "Works offline",

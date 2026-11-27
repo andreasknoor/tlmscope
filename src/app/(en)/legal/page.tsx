@@ -74,7 +74,7 @@ export default function LegalPage() {
           Umami setzt keine Cookies und speichert keine IP-Adressen. Erfasst werden die aufgerufene Seite (ohne die Teile hinter „#“ und „?“), die verweisende Seite,
           Browser, Betriebssystem, Gerätetyp, Bildschirmgröße, Sprache und das aus der IP-Adresse abgeleitete Land. Daraus entstehen nur zusammengefasste Statistiken;
           einzelne Besucher lassen sich damit nicht identifizieren. Außerdem zähle ich einige Bedienschritte ohne Bezug zum Inhalt: Demo geladen, Datei geöffnet
-          (nur Dateiformat und grobe Größenklasse), Datei konnte nicht gelesen werden (nur die Art des Fehlers), Ansicht konnte nicht angezeigt werden, welcher Tab geöffnet wurde und von welcher Stelle der App aus das Feedback-Formular geöffnet wurde (ohne Inhalt).
+          (nur Dateiformat und grobe Größenklasse), Datei konnte nicht gelesen werden (nur die Art des Fehlers), Ansicht konnte nicht angezeigt werden, welcher Tab geöffnet wurde von welcher Stelle der App aus das Feedback-Formular geöffnet wurde (ohne Inhalt) und von welcher Stelle aus der Link „Unterstützen“ angeklickt wurde (nicht, ob oder wie viel bezahlt wurde).
           Namen, Inhalte oder Werte deiner Log-Dateien werden nicht übertragen.
           Wenn dein Browser „Do Not Track“ sendet, wird nichts gezählt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer anonymen Nutzungsstatistik).
           Die Daten können in die USA übermittelt werden.
@@ -115,6 +115,7 @@ export default function LegalPage() {
 
         <h2>9. Externe Links</h2>
         <p>Links, z. B. zum Quellcode auf GitHub, führen zu Angeboten anderer Anbieter. Dort gelten deren Datenschutzbestimmungen.</p>
+        <p>Der Link „Unterstützen“ („Spendier mir einen Kaffee“) führt zu Buy Me a Coffee ({ext("https://buymeacoffee.com/privacy-policy", "Datenschutzerklärung")}). Erst mit dem Klick entsteht eine Verbindung dorthin; eine Zahlung wickelt Buy Me a Coffee ab. TLMscope selbst erfährt davon nichts.</p>
 
         <h2>10. Deine Rechte</h2>
         <p>
@@ -174,7 +175,7 @@ export default function LegalPage() {
           Umami sets no cookies and stores no IP addresses. It records the page visited (without the parts after “#” and “?”), the referring page,
           browser, operating system, device type, screen size, language and the country derived from the IP address. Only aggregated statistics result;
           individual visitors cannot be identified from them. I also count a few actions, unrelated to content: demo loaded, file opened
-          (only the file format and a rough size class), file could not be read (only the kind of error), view could not be shown, which tab was opened, and from which place in the app the feedback form was opened (without any content).
+          (only the file format and a rough size class), file could not be read (only the kind of error), view could not be shown, which tab was opened, from which place in the app the feedback form was opened (without any content), and from which place the “Support” link was clicked (not whether or how much was paid).
           Names, contents or values of your log files are not sent.
           If your browser sends “Do Not Track”, nothing is counted. Legal basis: Art. 6(1)(f) GDPR (legitimate interest in anonymous usage statistics).
           The data may be transferred to the USA.
@@ -215,6 +216,7 @@ export default function LegalPage() {
 
         <h2>9. External links</h2>
         <p>Links, for example to the source code on GitHub, lead to other providers. Their privacy policies apply there.</p>
+        <p>The “Support” link (“Buy me a coffee”) leads to Buy Me a Coffee ({ext("https://buymeacoffee.com/privacy-policy", "privacy policy")}). Only the click connects you to it; any payment is handled by Buy Me a Coffee. TLMscope itself learns nothing about it.</p>
 
         <h2>10. Your rights</h2>
         <p>

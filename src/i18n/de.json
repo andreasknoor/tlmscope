@@ -621,6 +621,8 @@
   "feedback": {
     "title": "Feedback",
     "intro": "Sag mir, was nicht stimmt, was fehlt, was unklar ist oder was dir gefällt. Ich lese jede Nachricht.",
+    "coffee": "Gefällt dir TLMscope?",
+    "coffeeLink": "Spendier mir einen Kaffee ☕",
     "contextTitle": "Angaben, die mir helfen",
     "contextCheck": "Diese Angaben mit meiner Nachricht senden",
     "ctxVersion": "App-Version",
@@ -655,6 +657,8 @@
     "source": "Quellcode",
     "notAffiliated": "Nicht mit Spektrum verbunden",
     "stickscopeHint": "StickScope: 3D-Figuren in Zeitlupe, vom selben Autor",
+    "support": "☕ Unterstützen",
+    "supportHint": "Gefällt dir TLMscope? Spendier mir einen Kaffee",
     "changelog": "Änderungen",
     "legal": "Impressum & Datenschutz",
     "offline": "Funktioniert offline",

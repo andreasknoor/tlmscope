@@ -24,7 +24,7 @@ export const UPDATED: Record<PageId, string> = {
   understand: "2026-11-24",
   radios: "2026-11-20",
   help: "2026-11-21",
-  faq: "2026-11-24",
+  faq: "2026-11-27",
   compare: "2026-11-18",
 };
 

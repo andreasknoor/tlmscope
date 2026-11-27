@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useState, type RefObject } from "react";
 import { feedbackContext, feedbackUrl, type FeedbackFrom } from "../feedback";
+import { supportUrl } from "@/legal/contact";
+import { eventAttrs } from "../analytics";
 import { useOnline } from "../offline";
 import { useStore } from "../store";
 
@@ -60,6 +62,7 @@ function FeedbackBody({ from }: { from: FeedbackFrom }) {
   return (
     <>
       <p>{t("intro")}</p>
+      <p className="hint">{t("coffee")} <a href={supportUrl(locale)} target="_blank" rel="noopener noreferrer" {...eventAttrs({ name: "support-opened", from: "feedback" })}>{t("coffeeLink")}</a></p>
       <h3>{t("contextTitle")}</h3>
       <dl className="ctx">{rows.map(([k, v]) => <div key={k} style={{ display: "contents" }}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
       <label className="check"><input type="checkbox" checked={withContext} onChange={(e) => setWithContext(e.target.checked)} /> {t("contextCheck")}</label>

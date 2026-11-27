@@ -10,7 +10,7 @@ export const en: Content = {
       text: "Open TLMscope and drop your .TLM file onto the page, or load the demo flight. Everything runs in your browser; your files are never uploaded.",
       button: "Open TLMscope",
     },
-    footer: { by: "TLMscope by Andreas Knoor", source: "Source code", notAffiliated: "Not affiliated with Spektrum", legal: "Imprint & privacy", stickscope: { label: "StickScope", title: "StickScope: 3D figures in slow motion, from the same author" } },
+    footer: { by: "TLMscope by Andreas Knoor", source: "Source code", notAffiliated: "Not affiliated with Spektrum", legal: "Imprint & privacy", stickscope: { label: "StickScope", title: "StickScope: 3D figures in slow motion, from the same author" }, support: { label: "☕ Support", title: "Like TLMscope? Buy me a coffee" } },
     nav: { open: "Open TLM files", understand: "Understand telemetry", radios: "Supported radios", help: "Help", faq: "FAQ", compare: "Compare" },
     faq: "Frequently asked questions",
     linkToQuestion: "Link to this question",
@@ -469,7 +469,7 @@ export const en: Content = {
         ] },
         { q: "Why does my log have gaps when the model is far away?", a: "Telemetry often reaches less far than the control link. Some Spektrum receivers send telemetry only over a short range, about 100 to 150 m. Beyond that the log has gaps or stops changing while the model is still under control. A gap alone is therefore no loss of control. The receiver keeps counting frame losses and holds, so look at them once the telemetry is back." },
         { q: "Can TLMscope show the height without a vario?", a: "Yes, with a Spektrum GPS sensor. TLMscope then takes the height above the take-off spot from the GPS altitude and shows the highest point and the height profile. GPS height is less exact, about ±5 to 10 m, so climbs, lift and glide still need a vario. Without a vario and without GPS the height stays empty, and the time in the air is estimated from the motor and the model's movement." },
-        { q: "Is TLMscope free, and is it made by Spektrum?", a: "TLMscope is free, needs no account and is an independent hobby project by a model flyer. It is not made or endorsed by Spektrum or Horizon Hobby. How it compares with other viewers is in [Spektrum TLM viewers compared](page:compare)." },
+        { q: "Is TLMscope free, and is it made by Spektrum?", a: "TLMscope is free, needs no account and is an independent hobby project by a model flyer. It is not made or endorsed by Spektrum or Horizon Hobby. TLMscope stays free; if you like, you can [buy me a coffee](https://buymeacoffee.com/andreasknoor?l=en). How it compares with other viewers is in [Spektrum TLM viewers compared](page:compare)." },
         { q: "How do I learn new flight manoeuvres, such as knife edge or hover?", a: [
           { t: "p", text: "Slowly and in small steps. Learn the stick movements first, then fly them high up and with room around you." },
           { t: "ul", items: [

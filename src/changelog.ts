@@ -20,6 +20,7 @@ export interface Release {
 }
 
 export const CHANGELOG: Release[] = [
+  { version: "2.29", date: "2026-11-27", changes: [["new", "A quiet \"Buy me a coffee\" link in the footer, the feedback dialog and the FAQ."]] },
   { version: "2.28", date: "2026-11-24", changes: [["new", "FAQ: how to learn new flight manoeuvres, with StickScope as one example."]] },
   { version: "2.27", date: "2026-11-24", changes: [["new", "Link to StickScope, a slow-motion trainer for 3D figures, in the footer and the guide on telemetry."]] },
   { version: "2.26", date: "2026-11-23", changes: [["new", "The green thermal dots on the map can be switched off in the map tools."]] },

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { REPO_URL, STICKSCOPE_URL } from "../legal/contact.ts";
+import { REPO_URL, STICKSCOPE_URL, supportUrl } from "../legal/contact.ts";
+import { eventAttrs } from "../ui/analytics.ts";
 import { Logo, Wordmark } from "../ui/brand";
 import { CONTENT } from "./content/index.ts";
 import { Inline } from "./Inline";
@@ -66,6 +67,7 @@ export function GuidePage({ lang, id }: { lang: Lang; id: PageId }) {
         <a href={REPO_URL} target="_blank" rel="noopener noreferrer">{c.chrome.footer.source}</a>
         <span>{c.chrome.footer.notAffiliated}</span>
         <a href={STICKSCOPE_URL} target="_blank" rel="noopener noreferrer" title={c.chrome.footer.stickscope.title}>{c.chrome.footer.stickscope.label}</a>
+        <a href={supportUrl(lang)} target="_blank" rel="noopener noreferrer" title={c.chrome.footer.support.title} {...eventAttrs({ name: "support-opened", from: "footer" })}>{c.chrome.footer.support.label}</a>
         <Link href={legalPath(lang)}>{c.chrome.footer.legal}</Link>
       </footer>
     </>

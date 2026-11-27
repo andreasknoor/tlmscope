@@ -10,7 +10,7 @@ export const de: Content = {
       text: "Öffne TLMscope und lege deine .TLM-Datei auf der Seite ab oder lade den Demo-Flug. Alles läuft in deinem Browser, deine Dateien werden nie hochgeladen.",
       button: "TLMscope öffnen",
     },
-    footer: { by: "TLMscope von Andreas Knoor", source: "Quellcode", notAffiliated: "Nicht mit Spektrum verbunden", legal: "Impressum & Datenschutz", stickscope: { label: "StickScope", title: "StickScope: 3D-Figuren in Zeitlupe, vom selben Autor" } },
+    footer: { by: "TLMscope von Andreas Knoor", source: "Quellcode", notAffiliated: "Nicht mit Spektrum verbunden", legal: "Impressum & Datenschutz", stickscope: { label: "StickScope", title: "StickScope: 3D-Figuren in Zeitlupe, vom selben Autor" }, support: { label: "☕ Unterstützen", title: "Gefällt dir TLMscope? Spendier mir einen Kaffee" } },
     nav: { open: "TLM-Dateien öffnen", understand: "Telemetrie verstehen", radios: "Unterstützte Sender", help: "Hilfe", faq: "Häufige Fragen", compare: "Vergleich" },
     faq: "Häufige Fragen",
     linkToQuestion: "Link zu dieser Frage",
@@ -469,7 +469,7 @@ export const de: Content = {
         ] },
         { q: "Warum hat mein Log Lücken, wenn das Modell weit weg ist?", a: "Die Telemetrie reicht oft weniger weit als die Steuerung. Manche Spektrum-Empfänger senden Telemetrie nur über kurze Entfernung, etwa 100 bis 150 m. Darüber hinaus hat das Log Lücken oder ändert sich nicht mehr, während das Modell weiter steuerbar ist. Eine Lücke allein ist also kein Verlust der Kontrolle. Der Empfänger zählt Frame Losses und Holds weiter, schau sie dir an, sobald die Telemetrie wieder da ist." },
         { q: "Kann TLMscope die Höhe ohne Vario zeigen?", a: "Ja, mit einem Spektrum-GPS-Sensor. TLMscope nimmt dann die Höhe über dem Startplatz aus der GPS-Höhe und zeigt den höchsten Punkt und das Höhenprofil. Die GPS-Höhe ist ungenauer, etwa ±5 bis 10 m, deshalb brauchen Steigflüge, Aufwind und Gleitflug weiterhin ein Vario. Ohne Vario und ohne GPS bleibt die Höhe leer, und die Zeit in der Luft wird aus Motor und Bewegung des Modells geschätzt." },
-        { q: "Ist TLMscope kostenlos, und stammt es von Spektrum?", a: "TLMscope ist kostenlos, braucht kein Konto und ist ein unabhängiges Hobbyprojekt eines Modellfliegers. Es wird nicht von Spektrum oder Horizon Hobby hergestellt oder unterstützt. Wie es sich zu anderen Viewern verhält, steht in [Spektrum-TLM-Viewer im Vergleich](page:compare)." },
+        { q: "Ist TLMscope kostenlos, und stammt es von Spektrum?", a: "TLMscope ist kostenlos, braucht kein Konto und ist ein unabhängiges Hobbyprojekt eines Modellfliegers. Es wird nicht von Spektrum oder Horizon Hobby hergestellt oder unterstützt. TLMscope bleibt kostenlos; wenn du möchtest, kannst du mir [einen Kaffee spendieren](https://buymeacoffee.com/andreasknoor?l=de). Wie es sich zu anderen Viewern verhält, steht in [Spektrum-TLM-Viewer im Vergleich](page:compare)." },
         { q: "Wie lerne ich neue Flugmanöver, zum Beispiel Messerflug oder Hover?", a: [
           { t: "p", text: "Langsam und in kleinen Schritten. Lerne zuerst die Knüppelbewegungen und fliege sie dann hoch oben und mit viel Platz um dich herum." },
           { t: "ul", items: [
